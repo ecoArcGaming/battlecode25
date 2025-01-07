@@ -119,32 +119,27 @@ public class RobotPlayer {
             rc.buildRobot(UnitType.SOLDIER, spawnBotLocation);
             rc.sendMessage(spawnBotLocation, 1);
             System.out.println("BUILT ROUND 1");
-        } else if (rc.getRoundNum() == 2){
-            if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER) {
-                rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(Direction.NORTH));
-            }
+        } else if (rc.getRoundNum() == 2 && rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER){
+            rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(Direction.NORTH));
             System.out.println("BUILT ROUND 2");
+        } else {
+            // Pick a direction to build in.
+            Direction dir = directions[rng.nextInt(directions.length)];
+            MapLocation nextLoc = rc.getLocation().add(dir);
+            // Pick a random robot type to build.
+            int robotType = rng.nextInt(3);
+            if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+                rc.buildRobot(UnitType.SOLDIER, nextLoc);
+                System.out.println("BUILT A SOLDIER");
+            } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
+                rc.buildRobot(UnitType.MOPPER, nextLoc);
+                System.out.println("BUILT A MOPPER");
+            } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
+                // rc.buildRobot(UnitType.SPLASHER, nextLoc);
+                // System.out.println("BUILT A SPLASHER");
+                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
+            }
         }
-        // Pick a direction to build in.
-
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        // Pick a random robot type to build.
-        int robotType = rng.nextInt(3);
-        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
-        }
-        else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)){
-            rc.buildRobot(UnitType.MOPPER, nextLoc);
-            System.out.println("BUILT A MOPPER");
-        }
-        else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)){
-            // rc.buildRobot(UnitType.SPLASHER, nextLoc);
-            // System.out.println("BUILT A SPLASHER");
-            rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
-        }
-
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
         for (Message m : messages) {
