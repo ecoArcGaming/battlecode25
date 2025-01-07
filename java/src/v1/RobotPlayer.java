@@ -114,34 +114,23 @@ public class RobotPlayer {
             // upgrade paint tower
             if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER){
                 rc.upgradeTower(rc.getLocation());
-                rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
             }
-
-            if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER){
-                rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
-                rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(Direction.NORTH));
+            MapLocation spawnBotLocation = rc.getLocation().add(Direction.NORTH);
+            rc.buildRobot(UnitType.SOLDIER, spawnBotLocation);
+            rc.sendMessage(spawnBotLocation, 1);
             System.out.println("BUILT ROUND 1");
-
+        } else if (rc.getRoundNum() == 2){
+            if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER) {
+                rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(Direction.NORTH));
             }
-
+            System.out.println("BUILT ROUND 2");
         }
-
-
-
-
         // Pick a direction to build in.
 
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         // Pick a random robot type to build.
         int robotType = rng.nextInt(3);
-
-
-
-
-
-
-
         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
             System.out.println("BUILT A SOLDIER");
