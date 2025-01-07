@@ -22,7 +22,7 @@ public class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
-
+    static boolean robotExploration = false;
     /**
      * A random number generator.
      * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
@@ -155,6 +155,10 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runSoldier(RobotController rc) throws GameActionException{
+        Message[] roundOneMessages = rc.readMessages(-1);
+        if (roundOneMessages.length > 0 && roundOneMessages[0].getBytes() == 1) {
+            robotExploration = true;
+        }
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         // Search for a nearby ruin to complete.
@@ -190,12 +194,15 @@ public class RobotPlayer {
                 System.out.println("Built a tower at " + targetLoc + "!");
             }
         }
-
-        // Move and attack randomly if no objective.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        if (rc.canMove(dir)){
-            rc.move(dir);
+        if (robotExploration) {
+            //TODO: spiralling exploration movement
+        } else {
+            // Move and attack randomly if no objective.
+            Direction dir = directions[rng.nextInt(directions.length)];
+            MapLocation nextLoc = rc.getLocation().add(dir);
+            if (rc.canMove(dir)){
+                rc.move(dir);
+            }
         }
         // Try to paint beneath us as we walk to avoid paint penalties.
         // Avoiding wasting paint by re-painting our own tiles.
