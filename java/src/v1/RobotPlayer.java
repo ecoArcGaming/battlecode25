@@ -62,8 +62,9 @@ public class RobotPlayer {
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
             // loop, we call Clock.yield(), signifying that we've done everything we want to do.
 
+            System.out.println("IM ALIVE");
             turnCount += 1;  // We have now been alive for one more turn!
-            if (turnCount % 1000 == 0) {
+            if (turnCount % 50 == 0) {
                 rc.resign();
             }
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
@@ -227,10 +228,11 @@ public class RobotPlayer {
     }
     public static void runSoldier(RobotController rc) throws GameActionException{
         // TODO: What if we run out of paint?
-
+        /*
         if (rc.getPaint() < 20){
             rc.move(returnToTower(rc));
         }
+        */
 
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
@@ -273,12 +275,13 @@ public class RobotPlayer {
                     rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
                 rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
             }
-            if (rc.getID() == 13640) {
-                System.out.println(rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc));
+            // Move towards the ruin
+            // TODO: what if we encounter opponent paint en route to ruin
+            Direction moveDir = ruinDir;
+            // Rotation for clockwise movement around tower
+            if (minDis <= 2) {
+                moveDir = moveDir.rotateRight();
             }
-            // Move towards the ruin, but rotate the movement CW 45 degrees (for clockwise movement around the ruin)
-            // TODO: what if we encounter opponent paint en route to ruin?
-            Direction moveDir = ruinDir.rotateRight();
             if (rc.canMove(moveDir)) {
                 rc.move(moveDir);
             }
@@ -324,23 +327,27 @@ public class RobotPlayer {
             // TODO: Make movement smarter by using all information in vision range
             // Uniformly and randomly choose an unpainted location to go to
             // If all adjacent tiles are painted, then randomly walk in a direction
+            if (rc.getID() == 11081) {
+                System.out.println(validAdjacent.size());
+            }
             if (!validAdjacent.isEmpty()){
                 MapInfo nextLoc = validAdjacent.get(rng.nextInt(validAdjacent.size()));
-                Direction nextDir = startLocation.directionTo(nextLoc.getMapLocation());
-                if (rc.canMove(nextDir)) {
-                    rc.move(nextDir);
+                Direction moveDir = startLocation.directionTo(nextLoc.getMapLocation());
+                if (rc.canMove(moveDir)) {
+                    rc.move(moveDir);
                 }
             } else {
-                Direction dir = directions[rng.nextInt(directions.length)];
-                if (rc.canMove(dir)){
-                    rc.move(dir);
+                Direction moveDir = directions[rng.nextInt(directions.length)];
+                if (rc.canMove(moveDir)){
+                    rc.move(moveDir);
                 }
             }
             // Try to paint beneath us as we walk to avoid paint penalties.
             // Avoiding wasting paint by re-painting our own tiles.
-            MapInfo currentTile = rc.senseMapInfo(startLocation);
-            if (!currentTile.getPaint().isAlly() && rc.canAttack(startLocation)) {
-                rc.attack(startLocation);
+            MapLocation newLocation = rc.getLocation();
+            MapInfo currentTile = rc.senseMapInfo(newLocation);
+            if (!currentTile.getPaint().isAlly() && rc.canAttack(newLocation)) {
+                rc.attack(newLocation);
             }
         }
     }
