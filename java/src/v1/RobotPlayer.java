@@ -58,7 +58,9 @@ public class RobotPlayer {
             // loop, we call Clock.yield(), signifying that we've done everything we want to do.
 
             turnCount += 1;  // We have now been alive for one more turn!
-
+            if (turnCount % 100 == 0) {
+                rc.resign();
+            }
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
                 // The same run() function is called for every robot on your team, even if they are
@@ -68,7 +70,7 @@ public class RobotPlayer {
                 switch (rc.getType()){
                     case SOLDIER: runSoldier(rc); break; 
                     case MOPPER: runMopper(rc); break;
-                    case SPLASHER: break; // Consider upgrading examplefuncsplayer to use splashers!
+                    case SPLASHER: runSplasher(rc); break; // Consider upgrading examplefuncsplayer to use splashers!
                     default: runTower(rc); break;
                     }
                 }
@@ -115,15 +117,16 @@ public class RobotPlayer {
             Direction dir = directions[rng.nextInt(directions.length)];
             MapLocation nextLoc = rc.getLocation().add(dir);
             // Pick a random robot type to build.
-            int robotType = rng.nextInt(3);
+//            int robotType = rng.nextInt(3);
+            int robotType = 2;
             if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
                 rc.buildRobot(UnitType.SOLDIER, nextLoc);
             } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
                 rc.buildRobot(UnitType.MOPPER, nextLoc);
             } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-                // rc.buildRobot(UnitType.SPLASHER, nextLoc);
-                // System.out.println("BUILT A SPLASHER");
-                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
+                 rc.buildRobot(UnitType.SPLASHER, nextLoc);
+                 System.out.println("BUILT A SPLASHER");
+//                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
             }
         }
         // Read incoming messages
@@ -248,6 +251,11 @@ public class RobotPlayer {
      * Run a single turn for a Mopper.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
+
+    public static void runSplasher(RobotController rc) throws GameActionException{
+        rc.move(Pathfind(rc, new MapLocation(0, 0)));
+        Clock.yield();
+    }
     public static void runMopper(RobotController rc) throws GameActionException{
         // Move and attack randomly.
         Direction dir = directions[rng.nextInt(directions.length)];
@@ -264,7 +272,66 @@ public class RobotPlayer {
         // We can also move our code into different methods or classes to better organize it!
         updateEnemyRobots(rc);
     }
+    public static Direction Pathfind(RobotController rc, MapLocation target) throws GameActionException{
+        // return a direction from curr to target
 
+
+//        int horizontal = curr.x - target.x;
+//        int vert = curr.y - target.y;
+//        if (Math.abs(horizontal) > Math.abs(vert)){
+//            if (horizontal > 0){
+//                if (rc.canMove(Direction.WEST) && rc.senseMapInfo(curr.add(Direction.WEST)).getPaint().isAlly()) {
+//                    return Direction.WEST;
+//                }
+//            } else {
+//                if (rc.canMove(Direction.EAST) && rc.senseMapInfo(curr.add(Direction.EAST)).getPaint().isAlly()) {
+//                    return Direction.EAST;
+//                }
+//            }
+//        }
+//
+//       if (vert > 0){
+//           if (rc.canMove(Direction.SOUTH) && rc.senseMapInfo(curr.add(Direction.SOUTH)).getPaint().isAlly()) {
+//               return Direction.SOUTH;
+//           }
+//       } else {
+//           if (rc.canMove(Direction.NORTH) && rc.senseMapInfo(curr.add(Direction.NORTH)).getPaint().isAlly()) {
+//               return Direction.NORTH;
+//           }
+//       }
+        Direction currDir = rc.getLocation().directionTo(target);
+        Direction left = currDir.rotateLeft();
+        Direction right = currDir.rotateRight();
+        System.out.println("currDir: " + currDir + " left: " + left + " right: " + right);
+        if (rc.canMove(currDir)){
+            if (rc.senseMapInfo(rc.getLocation().add(currDir)).getPaint().isAlly()) {
+                return currDir;
+            } else {
+                if (rc.canMove(left) && rc.senseMapInfo(rc.getLocation().add(left)).getPaint().isAlly()) {
+                    return left;
+                } else if (rc.canMove(right) && rc.senseMapInfo(rc.getLocation().add(right)).getPaint().isAlly()) {
+                    return right;
+                }
+            }
+        }
+
+        Direction[] allDirections = Direction.allDirections();
+        for (Direction dir: allDirections){
+            if (rc.canMove(dir)){
+                if (rc.senseMapInfo(rc.getLocation().add(dir)).getPaint().isAlly()) {
+                    return dir;
+                }
+            }
+        }
+
+        for (Direction dir: allDirections){
+            if (rc.canMove(dir)) {
+                return dir;
+            }
+        }
+
+        return null;
+    }
     public static void updateEnemyRobots(RobotController rc) throws GameActionException{
         // Sensing methods can be passed in a radius of -1 to automatically 
         // use the largest possible value.
