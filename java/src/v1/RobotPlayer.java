@@ -58,9 +58,7 @@ public class RobotPlayer {
             // loop, we call Clock.yield(), signifying that we've done everything we want to do.
 
             turnCount += 1;  // We have now been alive for one more turn!
-            if (turnCount == 200) {
-                rc.resign();
-            }
+
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
                 // The same run() function is called for every robot on your team, even if they are
@@ -156,21 +154,26 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runSoldier(RobotController rc) throws GameActionException{
+        // TODO: What if we run out of paint?
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
 
         MapLocation curLocation = rc.getLocation();
-        boolean fillingRuin = false;
 
         // Search for a nearby ruin to complete.
         MapInfo curRuin = null;
-        for (MapInfo tile : nearbyTiles){
-            if (tile.hasRuin() && needFilling(rc, tile.getMapLocation())){
-                curRuin = tile;
+        int minDis = -1;
+        for (MapInfo tile : nearbyTiles) {
+            if (tile.hasRuin() && needFilling(rc, tile.getMapLocation())) {
+                int ruinDistance = curLocation.distanceSquaredTo(tile.getMapLocation());
+                if (minDis == -1 || minDis > ruinDistance) {
+                    curRuin = tile;
+                    minDis = ruinDistance;
+                }
             }
         }
         if (curRuin != null){
-            fillingRuin = true;
+            // Fill in a ruin!
             MapLocation targetLoc = curRuin.getMapLocation();
             Direction ruinDir = curLocation.directionTo(targetLoc);
 
@@ -200,48 +203,43 @@ public class RobotPlayer {
                 rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
                 rc.setTimelineMarker("Tower built", 0, 255, 0);
             }
-            // TODO: move robot around tower so that it can complete painting the ruin (currently, stationary cannot reach everywhere)
-            // Park self next to ruin so that we can finish drawing it if necessary
-            // If ruin is already drawn, then no need to park next to it
-            if (fillingRuin && rc.canMove(ruinDir)) {
-                rc.move(ruinDir);
-                return;
-            }
-        }
-        // Don't move if we're still filling in a ruin
-        if (fillingRuin) {
-            return;
-        }
-
-        // Find all unpainted nearby locations
-        MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(2);
-        List<MapInfo> validAdjacent = new ArrayList<>();
-        for (MapInfo adjacentTile: adjacentTiles){
-            if (adjacentTile.getPaint() == PaintType.EMPTY && adjacentTile.isPassable()) {
-                validAdjacent.add(adjacentTile);
-            }
-        }
-
-        // TODO: Make movement smarter by using all information in vision range
-        // Uniformly and randomly choose an unpainted location to go to
-        // If all adjacent tiles are painted, then randomly walk in a direction
-        if (!validAdjacent.isEmpty()){
-            MapInfo nextLoc = validAdjacent.get(rng.nextInt(validAdjacent.size()));
-            Direction nextDir = curLocation.directionTo(nextLoc.getMapLocation());
-            if (rc.canMove(nextDir)) {
-                rc.move(nextDir);
+            // Move clockwise around the ruin
+            // TODO: what if we encounter opponent?
+            Direction moveDir = ruinDir.rotateRight();
+            if (rc.canMove(moveDir)) {
+                rc.move(moveDir);
             }
         } else {
-            Direction dir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(dir)){
-                rc.move(dir);
+            // Find all unpainted nearby locations
+            MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(2);
+            List<MapInfo> validAdjacent = new ArrayList<>();
+            for (MapInfo adjacentTile: adjacentTiles){
+                if (adjacentTile.getPaint() == PaintType.EMPTY && adjacentTile.isPassable()) {
+                    validAdjacent.add(adjacentTile);
+                }
             }
-        }
-        // Try to paint beneath us as we walk to avoid paint penalties.
-        // Avoiding wasting paint by re-painting our own tiles.
-        MapInfo currentTile = rc.senseMapInfo(curLocation);
-        if (!currentTile.getPaint().isAlly() && rc.canAttack(curLocation)) {
-            rc.attack(curLocation);
+
+            // TODO: Make movement smarter by using all information in vision range
+            // Uniformly and randomly choose an unpainted location to go to
+            // If all adjacent tiles are painted, then randomly walk in a direction
+            if (!validAdjacent.isEmpty()){
+                MapInfo nextLoc = validAdjacent.get(rng.nextInt(validAdjacent.size()));
+                Direction nextDir = curLocation.directionTo(nextLoc.getMapLocation());
+                if (rc.canMove(nextDir)) {
+                    rc.move(nextDir);
+                }
+            } else {
+                Direction dir = directions[rng.nextInt(directions.length)];
+                if (rc.canMove(dir)){
+                    rc.move(dir);
+                }
+            }
+            // Try to paint beneath us as we walk to avoid paint penalties.
+            // Avoiding wasting paint by re-painting our own tiles.
+            MapInfo currentTile = rc.senseMapInfo(curLocation);
+            if (!currentTile.getPaint().isAlly() && rc.canAttack(curLocation)) {
+                rc.attack(curLocation);
+            }
         }
     }
 
