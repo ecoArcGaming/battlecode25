@@ -2,9 +2,9 @@ package v1;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.*;
 import java.util.List;
-
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -55,6 +55,7 @@ public class RobotPlayer {
         // You can also use indicators to save debug notes in replays.
 
         currGrid = new MapInfo[rc.getMapHeight()][rc.getMapWidth()];
+
 
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
@@ -129,6 +130,16 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runTower(RobotController rc) throws GameActionException{
+        // Encode Information and sends it to max 20 robots
+        int encodedInfo = RobotInfoCodec.encode(rc.senseRobot(rc.getID()));
+        int count = 0;
+        for (RobotInfo robot: rc.senseNearbyRobots()){
+            if (count >= 20){
+                break;
+            }
+            rc.sendMessage(robot.location, encodedInfo);
+            count ++;
+        }
         // starting condition
         if (rc.getRoundNum() == 1) {
             // upgrade paint tower
