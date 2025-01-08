@@ -18,6 +18,8 @@ public class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
+    static MapInfo[][] currGrid;
+    static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -52,13 +54,15 @@ public class RobotPlayer {
         // Everything you say here will be directly viewable in your terminal when you run a match!
         // You can also use indicators to save debug notes in replays.
 
+        currGrid = new MapInfo[rc.getMapHeight()][rc.getMapWidth()];
+
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
             // loop, we call Clock.yield(), signifying that we've done everything we want to do.
 
             turnCount += 1;  // We have now been alive for one more turn!
-            if (turnCount % 100 == 0) {
+            if (turnCount % 1000 == 0) {
                 rc.resign();
             }
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
@@ -67,13 +71,35 @@ public class RobotPlayer {
                 // different types. Here, we separate the control depending on the UnitType, so we can
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
-                switch (rc.getType()){
-                    case SOLDIER: runSoldier(rc); break; 
-                    case MOPPER: runMopper(rc); break;
-                    case SPLASHER: runSplasher(rc); break; // Consider upgrading examplefuncsplayer to use splashers!
-                    default: runTower(rc); break;
-                    }
+
+                // Updates the grid each robot can see
+                for (MapInfo mi : rc.senseNearbyMapInfos()) {
+                    currGrid[mi.getMapLocation().x][mi.getMapLocation().y] = mi;
                 }
+
+                switch (rc.getType()) {
+                    case SOLDIER:
+                        runSoldier(rc);
+                        break;
+                    case MOPPER:
+                        runMopper(rc);
+                        break;
+                    case SPLASHER:
+                        runSplasher(rc);
+                        break; // Consider upgrading examplefuncsplayer to use splashers!
+                    default:
+                        runTower(rc);
+                        break;
+                }
+
+                // Update the last eight locations list
+                if (last8.size() < 8) {
+                    last8.add(rc.getLocation());
+                } else {
+                    last8.removeFirst();
+                    last8.add(rc.getLocation());
+                }
+            }
              catch (GameActionException e) {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
@@ -117,13 +143,12 @@ public class RobotPlayer {
             Direction dir = directions[rng.nextInt(directions.length)];
             MapLocation nextLoc = rc.getLocation().add(dir);
             // Pick a random robot type to build.
-//            int robotType = rng.nextInt(3);
-            int robotType = 2;
-            if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            int robotType = rng.nextInt(10);
+            if (robotType < 8 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
                 rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
+            } else if (robotType == 11 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
                 rc.buildRobot(UnitType.MOPPER, nextLoc);
-            } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
+            } else if (robotType >= 8 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
                  rc.buildRobot(UnitType.SPLASHER, nextLoc);
                  System.out.println("BUILT A SPLASHER");
 //                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
@@ -316,7 +341,7 @@ public class RobotPlayer {
         Direction[] allDirections = Direction.allDirections();
         for (Direction dir: allDirections){
             if (rc.canMove(dir)){
-                if (rc.senseMapInfo(rc.getLocation().add(dir)).getPaint().isAlly()) {
+                if (rc.senseMapInfo(rc.getLocation().add(dir)).getPaint().isAlly() && !last8.contains(rc.getLocation().add(currDir))) {
                     return dir;
                 }
             }
