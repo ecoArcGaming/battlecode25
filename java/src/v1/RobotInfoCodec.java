@@ -5,7 +5,7 @@ import battlecode.common.*;
 /**
  * RobotInfoCodec encodes and decodes a RobotInfo to/from an int so that it can be sent in a message.
  */
-public class RobotInfo {
+public class RobotInfoCodec {
 
     // basic test driver
     public static void main(String[] args) {
