@@ -64,7 +64,7 @@ public class RobotPlayer {
 
             System.out.println("IM ALIVE");
             turnCount += 1;  // We have now been alive for one more turn!
-            if (turnCount % 50 == 0) {
+            if (turnCount % 1000 == 0) {
                 rc.resign();
             }
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
