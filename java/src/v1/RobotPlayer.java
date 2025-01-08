@@ -3,7 +3,9 @@ package v1;
 import battlecode.common.*;
 import scala.Unit;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 
 /**
@@ -181,8 +183,29 @@ public class RobotPlayer {
      * Run a single turn for a Soldier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
+
+    public static boolean checkTower(RobotController rc, MapInfo loc){
+        if ( loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())){
+            return true;
+        }
+    }
+
+    public static Direction returnToTower(RobotController rc) throws GameActionException{
+        MapLocation towerLoc = rc.getLocation();
+        for (MapInfo loc: rc.senseNearbyMapInfos()){
+            if(checkTower(rc, loc)){
+                return Pathfind(rc, loc.getMapLocation());
+            }
+        }
+
+    }
     public static void runSoldier(RobotController rc) throws GameActionException{
         // TODO: What if we run out of paint?
+
+        if (rc.getPaint() < 20){
+            rc.move(returnToTower(rc));
+        }
+
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
 
