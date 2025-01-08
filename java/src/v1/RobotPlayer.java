@@ -204,7 +204,7 @@ public class RobotPlayer {
                 rc.setTimelineMarker("Tower built", 0, 255, 0);
             }
             // Move clockwise around the ruin
-            // TODO: what if we encounter opponent?
+            // TODO: what if we encounter opponent paint?
             Direction moveDir = ruinDir.rotateRight();
             if (rc.canMove(moveDir)) {
                 rc.move(moveDir);
