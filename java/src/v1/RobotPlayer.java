@@ -138,6 +138,7 @@ public class RobotPlayer {
             if (count >= 20){
                 break;
             }
+            // TODO: fix messaging so that errors aren't thrown
             rc.sendMessage(robot.location, encodedInfo);
             count ++;
         }
@@ -276,7 +277,7 @@ public class RobotPlayer {
                 rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
             }
             // Move towards the ruin
-            // TODO: what if we encounter opponent paint en route to ruin
+            // TODO: what if we encounter opponent paint en route to ruin (make pathfinding better?)
             Direction moveDir = ruinDir;
             // Rotation for clockwise movement around tower
             if (minDis <= 2) {
@@ -327,9 +328,6 @@ public class RobotPlayer {
             // TODO: Make movement smarter by using all information in vision range
             // Uniformly and randomly choose an unpainted location to go to
             // If all adjacent tiles are painted, then randomly walk in a direction
-            if (rc.getID() == 11081) {
-                System.out.println(validAdjacent.size());
-            }
             if (!validAdjacent.isEmpty()){
                 MapInfo nextLoc = validAdjacent.get(rng.nextInt(validAdjacent.size()));
                 Direction moveDir = startLocation.directionTo(nextLoc.getMapLocation());
