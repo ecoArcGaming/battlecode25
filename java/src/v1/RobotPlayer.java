@@ -54,7 +54,9 @@ public class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         // You can also use indicators to save debug notes in replays.
-
+        if (rc.getRoundNum() > 100){
+            rc.resign();
+        }
         currGrid = new MapInfo[rc.getMapHeight()][rc.getMapWidth()];
 
 
@@ -244,8 +246,11 @@ public class RobotPlayer {
 
         if (rc.getPaint() < 20){
             Direction dir = returnToTower(rc);
+            System.out.println("Returning to " + dir);
             if (dir != null){
                 rc.move(dir);
+                System.out.println("Moving to tower");
+                return;
             }
         }
 
