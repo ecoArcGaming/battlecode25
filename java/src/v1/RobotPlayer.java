@@ -289,7 +289,8 @@ public class RobotPlayer {
                 rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
             }
             // Move towards the ruin
-            // TODO: what if we encounter opponent paint en route to ruin (make pathfinding better?)
+            // TODO: Change to use pathfinding function
+            // TODO: What happens if we run into enemy bots/paint while filling?
             Direction moveDir = ruinDir;
             // Rotation for clockwise movement around tower
             if (minDis <= 2) {
