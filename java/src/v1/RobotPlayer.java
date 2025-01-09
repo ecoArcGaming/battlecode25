@@ -11,6 +11,7 @@ import java.util.List;
  * The run() method inside this class is like your main function: this is what we'll call once your robot
  * is created!
  */
+// TODO: organize our code so its not spaghetti
 public class RobotPlayer {
     /**
      * We will use this variable to count the number of turns this robot has been alive.
@@ -166,7 +167,6 @@ public class RobotPlayer {
             }
         }
         // starting condition
-        // TODO: modify starting strategy to fit new tower balance changes
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot at the north of the tower
             rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
@@ -192,7 +192,7 @@ public class RobotPlayer {
         for (Message m : messages) {
             System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
-
+        // TODO: tower attack a robot in range that has the lowest hp
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         MapLocation targetRobot = null;
         int minHealth = -1;
@@ -306,8 +306,6 @@ public class RobotPlayer {
                     }
                 } else {
                     // If ruin does not need filling, check if we can build a tower there
-                    // TODO: sit the robot next to the tower if we don't have chips to build it
-                    // TODO: which type of tower are we building?
                     if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, tileLocation)) {
                         rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, tileLocation);
                         rc.setTimelineMarker("Tower built", 0, 255, 0);
@@ -327,7 +325,7 @@ public class RobotPlayer {
             MapLocation targetLoc = curRuin.getMapLocation();
             Direction ruinDir = startLocation.directionTo(targetLoc);
 
-            // TODO: which type of tower are we building?
+            // TODO: Improve logic for choosing which tower to build?
             // Mark the pattern we need to draw to build a tower here if we haven't already.
             UnitType towerType = ((rng.nextDouble() < 0.5) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
             MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(ruinDir);
@@ -392,7 +390,7 @@ public class RobotPlayer {
                 }
             }
 
-            // TODO: Make movement smarter by using all information in vision range
+            // TODO: Make movement smarter by using all information in vision range (which tiles painted, walls, map edges)
             // Uniformly and randomly choose an unpainted location to go to
             // If all adjacent tiles are painted, then randomly walk in a direction
             if (!validAdjacent.isEmpty()){
