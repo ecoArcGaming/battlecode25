@@ -144,6 +144,7 @@ public class RobotPlayer {
             count ++;
         }
         // starting condition
+        // TODO: modify starting strategy to fit new tower balance changes
         if (rc.getRoundNum() == 1) {
             // upgrade paint tower
             if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
