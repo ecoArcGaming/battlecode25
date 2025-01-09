@@ -264,6 +264,7 @@ public class RobotPlayer {
                 } else {
                     // If ruin does not need filling, check if we can build a tower there
                     // TODO: sit the robot next to the tower if we don't have chips to build it
+
                     // TODO: which type of tower are we building?
                     UnitType towerType = ((rng.nextDouble() < 0.5 || rc.getMoney() < 1500) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
                     if (rc.canCompleteTowerPattern(towerType, tileLocation)) {
@@ -388,7 +389,7 @@ public class RobotPlayer {
     }
     public static Direction Pathfind(RobotController rc, MapLocation target) throws GameActionException{
         // return a direction from curr to target
-
+        //TODO: Priority order when bots travel in the same path
 
 //        int horizontal = curr.x - target.x;
 //        int vert = curr.y - target.y;
