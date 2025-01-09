@@ -128,6 +128,12 @@ public class RobotPlayer {
 
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
+    /**
+     * Placeholder function for attacking an enemy robot
+     */
+    public static void attack(RobotController rc, MapLocation target) {
+        return;
+    }
 
     /**
      * Run a single turn for towers.
@@ -204,13 +210,17 @@ public class RobotPlayer {
     }
     /**
      * Given the MapLocation of a tower, check if that tower pattern has any blocks in the vision of the robot that still
-     * needs to be painted, regardless if the tower is currently there or not.
+     * needs to be painted, or if the tower is not there
      * Needs to be painted: not already painted or incorrect ally paint (doesn't match marker/mark does not exist)
-     * Returns True if there is, False if otherwise.
+     * Returns True if there are blocks that can be painted to still be painted or if no tower, False if otherwise.
      */
     public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
-            if (!patternTile.hasRuin() && (patternTile.getPaint() == PaintType.EMPTY ||
+            if (patternTile.hasRuin()) {
+                if (!rc.canSenseRobotAtLocation(patternTile.getMapLocation())) {
+                    return true;
+                }
+            } else if ((patternTile.getPaint() == PaintType.EMPTY ||
                     patternTile.getPaint().isAlly() && patternTile.getMark() != patternTile.getPaint())){
                 return true;
             }
