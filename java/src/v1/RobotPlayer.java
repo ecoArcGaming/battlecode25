@@ -143,7 +143,7 @@ public class RobotPlayer {
             }
             // Otherwise, alert nearby robots of an enemy attack
             else{
-                break;
+                attack(rc, msg.getLocation());
             }
         }
         // Encode info of tower to send to all nearby robots
