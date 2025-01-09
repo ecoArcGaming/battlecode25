@@ -20,6 +20,7 @@ public class RobotPlayer {
     static int turnCount = 0;
     static MapInfo[][] currGrid;
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
+    static MapInfo lastTower = null;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -217,23 +218,33 @@ public class RobotPlayer {
         }
     }
 
+    public static void updateLastTower(RobotController rc){
+        for (MapInfo loc: rc.senseNearbyMapInfos()) {
+            if (checkTower(rc, loc)) {
+                lastTower = loc;
+            }
+        }
+    }
+
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        MapLocation towerLoc = rc.getLocation();
         for (MapInfo loc: rc.senseNearbyMapInfos()){
             if(checkTower(rc, loc)){
                 return Pathfind(rc, loc.getMapLocation());
             }
         }
         // TODO: replace placeholder with behavior if tower not found
-        return Direction.NORTH;
+        return Pathfind(rc, lastTower.getMapLocation());
     }
     public static void runSoldier(RobotController rc) throws GameActionException{
         // TODO: What if we run out of paint?
-        /*
+        updateLastTower(rc);
+
         if (rc.getPaint() < 20){
-            rc.move(returnToTower(rc));
+            Direction dir = returnToTower(rc);
+            if (dir != null){
+                rc.move(dir);
+            }
         }
-        */
 
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
