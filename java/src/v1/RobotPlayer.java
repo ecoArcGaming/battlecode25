@@ -21,6 +21,7 @@ public class RobotPlayer {
     static MapInfo[][] currGrid;
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
     static MapInfo lastTower = null;
+    static RobotInfo lastEnemy = null;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -159,10 +160,10 @@ public class RobotPlayer {
         }
         // starting condition
         // TODO: modify starting strategy to fit new tower balance changes
-        if (rc.getRoundNum() == 1) {
+        if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2 ) {
             // spawn a soldier bot at the north of the tower
             rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
-            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
+            return;
         } else {
             // if not spawning a robot at the beginning spawn a robot
             // Pick a direction to build in
@@ -202,6 +203,10 @@ public class RobotPlayer {
      * Needs to be painted: not already painted or incorrect ally paint (doesn't match marker/mark does not exist)
      * Returns True if there is, False if otherwise.
      */
+
+    public static void attack(RobotController rc, MapLocation target) throws GameActionException{
+        return;
+    }
     public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
             if (!patternTile.hasRuin() && (patternTile.getPaint() == PaintType.EMPTY ||
@@ -238,7 +243,14 @@ public class RobotPlayer {
             }
         }
     }
-
+    public static void enemyAlarm(RobotController rc) throws GameActionException{
+        //Notify tower about enemy bot encounter
+        if (rc.canSendMessage(lastTower.getMapLocation(), 1)){
+            rc.sendMessage(lastTower.getMapLocation(), RobotInfoCodec.encode(lastEnemy));
+        } else{
+            rc.move(Pathfind(rc, lastTower.getMapLocation()));
+        }
+    }
     public static Direction returnToTower(RobotController rc) throws GameActionException{
         for (MapInfo loc: rc.senseNearbyMapInfos()){
             if(checkTower(rc, loc)){
@@ -271,7 +283,13 @@ public class RobotPlayer {
 
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-
+        for (RobotInfo robot: rc.senseNearbyRobots()){
+            if (robot.team != rc.getTeam()){
+                lastEnemy = robot;
+                enemyAlarm(rc);
+                return;
+            }
+        }
         MapLocation startLocation = rc.getLocation();
 
         // Search for the closest ruin to complete.
