@@ -54,9 +54,7 @@ public class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         // You can also use indicators to save debug notes in replays.
-        if (rc.getRoundNum() > 100){
-            rc.resign();
-        }
+
         currGrid = new MapInfo[rc.getMapHeight()][rc.getMapWidth()];
 
 
@@ -134,7 +132,20 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runTower(RobotController rc) throws GameActionException{
-        // Encode Information and sends it to max 20 robots
+        // Looks at all incoming messages
+        for (Message message: rc.readMessages(rc.getRoundNum()-1)){
+            RobotInfo msg = RobotInfoCodec.decode(message.getBytes());
+            // If message from same team, then transfer paint
+            if (msg.team == rc.getTeam()) {
+                System.out.println(rc.canTransferPaint(msg.getLocation(), 1));
+                System.out.println("hi");
+            }
+            // Otherwise, alert nearby robots of an enemy attack
+            else{
+                break;
+            }
+        }
+        // Encode info of tower to send to all nearby robots
         int encodedInfo = RobotInfoCodec.encode(rc.senseRobot(rc.getID()));
         int count = 0;
         for (RobotInfo robot: rc.senseNearbyRobots()){
@@ -159,7 +170,7 @@ public class RobotPlayer {
             MapLocation nextLoc = rc.getLocation().add(dir);
             // Pick a random robot type to build.
             double robotType = rng.nextDouble();
-            if (robotType < 1 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            if (robotType < 1 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc) && rc.getPaint() > 500) {
                 rc.buildRobot(UnitType.SOLDIER, nextLoc);
             } else if (robotType == 11 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
                 rc.buildRobot(UnitType.MOPPER, nextLoc);
@@ -168,11 +179,6 @@ public class RobotPlayer {
                  System.out.println("BUILT A SPLASHER");
 //                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
             }
-        }
-        // Read incoming messages
-        Message[] messages = rc.readMessages(-1);
-        for (Message m : messages) {
-            System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
 
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -244,12 +250,21 @@ public class RobotPlayer {
     public static void runSoldier(RobotController rc) throws GameActionException{
         updateLastTower(rc);
 
+        // If the soldier has low paint, go back to tower and refuel
         if (rc.getPaint() < 20){
+            // If robot is close enough to tower, then get paint from tower
+            if (rc.canTransferPaint(lastTower.getMapLocation(), -rc.getType().paintCapacity+rc.getPaint())){
+                rc.transferPaint(lastTower.getMapLocation(), -rc.getType().paintCapacity+rc.getPaint());
+            }
+            // If robot needs paint, send message to tower
+            if (rc.canSendMessage(lastTower.getMapLocation(), 0)){
+                int encode = RobotInfoCodec.encode(rc.senseRobot(rc.getID()));
+                rc.sendMessage(lastTower.getMapLocation(), encode);
+            }
+            // Otherwise, get direction to tower and return there
             Direction dir = returnToTower(rc);
-            System.out.println("Returning to " + dir);
             if (dir != null){
                 rc.move(dir);
-                System.out.println("Moving to tower");
             }
             return;
         }
