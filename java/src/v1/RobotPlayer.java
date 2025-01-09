@@ -209,12 +209,18 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
 
-    public static boolean checkTower(RobotController rc, MapInfo loc){
-        if (loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())){
-            return true;
-        } else {
-            return false;
+    public static boolean checkTower(RobotController rc, MapInfo loc) {
+        // checks if a tower exists at loc, can also check tower type if needed
+        if (loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())) {
+            for (Message msg : rc.readMessages(-1)) {
+                RobotInfo tower = RobotInfoCodec.decode(msg.getBytes());
+                System.out.println("tower: " + tower.location);
+                if (tower.location.equals(loc.getMapLocation())) {
+                    return true;
+                }
+            }
         }
+        return false;
     }
 
     public static void updateLastTower(RobotController rc){
