@@ -250,8 +250,8 @@ public class RobotPlayer {
             if (dir != null){
                 rc.move(dir);
                 System.out.println("Moving to tower");
-                return;
             }
+            return;
         }
 
         // Sense information about all visible nearby tiles.
