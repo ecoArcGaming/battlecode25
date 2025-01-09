@@ -134,7 +134,20 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runTower(RobotController rc) throws GameActionException{
-        // Encode Information and sends it to max 20 robots
+        // Looks at all incoming messages
+        for (Message message: rc.readMessages(rc.getRoundNum()-1)){
+            RobotInfo msg = RobotInfoCodec.decode(message.getBytes());
+            // If message from same team, then transfer paint
+            if (msg.team == rc.getTeam()) {
+                System.out.println(rc.canTransferPaint(msg.getLocation(), 1));
+                System.out.println("hi");
+            }
+            // Otherwise, alert nearby robots of an enemy attack
+            else{
+                attack(rc, msg.getLocation());
+            }
+        }
+        // Encode info of tower to send to all nearby robots
         int encodedInfo = RobotInfoCodec.encode(rc.senseRobot(rc.getID()));
         int count = 0;
         for (RobotInfo robot: rc.senseNearbyRobots()){
