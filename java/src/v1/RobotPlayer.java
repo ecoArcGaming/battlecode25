@@ -22,6 +22,7 @@ public class RobotPlayer {
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
     static MapInfo lastTower = null;
     static RobotInfo lastEnemy = null;
+    static boolean fillingTower = false;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -160,10 +161,9 @@ public class RobotPlayer {
         }
         // starting condition
         // TODO: modify starting strategy to fit new tower balance changes
-        if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2 ) {
+        if (rc.getRoundNum() == 1) {
             // spawn a soldier bot at the north of the tower
             rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
-            return;
         } else {
             // if not spawning a robot at the beginning spawn a robot
             // Pick a direction to build in
@@ -171,7 +171,7 @@ public class RobotPlayer {
             MapLocation nextLoc = rc.getLocation().add(dir);
             // Pick a random robot type to build.
             double robotType = rng.nextDouble();
-            if (robotType < 1 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc) && rc.getPaint() > 500) {
+            if (robotType < 1 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
                 rc.buildRobot(UnitType.SOLDIER, nextLoc);
             } else if (robotType == 11 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
                 rc.buildRobot(UnitType.MOPPER, nextLoc);
@@ -180,6 +180,11 @@ public class RobotPlayer {
                  System.out.println("BUILT A SPLASHER");
 //                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
             }
+        }
+        // Read incoming messages
+        Message[] messages = rc.readMessages(-1);
+        for (Message m : messages) {
+            System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
 
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -203,10 +208,6 @@ public class RobotPlayer {
      * Needs to be painted: not already painted or incorrect ally paint (doesn't match marker/mark does not exist)
      * Returns True if there is, False if otherwise.
      */
-
-    public static void attack(RobotController rc, MapLocation target) throws GameActionException{
-        return;
-    }
     public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
             if (!patternTile.hasRuin() && (patternTile.getPaint() == PaintType.EMPTY ||
@@ -216,24 +217,35 @@ public class RobotPlayer {
         }
         return false;
     }
+    /**
+     * Given the MapLocation of a ruin, check if the pattern is correct for a tower to be built and if there is no
+     * tower there currently
+     * Returns False if the pattern is incorrect, there are no markers, or if there is a tower already existing
+     */
+    public static boolean canBuildTower(RobotController rc, MapLocation towerLocation) throws GameActionException {
+        for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
+            if (patternTile.hasRuin()) {
+                if (rc.canSenseRobotAtLocation(patternTile.getMapLocation())) {
+                    return false;
+                }
+            } else if ((patternTile.getMark() == PaintType.EMPTY || patternTile.getMark() != patternTile.getPaint())){
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Run a single turn for a Soldier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
 
-    public static boolean checkTower(RobotController rc, MapInfo loc) {
-        // checks if a tower exists at loc, can also check tower type if needed
-        if (loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())) {
-            for (Message msg : rc.readMessages(-1)) {
-                RobotInfo tower = RobotInfoCodec.decode(msg.getBytes());
-                System.out.println("tower: " + tower.location);
-                if (tower.location.equals(loc.getMapLocation())) {
-                    return true;
-                }
-            }
+    public static boolean checkTower(RobotController rc, MapInfo loc){
+        if (loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())){
+            return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     public static void updateLastTower(RobotController rc){
@@ -243,14 +255,7 @@ public class RobotPlayer {
             }
         }
     }
-    public static void enemyAlarm(RobotController rc) throws GameActionException{
-        //Notify tower about enemy bot encounter
-        if (rc.canSendMessage(lastTower.getMapLocation(), 1)){
-            rc.sendMessage(lastTower.getMapLocation(), RobotInfoCodec.encode(lastEnemy));
-        } else{
-            rc.move(Pathfind(rc, lastTower.getMapLocation()));
-        }
-    }
+
     public static Direction returnToTower(RobotController rc) throws GameActionException{
         for (MapInfo loc: rc.senseNearbyMapInfos()){
             if(checkTower(rc, loc)){
@@ -262,35 +267,19 @@ public class RobotPlayer {
     public static void runSoldier(RobotController rc) throws GameActionException{
         updateLastTower(rc);
 
-        // If the soldier has low paint, go back to tower and refuel
         if (rc.getPaint() < 20){
-            // If robot is close enough to tower, then get paint from tower
-            if (rc.canTransferPaint(lastTower.getMapLocation(), -rc.getType().paintCapacity+rc.getPaint())){
-                rc.transferPaint(lastTower.getMapLocation(), -rc.getType().paintCapacity+rc.getPaint());
-            }
-            // If robot needs paint, send message to tower
-            if (rc.canSendMessage(lastTower.getMapLocation(), 0)){
-                int encode = RobotInfoCodec.encode(rc.senseRobot(rc.getID()));
-                rc.sendMessage(lastTower.getMapLocation(), encode);
-            }
-            // Otherwise, get direction to tower and return there
             Direction dir = returnToTower(rc);
             if (dir != null){
                 rc.move(dir);
             }
-            return;
         }
 
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-        for (RobotInfo robot: rc.senseNearbyRobots()){
-            if (robot.team != rc.getTeam()){
-                lastEnemy = robot;
-                enemyAlarm(rc);
-                return;
-            }
-        }
+
         MapLocation startLocation = rc.getLocation();
+
+        fillingTower = false;
 
         // Search for the closest ruin to complete.
         MapInfo curRuin = null;
@@ -308,13 +297,18 @@ public class RobotPlayer {
                 } else {
                     // If ruin does not need filling, check if we can build a tower there
                     // TODO: sit the robot next to the tower if we don't have chips to build it
-
                     // TODO: which type of tower are we building?
-                    UnitType towerType = ((rng.nextDouble() < 0.5 || rc.getMoney() < 1500) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
-                    if (rc.canCompleteTowerPattern(towerType, tileLocation)) {
-                        rc.completeTowerPattern(towerType, tileLocation);
+                    if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, tileLocation)) {
+                        rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, tileLocation);
                         rc.setTimelineMarker("Tower built", 0, 255, 0);
                     }
+                    if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, tileLocation)) {
+                        rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, tileLocation);
+                        rc.setTimelineMarker("Tower built", 0, 255, 0);
+                    }
+                }
+                if (canBuildTower(rc, tileLocation)){
+                    fillingTower = true;
                 }
             }
         }
@@ -325,10 +319,11 @@ public class RobotPlayer {
 
             // TODO: which type of tower are we building?
             // Mark the pattern we need to draw to build a tower here if we haven't already.
+            UnitType towerType = ((rng.nextDouble() < 0.5) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
             MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(ruinDir);
             if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
-                    rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
-                rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
+                    rc.canMarkTowerPattern(towerType, targetLoc)){
+                rc.markTowerPattern(towerType, targetLoc);
             }
             // Move towards the ruin
             // TODO: Change to use pathfinding function
@@ -366,11 +361,18 @@ public class RobotPlayer {
                 }
             }
             // Complete the ruin if we can.
-            if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
+            if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc)) {
+                rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc);
+                rc.setTimelineMarker("Tower built", 0, 255, 0);
+            }
+            if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)) {
                 rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
                 rc.setTimelineMarker("Tower built", 0, 255, 0);
             }
-        } else {
+            if (canBuildTower(rc, targetLoc)){
+                fillingTower = true;
+            }
+        } else if (!fillingTower){
             // Find all unpainted nearby locations
             MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(2);
             List<MapInfo> validAdjacent = new ArrayList<>();
@@ -433,7 +435,7 @@ public class RobotPlayer {
     }
     public static Direction Pathfind(RobotController rc, MapLocation target) throws GameActionException{
         // return a direction from curr to target
-        //TODO: Priority order when bots travel in the same path
+
 
 //        int horizontal = curr.x - target.x;
 //        int vert = curr.y - target.y;
