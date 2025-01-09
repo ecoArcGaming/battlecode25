@@ -139,7 +139,6 @@ public class RobotPlayer {
             if (count >= 20){
                 break;
             }
-            // TODO: fix messaging so that errors aren't thrown
             if (rc.canSendMessage(robot.location, encodedInfo)) {
                 rc.sendMessage(robot.location, encodedInfo);
                 count++;
