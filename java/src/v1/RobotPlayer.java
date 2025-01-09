@@ -140,8 +140,10 @@ public class RobotPlayer {
                 break;
             }
             // TODO: fix messaging so that errors aren't thrown
-            rc.sendMessage(robot.location, encodedInfo);
-            count ++;
+            if (rc.canSendMessage(robot.location, encodedInfo)) {
+                rc.sendMessage(robot.location, encodedInfo);
+                count++;
+            }
         }
         // starting condition
         // TODO: modify starting strategy to fit new tower balance changes
