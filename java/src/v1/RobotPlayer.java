@@ -147,11 +147,8 @@ public class RobotPlayer {
         // starting condition
         // TODO: modify starting strategy to fit new tower balance changes
         if (rc.getRoundNum() == 1) {
-            // upgrade paint tower
-            if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
-                rc.upgradeTower(rc.getLocation());
-            }
             // spawn a soldier bot at the north of the tower
+            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
             rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
         } else {
             // if not spawning a robot at the beginning spawn a robot
@@ -159,12 +156,12 @@ public class RobotPlayer {
             Direction dir = directions[rng.nextInt(directions.length)];
             MapLocation nextLoc = rc.getLocation().add(dir);
             // Pick a random robot type to build.
-            int robotType = rng.nextInt(10);
-            if (robotType < 8 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            double robotType = rng.nextDouble();
+            if (robotType < 1 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
                 rc.buildRobot(UnitType.SOLDIER, nextLoc);
             } else if (robotType == 11 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
                 rc.buildRobot(UnitType.MOPPER, nextLoc);
-            } else if (robotType >= 8 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
+            } else if (robotType >= 1 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
                  rc.buildRobot(UnitType.SPLASHER, nextLoc);
                  System.out.println("BUILT A SPLASHER");
 //                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
@@ -234,11 +231,9 @@ public class RobotPlayer {
                 return Pathfind(rc, loc.getMapLocation());
             }
         }
-        // TODO: replace placeholder with behavior if tower not found
         return Pathfind(rc, lastTower.getMapLocation());
     }
     public static void runSoldier(RobotController rc) throws GameActionException{
-        // TODO: What if we run out of paint?
         updateLastTower(rc);
 
         if (rc.getPaint() < 20){
@@ -270,8 +265,9 @@ public class RobotPlayer {
                     // If ruin does not need filling, check if we can build a tower there
                     // TODO: sit the robot next to the tower if we don't have chips to build it
                     // TODO: which type of tower are we building?
-                    if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, tileLocation)) {
-                        rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, tileLocation);
+                    UnitType towerType = ((rng.nextDouble() < 0.5 || rc.getMoney() < 1500) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
+                    if (rc.canCompleteTowerPattern(towerType, tileLocation)) {
+                        rc.completeTowerPattern(towerType, tileLocation);
                         rc.setTimelineMarker("Tower built", 0, 255, 0);
                     }
                 }
