@@ -55,6 +55,7 @@ public class Pathfinding {
         Direction currDir = rc.getLocation().directionTo(target);
         Direction left = currDir.rotateLeft();
         Direction right = currDir.rotateRight();
+        // TODO: add last8 here
         if (rc.canMove(currDir) && rc.senseMapInfo(rc.getLocation().add(currDir)).getPaint().isAlly()) {
             return currDir;
         }
