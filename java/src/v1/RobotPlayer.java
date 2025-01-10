@@ -68,7 +68,7 @@ public class RobotPlayer {
 
             System.out.println("IM ALIVE");
             turnCount += 1;  // We have now been alive for one more turn!
-            if (turnCount % 1000 == 0) {
+            if (turnCount % 100 == 0) {
                 rc.resign();
             }
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
@@ -171,6 +171,7 @@ public class RobotPlayer {
             // spawn a soldier bot at the north of the tower
             rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
         } else {
+            // TODO: Figure out tower spawning logic
             // if not spawning a robot at the beginning spawn a robot
             // Pick a direction to build in
             Direction dir = directions[rng.nextInt(directions.length)];
@@ -216,11 +217,7 @@ public class RobotPlayer {
      */
     public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
-            if (patternTile.hasRuin()) {
-                if (!rc.canSenseRobotAtLocation(patternTile.getMapLocation())) {
-                    return true;
-                }
-            } else if ((patternTile.getPaint() == PaintType.EMPTY ||
+            if (!patternTile.hasRuin() && (patternTile.getPaint() == PaintType.EMPTY ||
                     patternTile.getPaint().isAlly() && patternTile.getMark() != patternTile.getPaint())){
                 return true;
             }
@@ -238,7 +235,9 @@ public class RobotPlayer {
                 if (rc.canSenseRobotAtLocation(patternTile.getMapLocation())) {
                     return false;
                 }
-            } else if ((patternTile.getMark() == PaintType.EMPTY || patternTile.getMark() != patternTile.getPaint())){
+            } else if ((patternTile.getMark() == PaintType.EMPTY
+                    || patternTile.getMark() != patternTile.getPaint()
+                    || patternTile.getPaint().isEnemy())) {
                 return false;
             }
         }
@@ -282,6 +281,7 @@ public class RobotPlayer {
             if (dir != null){
                 rc.move(dir);
             }
+            return;
         }
 
         // Sense information about all visible nearby tiles.
@@ -297,7 +297,7 @@ public class RobotPlayer {
         for (MapInfo tile : nearbyTiles) {
             if (tile.hasRuin()) {
                 MapLocation tileLocation = tile.getMapLocation();
-                if (needFilling(rc, tileLocation)) {
+                if (!rc.canSenseRobotAtLocation(tileLocation)) {
                     // Check distance among ruins that need filling
                     int ruinDistance = startLocation.distanceSquaredTo(tileLocation);
                     if (minDis == -1 || minDis > ruinDistance) {
