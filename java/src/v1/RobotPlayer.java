@@ -20,7 +20,7 @@ public class RobotPlayer {
     static int turnCount = 0;
     static MapInfo[][] currGrid;
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
-    static MapInfo lastTower = null;
+    static MapInfo lastTower = null; // TODO: Somehow navigate back to paint towers and not money towers
     static boolean fillingTower = false;
     // Controls whether the soldier is currently filling in a ruin or not
     /**

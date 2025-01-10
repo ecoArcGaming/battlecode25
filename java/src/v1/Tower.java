@@ -46,7 +46,7 @@ public abstract class Tower {
         } else if (robotType < 0.66) {
             buildAtRandomLocation(rc, UnitType.MOPPER);
         } else {
-            buildAtRandomLocation(rc, UnitType.SPLASHER);
+            //buildAtRandomLocation(rc, UnitType.SPLASHER);
         }
     }
 
