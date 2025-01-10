@@ -21,7 +21,7 @@ public class RobotPlayer {
     static int turnCount = 0;
     static MapInfo[][] currGrid;
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
-    static MapInfo lastTower = null;
+    static MapInfo lastPaintTower = null;
     static RobotInfo lastEnemy = null;
     static boolean fillingTower = false;
     // Controls whether the soldier is currently filling in a ruin or not
@@ -32,19 +32,6 @@ public class RobotPlayer {
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
     static final Random rng = new Random(6147);
-
-    /** Array containing all the possible movement directions. */
-    static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
-    };
-
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -57,15 +44,11 @@ public class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         // You can also use indicators to save debug notes in replays.
-
         currGrid = new MapInfo[rc.getMapHeight()][rc.getMapWidth()];
-
-
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
             // loop, we call Clock.yield(), signifying that we've done everything we want to do.
-
             System.out.println("IM ALIVE");
             turnCount += 1;  // We have now been alive for one more turn!
             if (turnCount % 100 == 0) {
@@ -129,152 +112,34 @@ public class RobotPlayer {
 
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
-    /**
-     * Placeholder function for attacking an enemy robot
-     */
-    public static void attack(RobotController rc, MapLocation target) {
-        return;
-    }
 
     /**
      * Run a single turn for towers.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runTower(RobotController rc) throws GameActionException{
-        // Looks at all incoming messages
-        for (Message message: rc.readMessages(rc.getRoundNum()-1)){
-            RobotInfo msg = RobotInfoCodec.decode(message.getBytes());
-            // If message from same team, then transfer paint
-            if (msg.team == rc.getTeam()) {
-                System.out.println(rc.canTransferPaint(msg.getLocation(), 1));
-                System.out.println("hi");
-            }
-            // Otherwise, alert nearby robots of an enemy attack
-            else{
-                attack(rc, msg.getLocation());
-            }
-        }
-        // Encode info of tower to send to all nearby robots
-        int encodedInfo = RobotInfoCodec.encode(rc.senseRobot(rc.getID()));
-        int count = 0;
-        for (RobotInfo robot: rc.senseNearbyRobots()){
-            if (count >= 20){
-                break;
-            }
-            if (rc.canSendMessage(robot.location, encodedInfo)) {
-                rc.sendMessage(robot.location, encodedInfo);
-                count++;
-            }
-        }
+        Tower.readNewMessages(rc);
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot at the north of the tower
-            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
+            Tower.buildIfPossible(rc, UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
         } else {
-            // TODO: Figure out tower spawning logic
-            // if not spawning a robot at the beginning spawn a robot
-            // Pick a direction to build in
-            Direction dir = directions[rng.nextInt(directions.length)];
-            MapLocation nextLoc = rc.getLocation().add(dir);
-            // Pick a random robot type to build.
-            double robotType = rng.nextDouble();
-            if (robotType < 1 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-                rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            } else if (robotType == 11 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
-                rc.buildRobot(UnitType.MOPPER, nextLoc);
-            } else if (robotType >= 1 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-                 rc.buildRobot(UnitType.SPLASHER, nextLoc);
-                 System.out.println("BUILT A SPLASHER");
-//                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
-            }
+            // TODO: Figure out tower spawning logic (when to spawn, what to spawn)
+            Tower.buildCompletelyRandom(rc);
         }
-        // Read incoming messages
-        Message[] messages = rc.readMessages(-1);
-        for (Message m : messages) {
-            System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
-        }
-        // TODO: tower attack a robot in range that has the lowest hp
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        MapLocation targetRobot = null;
-        int minHealth = -1;
-        for (RobotInfo robot: nearbyRobots) {
-            int robotHealth = robot.getHealth();
-            if (minHealth == -1 || minHealth > robotHealth) {
-                targetRobot = robot.getLocation();
-                minHealth = robotHealth;
-            }
-        }
-        if (minHealth != -1 && rc.canAttack(targetRobot)) {
-            rc.attack(targetRobot);
-        }
-        rc.attack(null);
-    }
-    /**
-     * Given the MapLocation of a tower, check if that tower pattern has any blocks in the vision of the robot that still
-     * needs to be painted, or if the tower is not there
-     * Needs to be painted: not already painted or incorrect ally paint (doesn't match marker/mark does not exist)
-     * Returns True if there are blocks that can be painted to still be painted or if no tower, False if otherwise.
-     */
-    public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException {
-        for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
-            if (!patternTile.hasRuin() && (patternTile.getPaint() == PaintType.EMPTY ||
-                    patternTile.getPaint().isAlly() && patternTile.getMark() != patternTile.getPaint())){
-                return true;
-            }
-        }
-        return false;
-    }
-    /**
-     * Given the MapLocation of a ruin, check if the pattern is correct for a tower to be built and if there is no
-     * tower there currently
-     * Returns False if the pattern is incorrect, there are no markers, or if there is a tower already existing
-     */
-    public static boolean canBuildTower(RobotController rc, MapLocation towerLocation) throws GameActionException {
-        for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
-            if (patternTile.hasRuin()) {
-                if (rc.canSenseRobotAtLocation(patternTile.getMapLocation())) {
-                    return false;
-                }
-            } else if ((patternTile.getMark() == PaintType.EMPTY
-                    || patternTile.getMark() != patternTile.getPaint()
-                    || patternTile.getPaint().isEnemy())) {
-                return false;
-            }
-        }
-        return true;
+
+        // TODO: tower attack a robot in range that has the lowest hp (make sure this works)
+        // TODO: is aoe attack just a blast wave? why cant you just spam aoe attack every turn?
+        Tower.attackLowestRobot(rc);
+        Tower.aoeAttackIfPossible(rc);
     }
 
     /**
      * Run a single turn for a Soldier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-
-    public static boolean checkTower(RobotController rc, MapInfo loc){
-        if (loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())){
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static void updateLastTower(RobotController rc){
-        for (MapInfo loc: rc.senseNearbyMapInfos()) {
-            if (checkTower(rc, loc)) {
-                lastTower = loc;
-            }
-        }
-    }
-
-    public static Direction returnToTower(RobotController rc) throws GameActionException{
-        for (MapInfo loc: rc.senseNearbyMapInfos()){
-            if(checkTower(rc, loc)){
-                return Pathfind(rc, loc.getMapLocation());
-            }
-        }
-        return Pathfind(rc, lastTower.getMapLocation());
-    }
     public static void runSoldier(RobotController rc) throws GameActionException{
-        updateLastTower(rc);
+        Robot.updateLastPaintTower(rc);
 
         if (rc.getPaint() < 20){
             Direction dir = returnToTower(rc);
