@@ -23,7 +23,9 @@ public class RobotPlayer {
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
     static MapInfo lastTower = null;
     static RobotInfo lastEnemy = null;
+    static MapInfo lastEnemyPaint = null;
     static boolean fillingTower = false;
+    static boolean botNotSent = false;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -249,6 +251,11 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
 
+    public static boolean isRobotInfo(int i){
+        // true if a msg is robotinfo, else mapinfo
+        return (i >>> 21) > 0;
+    }
+
     public static boolean checkTower(RobotController rc, MapInfo loc){
         if (loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())){
             return true;
@@ -261,9 +268,26 @@ public class RobotPlayer {
         for (MapInfo loc: rc.senseNearbyMapInfos()) {
             if (checkTower(rc, loc)) {
                 lastTower = loc;
+                return;
             }
         }
     }
+    public static void notifyEnemyPaint(RobotController rc) throws GameActionException{
+         return;
+
+    }
+
+    public static void notifyEnemyBot(RobotController rc) throws GameActionException{
+        int msg = RobotInfoCodec.encode(lastEnemy);
+        if (rc.canSendMessage(lastTower.getMapLocation(), msg)){
+            rc.sendMessage(lastTower.getMapLocation(), msg);
+            botNotSent = false;
+        } else {
+            rc.move(returnToTower(rc));
+            botNotSent = true;
+        }
+    }
+
 
     public static Direction returnToTower(RobotController rc) throws GameActionException{
         for (MapInfo loc: rc.senseNearbyMapInfos()){
@@ -275,7 +299,10 @@ public class RobotPlayer {
     }
     public static void runSoldier(RobotController rc) throws GameActionException{
         updateLastTower(rc);
-
+        // if saw enemy, but couldn't notify previously
+        if (botNotSent){
+            notifyEnemyBot(rc);
+        }
         if (rc.getPaint() < 20){
             Direction dir = returnToTower(rc);
             if (dir != null){
@@ -295,6 +322,20 @@ public class RobotPlayer {
         MapInfo curRuin = null;
         int minDis = -1;
         for (MapInfo tile : nearbyTiles) {
+            // first checks if enemy paint/bot is seen
+            if (!tile.getPaint().isAlly()){
+                lastEnemyPaint = tile;
+                notifyEnemyPaint(rc);
+                return;
+            }
+
+            RobotInfo bot = rc.senseRobotAtLocation(tile.getMapLocation());
+            if (bot != null && bot.team != rc.getTeam()) {
+                lastEnemy = bot;
+                notifyEnemyBot(rc);
+                return;
+            }
+            // check if ruin can be seen
             if (tile.hasRuin()) {
                 MapLocation tileLocation = tile.getMapLocation();
                 if (!rc.canSenseRobotAtLocation(tileLocation)) {
