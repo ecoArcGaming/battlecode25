@@ -27,7 +27,8 @@ public class RobotPlayer {
     static boolean botNotSent = false;
     static MapInfo removePaint = null;
     static boolean sendEnemyPaintMsg = false;
-
+    static MapLocation enemySpawn = null;
+    static int soldierMsgCooldown = -1;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -157,6 +158,7 @@ public class RobotPlayer {
         // On round 1, just paint tile it is on
         if (rc.getRoundNum() == 2) {
             Soldier.paintIfPossible(rc, rc.getLocation());
+            enemySpawn = new MapLocation(rc.getMapWidth() - rc.getLocation().x,rc.getMapHeight()- rc.getLocation().y);
             return;
         }
 
@@ -184,9 +186,15 @@ public class RobotPlayer {
         // Find all Enemy Tiles
         MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
         if (enemyPaint != null) {
-            Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
-            enemyTile = enemyPaint;
-            return;
+            // send msg about enemyPaint every 10 turns if seen
+            if (soldierMsgCooldown != -1 && rc.getRoundNum() % 10 == soldierMsgCooldown) {
+                System.out.println("Soldier msg cooldown");
+                Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
+                enemyTile = enemyPaint;
+                return;
+            } else if (soldierMsgCooldown == -1) {
+                soldierMsgCooldown = rc.getRoundNum() % 10;
+            }
         }
 
 
@@ -227,9 +235,22 @@ public class RobotPlayer {
             Soldier.completeRuinIfPossible(rc, ruinLocation);
         } else if (!fillingTower){
             // TODO: Improve exploration behavior: use all information in vision to choose where to move next
-            Direction exploreDir = Pathfinding.exploreUnpainted(rc);
-            if (exploreDir != null) {rc.move(exploreDir);}
-            Soldier.paintIfPossible(rc, rc.getLocation());
+            if (enemySpawn != null ){
+                Direction dir = Pathfinding.pathfind(rc, enemySpawn);
+                if (dir != null && rc.canMove(dir)){
+                    rc.move(dir);
+                    return;
+                }
+            }
+            Direction dir = Pathfinding.exploreUnpainted(rc);
+            if (dir != null && rc.canMove(dir)){
+                rc.move(dir);
+                if (rc.canAttack(rc.getLocation())){
+                    rc.attack(rc.getLocation());
+                }
+                return;
+            }
+            rc.move(Pathfinding.getUnstuck(rc));
         }
     }
 
@@ -249,6 +270,11 @@ public class RobotPlayer {
             for (MapInfo tile: rc.senseNearbyMapInfos()){
                 if (rc.canAttack(tile.getMapLocation()) && tile.getPaint().isEnemy()){
                     rc.attack(tile.getMapLocation());
+                } else if (tile.getPaint().isEnemy()){
+                    Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
+                    if (dir != null){
+                        rc.move(dir);
+                    }
                 }
             }
             // Randomly move every three turns

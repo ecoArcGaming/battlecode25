@@ -145,4 +145,5 @@ public class Pathfinding {
         }
         return paintedPathfind(rc, new MapLocation(target_x, target_y));
     }
+
 }
