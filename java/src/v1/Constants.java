@@ -16,6 +16,6 @@ public class Constants {
             Direction.NORTHWEST,
     };
     public static final Random rng = new Random(6147);
-    public static final double TOWER_SPLIT = 0.3;
+    public static final double TOWER_SPLIT = 0;
     public static final int RESIGN_AFTER = 2000;
 }

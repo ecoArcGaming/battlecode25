@@ -92,7 +92,6 @@ public abstract class Robot {
      */
     public static UnitType genRandomTower() {
         double hehe = Constants.rng.nextDouble();
-        System.out.println(hehe);
         return ((hehe < Constants.TOWER_SPLIT) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
     }
 
