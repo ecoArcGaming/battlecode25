@@ -250,7 +250,10 @@ public class RobotPlayer {
                 }
                 return;
             }
-            rc.move(Pathfinding.getUnstuck(rc));
+            Direction newDir = Pathfinding.getUnstuck(rc);
+            if (newDir != null && rc.canMove(newDir)){
+                rc.move(newDir);
+            }
         }
     }
 

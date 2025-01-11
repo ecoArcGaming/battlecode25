@@ -11,6 +11,8 @@ public abstract class Robot {
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
         Direction dir = Pathfinding.returnToTower(rc);
+        if (rc.getID() == 12630)
+            System.out.println("Going to: " + RobotPlayer.lastTower + " at " + dir);
         if (dir != null){
             rc.move(dir);
         }

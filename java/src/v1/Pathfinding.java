@@ -88,21 +88,7 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        int minDistance = -1;
-        MapInfo closestTower = null;
-        MapLocation curLocation = rc.getLocation();
-        for (MapInfo loc: rc.senseNearbyMapInfos()){;
-            int distance = curLocation.distanceSquaredTo(loc.getMapLocation());
-            if(Robot.checkTower(rc, loc) && (minDistance == -1 || distance < minDistance)){
-                minDistance = distance;
-                closestTower = loc;
-            }
-        }
-        if (closestTower == null) {
-            System.out.println(RobotPlayer.lastTower);
-            closestTower = RobotPlayer.lastTower;
-        }
-        return paintedPathfind(rc, closestTower.getMapLocation());
+        return paintedPathfind(rc, RobotPlayer.lastTower.getMapLocation());
     }
 
     /**

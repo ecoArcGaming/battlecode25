@@ -19,7 +19,6 @@ public class Mopper extends Robot{
     }
 
     public static void removePaint(RobotController rc, MapInfo enemyPaint) throws GameActionException {
-        System.out.println("Removing paint");
         MapLocation enemyLoc = enemyPaint.getMapLocation();
         if (rc.canAttack(enemyLoc) && enemyPaint.getPaint().isEnemy()){
             rc.attack(enemyLoc);
