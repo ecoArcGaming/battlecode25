@@ -52,14 +52,14 @@ public abstract class Tower {
      * Builds a random robot at a random location
      */
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
-        double robotType = Constants.rng.nextDouble();
-        if (robotType < 0.33) {
-            buildAtRandomLocation(rc, UnitType.SOLDIER);
-        } else if (robotType < 0.66) {
-            buildAtRandomLocation(rc, UnitType.MOPPER);
-        } else {
-            //buildAtRandomLocation(rc, UnitType.SPLASHER);
-        }
+//        double robotType = Constants.rng.nextDouble();
+//        if (robotType < 0.33) {
+        buildAtRandomLocation(rc, UnitType.SOLDIER);
+//        } else if (robotType < 0.66) {
+//            buildAtRandomLocation(rc, UnitType.MOPPER);
+//        } else {
+//            //buildAtRandomLocation(rc, UnitType.SPLASHER);
+//        }
     }
 
     /**
