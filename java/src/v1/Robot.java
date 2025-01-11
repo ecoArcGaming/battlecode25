@@ -34,13 +34,47 @@ public abstract class Robot {
     /**
      * Updates the lastTower variable to any paint tower currently in range
      */
-    public static void updateLastTower(RobotController rc){
+    public static void updateLastPaintTower(RobotController rc) throws GameActionException {
+        int min_distance = -1;
+        MapInfo lastTower = null;
         for (MapInfo loc: rc.senseNearbyMapInfos()) {
             if (checkTower(rc, loc)) {
-                RobotPlayer.lastTower = loc;
+                UnitType towerType = rc.senseRobotAtLocation(loc.getMapLocation()).getType();
+                if (towerType == UnitType.LEVEL_ONE_PAINT_TOWER || towerType == UnitType.LEVEL_TWO_PAINT_TOWER || towerType == UnitType.LEVEL_THREE_PAINT_TOWER)
+                {
+                    int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
+                    if (min_distance == -1 || min_distance > distance){
+                        lastTower = loc;
+                        min_distance = distance;
+                    }
+                }
             }
         }
+        if (min_distance != -1){
+            RobotPlayer.lastTower = lastTower;
+        }
     }
+
+    /**
+     * Updates the lastTower variable to any paint tower currently in range
+     */
+    public static void updateLastTower(RobotController rc){
+        int min_distance = -1;
+        MapInfo lastTower = null;
+        for (MapInfo loc: rc.senseNearbyMapInfos()) {
+            if (checkTower(rc, loc)) {
+                int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
+                if (min_distance == -1 || min_distance > distance){
+                    lastTower = loc;
+                    min_distance = distance;
+                }
+            }
+        }
+        if (min_distance != -1){
+            RobotPlayer.lastTower = lastTower;
+        }
+    }
+
 
     /**
      * Check if the robot rc has less paint than the threshold

@@ -99,6 +99,7 @@ public class Pathfinding {
             }
         }
         if (closestTower == null) {
+            System.out.println(RobotPlayer.lastTower);
             closestTower = RobotPlayer.lastTower;
         }
         return paintedPathfind(rc, closestTower.getMapLocation());

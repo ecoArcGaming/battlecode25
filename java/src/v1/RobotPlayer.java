@@ -147,7 +147,12 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runSoldier(RobotController rc) throws GameActionException{
-        Soldier.updateLastTower(rc);
+        if (lastTower == null){
+            Soldier.updateLastTower(rc);
+        }
+        else{
+            Soldier.updateLastPaintTower(rc);
+        }
 
         // On round 1, just paint tile it is on
         if (rc.getRoundNum() == 2) {
