@@ -25,6 +25,8 @@ public class RobotPlayer {
     static MapInfo enemyTile = null;
     static RobotInfo lastEnemy = null;
     static boolean botNotSent = false;
+    static MapInfo removePaint = null;
+    static boolean sendEnemyPaintMsg = false;
 
     // Controls whether the soldier is currently filling in a ruin or not
     /**
@@ -129,6 +131,10 @@ public class RobotPlayer {
             if (rc.getMoney() > 1500) {
                 Tower.buildCompletelyRandom(rc);
             }
+            if (sendEnemyPaintMsg && removePaint != null) {
+                Communication.sendMapInformation(rc, removePaint, rc.getLocation().add(Direction.NORTHEAST));
+                sendEnemyPaintMsg = false;
+            }
         }
 
         // TODO: make sure this works: tower attack a robot in range that has the lowest hp
@@ -142,9 +148,21 @@ public class RobotPlayer {
      */
     public static void runSoldier(RobotController rc) throws GameActionException{
         Soldier.updateLastTower(rc);
+
+        // On round 1, just paint tile it is on
+        if (rc.getRoundNum() == 2) {
+            Soldier.paintIfPossible(rc, rc.getLocation());
+            return;
+        }
+
+        if (rc.getRoundNum() == 3) {
+            rc.move(Direction.EAST);
+            Soldier.paintIfPossible(rc, rc.getLocation());
+            return;
+        }
+
         // If the soldier needs to report a tile, it will call inform tower of paint
         if (enemyTile != null){
-            System.out.println(enemyTile);
             Soldier.informTowerOfEnemyPaint(rc, enemyTile);
             return;
         }
@@ -210,28 +228,18 @@ public class RobotPlayer {
         }
     }
 
-
-    /**
-     * Run a single turn for a Mopper.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
-     */
-
     public static void runSplasher(RobotController rc) throws GameActionException{
         rc.move(Pathfinding.pathfind(rc, new MapLocation(0, 0)));
     }
+
     public static void runMopper(RobotController rc) throws GameActionException{
-        // Move and attack randomly.
-        Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        if (rc.canMove(dir)){
-            rc.move(dir);
+        // Read all incoming messages
+        Mopper.receiveLastMessage(rc);
+
+        if (removePaint != null){
+            Mopper.removePaint(rc, removePaint);
         }
-        if (rc.canMopSwing(dir)){
-            rc.mopSwing(dir);
-        }
-        else if (rc.canAttack(nextLoc)){
-            rc.attack(nextLoc);
-        }
+
         // We can also move our code into different methods or classes to better organize it!
         updateEnemyRobots(rc);
     }

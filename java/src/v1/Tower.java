@@ -13,8 +13,20 @@ public abstract class Tower {
     public static void readNewMessages(RobotController rc) throws GameActionException{
         // Looks at all incoming messages
         for (Message message: rc.readMessages(rc.getRoundNum()-1)){
-            RobotInfo msg = RobotInfoCodec.decode(message.getBytes());
-            // Do stuff
+            int bytes = message.getBytes();
+            if (Communication.isRobotInfo(bytes)){
+                RobotInfo msg = RobotInfoCodec.decode(bytes);
+                continue;
+            }
+            else{
+                MapInfo msg = MapInfoCodec.decode(bytes);
+                if (msg.getPaint().isEnemy()){
+                    MapLocation spawnLoc = rc.getLocation().add(Direction.NORTHEAST);
+                    buildIfPossible(rc, UnitType.MOPPER, spawnLoc);
+                    RobotPlayer.sendEnemyPaintMsg = true;
+                    RobotPlayer.removePaint = msg;
+                }
+            }
         }
     }
 

@@ -39,8 +39,9 @@ public class Soldier extends Robot {
             rc.move(dir);
         }
         MapLocation towerLocation = RobotPlayer.lastTower.getMapLocation();
-        System.out.println(enemyTile);
+        System.out.println(rc.canSendMessage(towerLocation));
         if (rc.canSendMessage(towerLocation)) {
+            System.out.println(towerLocation);
             Communication.sendMapInformation(rc, enemyTile, towerLocation);
             RobotPlayer.enemyTile = null;
         }
