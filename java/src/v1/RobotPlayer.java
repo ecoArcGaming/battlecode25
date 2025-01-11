@@ -242,8 +242,15 @@ public class RobotPlayer {
         } else {
             // attack nearby enemy tiles
             for (MapInfo tile: rc.senseNearbyMapInfos()){
-                if (rc.canAttack(tile.getMapLocation())){
+                if (rc.canAttack(tile.getMapLocation()) && tile.getPaint().isEnemy()){
                     rc.attack(tile.getMapLocation());
+                }
+            }
+            // Randomly move every three turns
+            if (rc.getActionCooldownTurns() < 10) {
+                Direction exploreDir = Pathfinding.exploreUnpainted(rc);
+                if (exploreDir != null) {
+                    rc.move(exploreDir);
                 }
             }
         }
