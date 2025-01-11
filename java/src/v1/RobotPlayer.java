@@ -287,9 +287,9 @@ public class RobotPlayer {
             }
             // Randomly move every three turns
             if (rc.getActionCooldownTurns() < 10) {
-                Direction exploreDir = Pathfinding.exploreUnpainted(rc);
+                Direction exploreDir = Pathfinding.getUnstuck(rc);
                 System.out.println(exploreDir);
-                if (exploreDir != null) {
+                if (exploreDir != null && rc.canMove(exploreDir)) {
                     rc.move(exploreDir);
                 }
             }
