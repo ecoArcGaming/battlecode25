@@ -28,4 +28,21 @@ public class Soldier extends Robot {
         MapInfo paintTile = rc.senseMapInfo(rc.getLocation());
         paintIfPossible(rc, paintTile, paintLocation);
     }
+
+    /**
+     * If tower is there, sends message to tower that enemy paint exists.
+     * Otherwise, pathfind to tower
+     */
+    public static void informTowerOfEnemyPaint(RobotController rc, MapInfo enemyTile) throws GameActionException {
+        Direction dir = Pathfinding.returnToTower(rc);
+        if (dir != null){
+            rc.move(dir);
+        }
+        MapLocation towerLocation = RobotPlayer.lastTower.getMapLocation();
+        System.out.println(enemyTile);
+        if (rc.canSendMessage(towerLocation)) {
+            Communication.sendMapInformation(rc, enemyTile, towerLocation);
+            RobotPlayer.enemyTile = null;
+        }
+    }
 }

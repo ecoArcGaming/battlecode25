@@ -22,6 +22,7 @@ public class RobotPlayer {
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
     static MapInfo lastTower = null; // TODO: Somehow navigate back to paint towers and not money towers
     static boolean fillingTower = false;
+    static MapInfo enemyTile = null;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -138,6 +139,15 @@ public class RobotPlayer {
      */
     public static void runSoldier(RobotController rc) throws GameActionException{
         Soldier.updateLastTower(rc);
+
+        // If the soldier needs to report a tile, it will call inform tower of paint
+        if (enemyTile != null){
+            System.out.println(enemyTile);
+            Soldier.informTowerOfEnemyPaint(rc, enemyTile);
+            return;
+        }
+
+        // If the soldier has low paint, perform low paint behavior
         if (Soldier.hasLowPaint(rc, 20)) {
             Soldier.lowPaintBehavior(rc);
             return;
@@ -145,6 +155,16 @@ public class RobotPlayer {
 
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
+
+        // Find all Enemy Tiles
+        MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
+        if (enemyPaint != null) {
+            Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
+            enemyTile = enemyPaint;
+            return;
+        }
+
+        // Finds closest ruin
         MapLocation startLocation = rc.getLocation();
         MapInfo closestRuin = Sensing.findClosestRuin(rc, startLocation, nearbyTiles);
         if (closestRuin != null) {

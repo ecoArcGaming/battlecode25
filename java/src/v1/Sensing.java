@@ -10,7 +10,7 @@ public class Sensing {
      *  Finds the opponent robots within actionRadius with the lowest HP and returns its RobotInfo
      */
     public static RobotInfo findNearestLowestHP(RobotController rc) throws GameActionException {
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared);
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         RobotInfo targetRobot = null;
         int minHealth = -1;
         for (RobotInfo robot: nearbyRobots) {
@@ -133,6 +133,7 @@ public class Sensing {
         }
         return null;
     }
+
     public static RobotInfo towerInRange(RobotController rc, int range, boolean ally) throws GameActionException {
         RobotInfo[] robotsInRange = null;
         if (ally) {
@@ -143,6 +144,18 @@ public class Sensing {
         for (RobotInfo robot: robotsInRange) {
             if (robot.getType().isTowerType()) {
                 return robot;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns map info of location of enemy paint
+     */
+    public static MapInfo findEnemyPaint(RobotController rc, MapInfo[] nearbyTiles) throws GameActionException {
+        for (MapInfo tile: nearbyTiles) {
+            if (tile.getPaint().isEnemy()){
+                return tile;
             }
         }
         return null;
