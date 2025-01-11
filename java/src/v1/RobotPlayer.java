@@ -127,6 +127,10 @@ public class RobotPlayer {
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot at the north of the tower
             Tower.buildIfPossible(rc, UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
+            // upgrade money tower
+            if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER){
+                rc.upgradeTower(rc.getLocation());
+            }
         } else {
             // TODO: Figure out tower spawning logic (when to spawn, what to spawn)
             if (rc.getMoney() > 1500) {
