@@ -238,6 +238,14 @@ public class RobotPlayer {
 
         if (removePaint != null){
             Mopper.removePaint(rc, removePaint);
+
+        } else {
+            // attack nearby enemy tiles
+            for (MapInfo tile: rc.senseNearbyMapInfos()){
+                if (rc.canAttack(tile.getMapLocation())){
+                    rc.attack(tile.getMapLocation());
+                }
+            }
         }
 
         // We can also move our code into different methods or classes to better organize it!
