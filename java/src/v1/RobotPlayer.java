@@ -169,7 +169,7 @@ public class RobotPlayer {
         }
 
         // If the soldier needs to report a tile, it will call inform tower of paint
-        if (enemyTile != null){
+        if (enemyTile != null && soldierMsgCooldown == rc.getRoundNum() % 10){
             Soldier.informTowerOfEnemyPaint(rc, enemyTile);
             return;
         }
@@ -235,7 +235,7 @@ public class RobotPlayer {
             Soldier.completeRuinIfPossible(rc, ruinLocation);
         } else if (!fillingTower){
             // TODO: Improve exploration behavior: use all information in vision to choose where to move next
-            if (enemySpawn != null ){
+            if (enemySpawn != null && rc.getRoundNum()  < 15){
                 Direction dir = Pathfinding.pathfind(rc, enemySpawn);
                 if (dir != null && rc.canMove(dir)){
                     rc.move(dir);
