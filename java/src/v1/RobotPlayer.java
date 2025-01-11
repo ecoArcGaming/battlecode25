@@ -23,6 +23,9 @@ public class RobotPlayer {
     static MapInfo lastTower = null; // TODO: Somehow navigate back to paint towers and not money towers
     static boolean fillingTower = false;
     static MapInfo enemyTile = null;
+    static RobotInfo lastEnemy = null;
+    static boolean botNotSent = false;
+
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -139,7 +142,6 @@ public class RobotPlayer {
      */
     public static void runSoldier(RobotController rc) throws GameActionException{
         Soldier.updateLastTower(rc);
-
         // If the soldier needs to report a tile, it will call inform tower of paint
         if (enemyTile != null){
             System.out.println(enemyTile);
@@ -163,6 +165,7 @@ public class RobotPlayer {
             enemyTile = enemyPaint;
             return;
         }
+
 
         // Finds closest ruin
         MapLocation startLocation = rc.getLocation();
