@@ -67,7 +67,7 @@ public class RobotPlayer {
 
                 // Updates the grid each robot can see
                 for (MapInfo mi : rc.senseNearbyMapInfos()) {
-                    currGrid[mi.getMapLocation().x][mi.getMapLocation().y] = mi;
+                    currGrid[mi.getMapLocation().y][mi.getMapLocation().x] = mi;
                 }
 
                 switch (rc.getType()) {
@@ -274,12 +274,14 @@ public class RobotPlayer {
                     Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
                     if (dir != null){
                         rc.move(dir);
+                        return;
                     }
                 }
             }
             // Randomly move every three turns
             if (rc.getActionCooldownTurns() < 10) {
                 Direction exploreDir = Pathfinding.exploreUnpainted(rc);
+                System.out.println(exploreDir);
                 if (exploreDir != null) {
                     rc.move(exploreDir);
                 }
