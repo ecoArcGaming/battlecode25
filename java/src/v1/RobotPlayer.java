@@ -17,7 +17,9 @@ FIXME
     - Robots not attacking towers
     - Soldiers behavior when encountering enemy paint very inefficient
     - Can't really fight about against other enemy robots
-
+TODO
+    - Different types of movement / navigation for robots
+    - Splasher behavior (ensure they don't paint over tower patterns)?
  */
 
 public class RobotPlayer {
