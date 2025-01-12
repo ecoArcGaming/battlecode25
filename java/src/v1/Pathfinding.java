@@ -2,6 +2,7 @@ package v1;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -92,22 +93,59 @@ public class Pathfinding {
     }
 
     /**
-     * Returns a random Direction representing the direction of an unpainted block
-     * If all adjacent blocks are painted, then return a random direction
+     * Given an ArrayList of tiles to move to, randomly chooses a tile, weighted by how many tiles are unpainted & unoccupied
+     * in the 3x3 area centered at the tile behind the tile (relative to the robot)
+     */
+    public static MapLocation tiebreakUnpainted(RobotController rc, List<MapInfo> validAdjacent) throws GameActionException{
+        int cumSum = 0;
+        int numTiles = validAdjacent.size();
+        int[] weightedAdjacent = new int[numTiles];
+        for (int i = 0; i < numTiles; i++){
+            MapLocation adjLocation = validAdjacent.get(i).getMapLocation();
+            cumSum += Sensing.countEmptyAround(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
+            weightedAdjacent[i] = cumSum;
+        }
+        if (cumSum == 0) {
+            return rc.getLocation().add(Constants.directions[Constants.rng.nextInt(Constants.directions.length)]);
+        } else {
+            int randomValue = Constants.rng.nextInt(cumSum);
+            for (int i = 0; i < numTiles; i++) {
+                if (randomValue < weightedAdjacent[i]){
+                    return validAdjacent.get(i).getMapLocation();
+                }
+            }
+        }
+        System.out.println("We should never reach here");
+        return rc.getLocation().add(Constants.directions[Constants.rng.nextInt(Constants.directions.length)]);
+    }
+
+    /**
+     * Returns a Direction representing the direction of an unpainted block
+     * Smartly chooses an optimal direction among adjacent, unpainted tiles using the method tiebreakUnpainted
+     * If all surrounding blocks are painted, apply tiebreakUnpainted
      */
     public static Direction exploreUnpainted(RobotController rc) throws GameActionException {
         List<MapInfo> validAdjacent = Sensing.getMovableEmptyTiles(rc);
         if (!validAdjacent.isEmpty()){
+            /* Previous code where we choose an adjacent unpainted block at random
             MapInfo nextLoc = validAdjacent.get(Constants.rng.nextInt(validAdjacent.size()));
             Direction moveDir = rc.getLocation().directionTo(nextLoc.getMapLocation());
             if (rc.canMove(moveDir)) {
                 return moveDir;
             }
+            */
         } else {
-            Direction moveDir = Constants.directions[Constants.rng.nextInt(Constants.directions.length)];
-            if (rc.canMove(moveDir)){
-                return moveDir;
+            MapLocation curLoc = rc.getLocation();
+            for (Direction dir: Constants.directions) {
+                if (rc.canMove(dir)) {
+                    validAdjacent.add(rc.senseMapInfo(curLoc.add(dir)));
+                }
             }
+
+        }
+        Direction moveDir = rc.getLocation().directionTo(tiebreakUnpainted(rc, validAdjacent));
+        if (rc.canMove(moveDir)) {
+            return moveDir;
         }
         return null;
     }

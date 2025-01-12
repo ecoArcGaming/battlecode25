@@ -2,6 +2,7 @@ package v1;
 
 import battlecode.common.*;
 
+import javax.xml.stream.Location;
 import java.awt.*;
 import java.nio.file.Path;
 import java.util.*;
@@ -12,14 +13,18 @@ import java.util.*;
  * is created!
  */
 /*
-FIXME
+FIXME (General issues we noticed)
     - Robots clumping together around towers
+    - Robots clumping together around ruins
     - Robots not attacking towers
     - Soldiers behavior when encountering enemy paint very inefficient
     - Can't really fight about against other enemy robots
-TODO
+TODO (Specific issues we noticed)
     - Different types of movement / navigation for robots
     - Splasher behavior (ensure they don't paint over tower patterns)?
+    - Upgrade towers when we have a ton of coins
+    - Towers are not being built sometimes even when pattern is complete
+    - Robots still get stuck (lectureplayer vs v1 on DefaultHuge)
  */
 
 public class RobotPlayer {
@@ -250,15 +255,14 @@ public class RobotPlayer {
                 Direction dir = Pathfinding.pathfind(rc, enemySpawn);
                 if (dir != null && rc.canMove(dir)){
                     rc.move(dir);
+                    Soldier.paintIfPossible(rc, rc.getLocation());
                     return;
                 }
             }
             Direction dir = Pathfinding.exploreUnpainted(rc);
             if (dir != null && rc.canMove(dir)){
                 rc.move(dir);
-                if (rc.canAttack(rc.getLocation())){
-                    rc.attack(rc.getLocation());
-                }
+                Soldier.paintIfPossible(rc, rc.getLocation());
                 return;
             }
             Direction newDir = Pathfinding.getUnstuck(rc);
@@ -280,7 +284,7 @@ public class RobotPlayer {
             Mopper.removePaint(rc, removePaint);
 
         } else {
-            // TODO: prioritize closest enemy tiles?
+            // TODO: prioritize attackable enemy tiles?
             // attack nearby enemy tiles
             for (MapInfo tile: rc.senseNearbyMapInfos()){
                 if (rc.canAttack(tile.getMapLocation()) && tile.getPaint().isEnemy()){
