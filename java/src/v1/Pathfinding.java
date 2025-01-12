@@ -56,13 +56,13 @@ public class Pathfinding {
         Direction left = currDir.rotateLeft();
         Direction right = currDir.rotateRight();
 
-        if (rc.canMove(currDir) && rc.senseMapInfo(rc.getLocation().add(currDir)).getPaint().isAlly() && !RobotPlayer.last8.contains(rc.getLocation().add(currDir))) {
+        if (rc.canMove(currDir) && rc.senseMapInfo(rc.getLocation().add(currDir)).getPaint().isAlly()) {
             return currDir;
         }
-        else if (rc.canMove(left) && rc.senseMapInfo(rc.getLocation().add(left)).getPaint().isAlly() && !RobotPlayer.last8.contains(rc.getLocation().add(currDir))){
+        else if (rc.canMove(left) && rc.senseMapInfo(rc.getLocation().add(left)).getPaint().isAlly()){
             return left;
         }
-        else if (rc.canMove(right) && rc.senseMapInfo(rc.getLocation().add(right)).getPaint().isAlly() && !RobotPlayer.last8.contains(rc.getLocation().add(currDir))) {
+        else if (rc.canMove(right) && rc.senseMapInfo(rc.getLocation().add(right)).getPaint().isAlly()) {
             return right;
         }
 

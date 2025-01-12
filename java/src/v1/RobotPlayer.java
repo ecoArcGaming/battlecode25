@@ -38,6 +38,10 @@ public class RobotPlayer {
     static boolean sendEnemyPaintMsg = false;
     static MapLocation enemySpawn = null;
     static int soldierMsgCooldown = -1;
+    static SoldierType soldierType = null;
+    static MapInfo enemyTower = null;
+    static ArrayList<Integer> spawnQueue = new ArrayList<>();
+    static boolean sendTypeMessage = false;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -135,19 +139,37 @@ public class RobotPlayer {
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot at the north of the tower
-            Tower.buildIfPossible(rc, UnitType.SOLDIER, rc.getLocation().add(Direction.NORTH));
-            // upgrade money tower
-            if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER){
-                rc.upgradeTower(rc.getLocation());
-            }
+            spawnQueue.add(1);
         } else {
-            // TODO: Figure out tower spawning logic (when to spawn, what to spawn)
-            if (rc.getMoney() > 1500) {
-                Tower.buildCompletelyRandom(rc);
+            // If unit has been spawned and communication hasn't happened yet
+            if (sendTypeMessage) {
+                Tower.sendTypeMessage(rc, spawnQueue.getFirst());
             }
-            if (sendEnemyPaintMsg && removePaint != null) {
-                Communication.sendMapInformation(rc, removePaint, rc.getLocation().add(Direction.NORTHEAST));
-                sendEnemyPaintMsg = false;
+
+            // Otherwise, if the spawn queue isn't empty, spawn the required unit
+            else if (!spawnQueue.isEmpty()){
+                switch (spawnQueue.getFirst()){
+                    case 0, 1, 2: Tower.createSoldier(rc); break;
+                    case 3: Tower.createMopper(rc); break;
+                }
+            }
+
+
+//            // If attack soldier requested, build it
+//            if (sendAttackMessage){
+//                Tower.createAttackSoldier(rc);
+//                return;
+//            }
+//
+//            // If advance soldier requested, build it
+//            if (sendAdvanceMessage) {
+//                Tower.createAdvanceSoldier(rc);
+//                return;
+//            }
+
+            // TODO: Figure out tower spawning logic (when to spawn, what to spawn)
+            else if (rc.getMoney() > 2000) {
+                Tower.buildCompletelyRandom(rc);
             }
         }
 
@@ -159,111 +181,139 @@ public class RobotPlayer {
      * Run a single turn for a Soldier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-    public static void runSoldier(RobotController rc) throws GameActionException{
-        if (lastTower == null){
+    public static void runSoldier(RobotController rc) throws GameActionException {
+        if (lastTower == null) {
             Soldier.updateLastTower(rc);
-        }
-        else{
+        } else {
             Soldier.updateLastPaintTower(rc);
         }
 
+        // Read incoming messages
+        Soldier.readNewMessages(rc);
+
         // On round 1, just paint tile it is on
-        if (rc.getRoundNum() == 2) {
-            Soldier.paintIfPossible(rc, rc.getLocation());
-            enemySpawn = new MapLocation(rc.getMapWidth() - rc.getLocation().x,rc.getMapHeight()- rc.getLocation().y);
-            return;
-        }
-
         if (rc.getRoundNum() == 3) {
-            rc.move(Direction.EAST);
             Soldier.paintIfPossible(rc, rc.getLocation());
+            enemySpawn = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
             return;
         }
 
-        // If the soldier needs to report a tile, it will call inform tower of paint
-        if (enemyTile != null && soldierMsgCooldown == rc.getRoundNum() % 10){
-            Soldier.informTowerOfEnemyPaint(rc, enemyTile);
+        // If soldier hasn't been given it's class, stay
+        if (soldierType == null) {
             return;
         }
 
-        // If the soldier has low paint, perform low paint behavior
-        if (Soldier.hasLowPaint(rc, 20)) {
-            Soldier.lowPaintBehavior(rc);
-            return;
+        // If the soldier is a develop or advance bot, then report enemy paint
+        // Also, perform low paint behavior if it is those types
+        if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.ADVANCE){
+            // If the soldier needs to report a tile, it will call inform tower of paint
+            if (enemyTile != null) {
+                Soldier.informTowerOfEnemyPaint(rc, enemyTile);
+                return;
+            }
+
+            // If the soldier has low paint, perform low paint behavior
+            if (Soldier.hasLowPaint(rc, 20)) {
+                Soldier.lowPaintBehavior(rc);
+                return;
+            }
         }
+
 
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
 
-        // Find all Enemy Tiles
-        MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
-        if (enemyPaint != null) {
-            // send msg about enemyPaint every 10 turns if seen
-            if (soldierMsgCooldown != -1 && rc.getRoundNum() % 10 == soldierMsgCooldown) {
-                System.out.println("Soldier msg cooldown");
-                Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
-                enemyTile = enemyPaint;
-                return;
-            } else if (soldierMsgCooldown == -1) {
-                soldierMsgCooldown = rc.getRoundNum() % 10;
+        // Only care about enemy tiles and ruins if robot is a develop or advance type
+        if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.ADVANCE) {
+            // Find all Enemy Tiles
+            MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
+            if (enemyPaint != null) {
+                // send msg about enemyPaint every 10 turns if seen
+                if (soldierMsgCooldown != -1 && rc.getRoundNum() % 20 == 0) {
+                    Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
+                    enemyTile = enemyPaint;
+                    return;
+                } else if (soldierMsgCooldown == -1) {
+                    soldierMsgCooldown = rc.getRoundNum() % 20;
+                }
             }
-        }
-
-
-        // Finds closest ruin
-        MapLocation startLocation = rc.getLocation();
-        MapInfo closestRuin = Sensing.findClosestRuin(rc, startLocation, nearbyTiles);
-        if (closestRuin != null) {
-            fillingTower = Sensing.canBuildTower(rc, closestRuin.getMapLocation());
-        } else {
-            fillingTower = false;
-        }
-
-        if (closestRuin != null){
-            MapLocation ruinLocation = closestRuin.getMapLocation();
-            // If true, the robot will not move
-            fillingTower = Sensing.canBuildTower(rc, ruinLocation);
-
-            // TODO: Improve logic for choosing which tower to build?
-            // Mark the pattern we need to draw to build a tower here if we haven't already.
-            Soldier.markRandomTower(rc, ruinLocation);
-
-            // Move towards the ruin
-            // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
-            Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
-            if (moveDir != null) {
-                rc.move(moveDir);}
-
-            // Fill in any spots in the pattern with the appropriate paint.
-            // Prioritize the tile under our own feet
-            MapLocation newLocation = rc.getLocation();
-            MapInfo currentTile = rc.senseMapInfo(newLocation);
-            Soldier.paintIfPossible(rc, currentTile);
-            MapInfo tileToPaint = Sensing.findPaintableTile(rc, ruinLocation,8);
-            if (tileToPaint != null) {
-                Soldier.paintIfPossible(rc, tileToPaint);
+            // Finds closest ruin
+            MapLocation startLocation = rc.getLocation();
+            MapInfo closestRuin = Sensing.findClosestRuin(rc, startLocation, nearbyTiles);
+            if (closestRuin != null) {
+                fillingTower = Sensing.canBuildTower(rc, closestRuin.getMapLocation());
+            } else {
+                fillingTower = false;
             }
-            Soldier.completeRuinIfPossible(rc, ruinLocation);
-        } else if (!fillingTower){
-            // TODO: Improve exploration behavior: use all information in vision to choose where to move next
-            if (enemySpawn != null && rc.getRoundNum()  < 15){
-                Direction dir = Pathfinding.pathfind(rc, enemySpawn);
-                if (dir != null && rc.canMove(dir)){
+
+            if (closestRuin != null) {
+                MapLocation ruinLocation = closestRuin.getMapLocation();
+                // If true, the robot will not move
+                fillingTower = Sensing.canBuildTower(rc, ruinLocation);
+
+                // TODO: Improve logic for choosing which tower to build?
+                // Mark the pattern we need to draw to build a tower here if we haven't already.
+                Soldier.markRandomTower(rc, ruinLocation);
+
+                // Move towards the ruin
+                // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
+                Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
+                if (moveDir != null) {
+                    rc.move(moveDir);
+                }
+
+                // Fill in any spots in the pattern with the appropriate paint.
+                // Prioritize the tile under our own feet
+                MapLocation newLocation = rc.getLocation();
+                MapInfo currentTile = rc.senseMapInfo(newLocation);
+                Soldier.paintIfPossible(rc, currentTile);
+                MapInfo tileToPaint = Sensing.findPaintableTile(rc, ruinLocation, 8);
+                if (tileToPaint != null) {
+                    Soldier.paintIfPossible(rc, tileToPaint);
+                }
+                Soldier.completeRuinIfPossible(rc, ruinLocation);
+            } else if (!fillingTower) {
+                // TODO: Improve exploration behavior: use all information in vision to choose where to move next
+                if (enemySpawn != null && rc.getRoundNum() < 15) {
+                    Direction dir = Pathfinding.pathfind(rc, enemySpawn);
+                    if (dir != null && rc.canMove(dir)) {
+                        rc.move(dir);
+                        return;
+                    }
+                }
+                Direction dir = Pathfinding.exploreUnpainted(rc);
+                if (dir != null && rc.canMove(dir)) {
                     rc.move(dir);
+                    if (rc.canAttack(rc.getLocation())) {
+                        rc.attack(rc.getLocation());
+                    }
                     return;
                 }
-            }
-            Direction dir = Pathfinding.exploreUnpainted(rc);
-            if (dir != null && rc.canMove(dir)){
-                rc.move(dir);
-                if (rc.canAttack(rc.getLocation())){
-                    rc.attack(rc.getLocation());
+                Direction newDir = Pathfinding.getUnstuck(rc);
+                if (newDir != null && rc.canMove(newDir)) {
+                    rc.move(newDir);
                 }
-                return;
             }
-            Direction newDir = Pathfinding.getUnstuck(rc);
-            if (newDir != null && rc.canMove(newDir)){
-                rc.move(newDir);
+        }
+        else{
+            System.out.println("ID: " + rc.getID() + " Enemy Tile:" + enemyTile + " Enemy Tower:" + enemyTower);
+            // If enemy tower already defined, then attack enemy tower
+            if (enemyTower != null && rc.canAttack(enemyTower.getMapLocation())) {
+                rc.attack(enemyTower.getMapLocation());
+            }
+            // If enemy tower detected but can't attack, move towards it
+            else if (enemyTower != null){
+                Direction dir = Pathfinding.pathfind(rc, enemyTower.getMapLocation());
+                if (dir != null) {
+                    rc.move(dir);
+                }
+            }
+            // Otherwise, pathfind toward enemy tower
+            else if (enemyTile != null){
+                Soldier.attackEnemyTower(rc, nearbyTiles);
+            }
+            else{
+                soldierType = SoldierType.ADVANCE;
             }
         }
     }
@@ -296,7 +346,6 @@ public class RobotPlayer {
             // Randomly move when action cooldown is low
             if (rc.getActionCooldownTurns() < 10) {
                 Direction exploreDir = Pathfinding.getUnstuck(rc);
-                System.out.println(exploreDir);
                 if (exploreDir != null && rc.canMove(exploreDir)) {
                     rc.move(exploreDir);
                 }
