@@ -11,6 +11,15 @@ import java.util.*;
  * The run() method inside this class is like your main function: this is what we'll call once your robot
  * is created!
  */
+/*
+FIXME
+    - Robots clumping together around towers
+    - Robots not attacking towers
+    - Soldiers behavior when encountering enemy paint very inefficient
+    - Can't really fight about against other enemy robots
+
+ */
+
 public class RobotPlayer {
     /**
      * We will use this variable to count the number of turns this robot has been alive.
@@ -269,6 +278,7 @@ public class RobotPlayer {
             Mopper.removePaint(rc, removePaint);
 
         } else {
+            // TODO: prioritize closest enemy tiles?
             // attack nearby enemy tiles
             for (MapInfo tile: rc.senseNearbyMapInfos()){
                 if (rc.canAttack(tile.getMapLocation()) && tile.getPaint().isEnemy()){
@@ -281,7 +291,7 @@ public class RobotPlayer {
                     }
                 }
             }
-            // Randomly move every three turns
+            // Randomly move when action cooldown is low
             if (rc.getActionCooldownTurns() < 10) {
                 Direction exploreDir = Pathfinding.getUnstuck(rc);
                 System.out.println(exploreDir);
