@@ -154,10 +154,10 @@ public class RobotPlayer {
                 sendEnemyPaintMsg = false;
             }
         }
-        if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
+        if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 2500) {
             rc.upgradeTower(rc.getLocation());
         }
-        if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 10000) {
+        if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 5000) {
             rc.upgradeTower(rc.getLocation());
         }
         Tower.attackLowestRobot(rc);
