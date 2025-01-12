@@ -21,10 +21,9 @@ public abstract class Tower {
             else{
                 MapInfo msg = MapInfoCodec.decode(bytes);
                 if (msg.getPaint().isEnemy()){
-                    MapLocation spawnLoc = rc.getLocation().add(Direction.NORTHEAST);
-                    buildIfPossible(rc, UnitType.MOPPER, spawnLoc);
-                    RobotPlayer.sendEnemyPaintMsg = true;
-                    RobotPlayer.removePaint = msg;
+                    RobotPlayer.spawnQueue.add(3);
+                    RobotPlayer.spawnQueue.add(2);
+                    RobotPlayer.enemyTile = msg;
                 }
             }
         }
@@ -46,6 +45,9 @@ public abstract class Tower {
         Direction dir = Constants.directions[Constants.rng.nextInt(Constants.directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         buildIfPossible(rc, robotType, nextLoc);
+        if (rc.canSendMessage(nextLoc)){
+            rc.sendMessage(nextLoc, 1);
+        }
     }
 
     /**
@@ -54,7 +56,7 @@ public abstract class Tower {
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
 //        double robotType = Constants.rng.nextDouble();
 //        if (robotType < 0.33) {
-        buildAtRandomLocation(rc, UnitType.SOLDIER);
+        RobotPlayer.spawnQueue.add(1);
 //        } else if (robotType < 0.66) {
 //            buildAtRandomLocation(rc, UnitType.MOPPER);
 //        } else {
@@ -87,6 +89,41 @@ public abstract class Tower {
     public static void aoeAttackIfPossible(RobotController rc) throws GameActionException {
         if (rc.canAttack(null)) {
             rc.attack(null);
+        }
+    }
+
+    /**
+     * Creates a soldier at location NORTH if possible
+     */
+    public static void createSoldier(RobotController rc) throws GameActionException {
+        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        if (rc.canBuildRobot(UnitType.SOLDIER, addedDir)) {
+            rc.buildRobot(UnitType.SOLDIER, addedDir);
+            RobotPlayer.sendTypeMessage = true;
+        }
+    }
+
+    /**
+     * Creates a mopper at location NORTH if possible
+     */
+    public static void createMopper(RobotController rc) throws GameActionException {
+        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        if (rc.canBuildRobot(UnitType.MOPPER, addedDir)) {
+            rc.buildRobot(UnitType.MOPPER, addedDir);
+            RobotPlayer.sendTypeMessage = true;
+        }
+    }
+
+    public static void sendTypeMessage(RobotController rc, int robotType) throws GameActionException {
+        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        if (rc.canSendMessage(addedDir)){
+            rc.sendMessage(addedDir, robotType);
+            // If robot is an attack soldier or mopper, send enemy tile location as well
+            if (robotType == 3 || robotType == 2) {
+                Communication.sendMapInformation(rc, RobotPlayer.enemyTile, addedDir);
+            }
+            RobotPlayer.sendTypeMessage = false;
+            RobotPlayer.spawnQueue.removeFirst();
         }
     }
 }
