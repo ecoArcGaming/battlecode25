@@ -2,8 +2,6 @@ package v1;
 
 import battlecode.common.*;
 
-import java.awt.*;
-import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -12,14 +10,18 @@ import java.util.*;
  * is created!
  */
 /*
-FIXME
+FIXME (General issues we noticed)
     - Robots clumping together around towers
+    - Robots clumping together around ruins
     - Robots not attacking towers
     - Soldiers behavior when encountering enemy paint very inefficient
     - Can't really fight about against other enemy robots
-TODO
+TODO (Specific issues we noticed)
     - Different types of movement / navigation for robots
     - Splasher behavior (ensure they don't paint over tower patterns)?
+    - Upgrade towers when we have a ton of coins
+    - Towers are not being built sometimes even when pattern is complete
+    - Robots still get stuck (lectureplayer vs v1 on DefaultHuge)
  */
 
 public class RobotPlayer {
@@ -42,6 +44,8 @@ public class RobotPlayer {
     static MapInfo enemyTower = null;
     static ArrayList<Integer> spawnQueue = new ArrayList<>();
     static boolean sendTypeMessage = false;
+    static boolean isStuck = false;
+    static MapLocation oppositeCorner = null;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -172,7 +176,12 @@ public class RobotPlayer {
                 Tower.buildCompletelyRandom(rc);
             }
         }
-
+        if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 2500) {
+            rc.upgradeTower(rc.getLocation());
+        }
+        if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 5000) {
+            rc.upgradeTower(rc.getLocation());
+        }
         Tower.attackLowestRobot(rc);
         Tower.aoeAttackIfPossible(rc);
     }
@@ -246,7 +255,8 @@ public class RobotPlayer {
                 fillingTower = false;
             }
 
-            if (closestRuin != null) {
+            if (closestRuin != null){
+                isStuck = false;
                 MapLocation ruinLocation = closestRuin.getMapLocation();
                 // If true, the robot will not move
                 fillingTower = Sensing.canBuildTower(rc, ruinLocation);
@@ -259,43 +269,42 @@ public class RobotPlayer {
                 // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
                 Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
                 if (moveDir != null) {
-                    rc.move(moveDir);
-                }
+                    rc.move(moveDir);}
 
                 // Fill in any spots in the pattern with the appropriate paint.
                 // Prioritize the tile under our own feet
                 MapLocation newLocation = rc.getLocation();
                 MapInfo currentTile = rc.senseMapInfo(newLocation);
                 Soldier.paintIfPossible(rc, currentTile);
-                MapInfo tileToPaint = Sensing.findPaintableTile(rc, ruinLocation, 8);
+                MapInfo tileToPaint = Sensing.findPaintableTile(rc, ruinLocation,8);
                 if (tileToPaint != null) {
                     Soldier.paintIfPossible(rc, tileToPaint);
                 }
                 Soldier.completeRuinIfPossible(rc, ruinLocation);
-            } else if (!fillingTower) {
+            } else if (!fillingTower){
                 // TODO: Improve exploration behavior: use all information in vision to choose where to move next
-                if (enemySpawn != null && rc.getRoundNum() < 15) {
+                if (enemySpawn != null && rc.getRoundNum()  < 15){
                     Direction dir = Pathfinding.pathfind(rc, enemySpawn);
-                    if (dir != null && rc.canMove(dir)) {
+                    if (dir != null && rc.canMove(dir)){
+                        isStuck = false;
                         rc.move(dir);
+                        Soldier.paintIfPossible(rc, rc.getLocation());
                         return;
                     }
                 }
                 Direction dir = Pathfinding.exploreUnpainted(rc);
-                if (dir != null && rc.canMove(dir)) {
+                if (dir != null && rc.canMove(dir)){
+                    isStuck = false;
                     rc.move(dir);
-                    if (rc.canAttack(rc.getLocation())) {
-                        rc.attack(rc.getLocation());
-                    }
+                    Soldier.paintIfPossible(rc, rc.getLocation());
                     return;
                 }
                 Direction newDir = Pathfinding.getUnstuck(rc);
-                if (newDir != null && rc.canMove(newDir)) {
+                if (newDir != null && rc.canMove(newDir)){
                     rc.move(newDir);
                 }
             }
-        }
-        else{
+        } else {
             System.out.println("ID: " + rc.getID() + " Enemy Tile:" + enemyTile + " Enemy Tower:" + enemyTower);
             // If enemy tower already defined, then attack enemy tower
             if (enemyTower != null && rc.canAttack(enemyTower.getMapLocation())) {
@@ -307,19 +316,67 @@ public class RobotPlayer {
                 if (dir != null) {
                     rc.move(dir);
                 }
+
             }
             // Otherwise, pathfind toward enemy tower
             else if (enemyTile != null){
                 Soldier.attackEnemyTower(rc, nearbyTiles);
             }
-            else{
+            else {
                 soldierType = SoldierType.ADVANCE;
             }
         }
     }
 
     public static void runSplasher(RobotController rc) throws GameActionException{
-        rc.move(Pathfinding.pathfind(rc, new MapLocation(0, 0)));
+
+        Mopper.receiveLastMessage(rc);
+        Robot.updateLastPaintTower(rc);
+        if (Robot.hasLowPaint(rc, 20)) {
+            Robot.lowPaintBehavior(rc);
+            return;
+        }
+        // splash assigned tile or move towards it
+        if (removePaint != null){
+            if (rc.canAttack(removePaint.getMapLocation()) && rc.isActionReady()){
+                rc.attack(removePaint.getMapLocation());
+                removePaint = null;
+
+            } else if (rc.canAttack(removePaint.getMapLocation())){
+                Clock.yield(); // wait for cooldown
+            }
+
+            else {
+                Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
+                if (rc.canMove(dir)){
+                    rc.move(dir);
+
+                }
+            }
+            isStuck = false;
+            return;
+        } else { //splash other tiles it sees but avoid overlap
+            MapInfo[] all = rc.senseNearbyMapInfos();
+            for (int i =0; i < all.length; i++){
+                if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
+                    continue;
+                } else {
+                    if (all[i].getPaint().isEnemy()){
+                        removePaint = all[i];
+                        Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
+                        if (rc.canMove(dir)){
+                            rc.move(dir);
+                        }
+                        isStuck = false;
+                        return;
+                    }
+                }
+            }
+        }
+        Direction dir = Pathfinding.getUnstuck(rc);
+        if (dir != null && rc.canMove(dir)){
+            rc.move(dir);
+        }
     }
 
     public static void runMopper(RobotController rc) throws GameActionException{
@@ -327,15 +384,24 @@ public class RobotPlayer {
         Mopper.receiveLastMessage(rc);
 
         if (removePaint != null){
+            isStuck = false;
             Mopper.removePaint(rc, removePaint);
 
         } else {
-            // TODO: prioritize closest enemy tiles?
-            // attack nearby enemy tiles
+            // attack adjacent tiles if possible
+            for (MapInfo tile: rc.senseNearbyMapInfos(2)) {
+                if (tile.getPaint().isEnemy()) {
+                    if (rc.canAttack(tile.getMapLocation())) {
+                        rc.attack(tile.getMapLocation());
+                    }
+                    isStuck = false;
+                    return;
+                }
+            }
+            // move towards opponent tiles in vision range
             for (MapInfo tile: rc.senseNearbyMapInfos()){
-                if (rc.canAttack(tile.getMapLocation()) && tile.getPaint().isEnemy()){
-                    rc.attack(tile.getMapLocation());
-                } else if (tile.getPaint().isEnemy()){
+                if (tile.getPaint().isEnemy()){
+                    isStuck = false;
                     Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
                     if (dir != null){
                         rc.move(dir);
@@ -343,17 +409,13 @@ public class RobotPlayer {
                     }
                 }
             }
-            // Randomly move when action cooldown is low
-            if (rc.getActionCooldownTurns() < 10) {
-                Direction exploreDir = Pathfinding.getUnstuck(rc);
-                if (exploreDir != null && rc.canMove(exploreDir)) {
-                    rc.move(exploreDir);
-                }
+            // Path to opposite corner if we can't find enemy paint
+            Direction exploreDir = Pathfinding.getUnstuck(rc);
+            System.out.println(exploreDir);
+            if (exploreDir != null && rc.canMove(exploreDir)) {
+                rc.move(exploreDir);
             }
         }
-
-        // We can also move our code into different methods or classes to better organize it!
-        updateEnemyRobots(rc);
     }
 
     public static void updateEnemyRobots(RobotController rc) throws GameActionException{

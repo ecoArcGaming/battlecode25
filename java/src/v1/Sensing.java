@@ -104,13 +104,15 @@ public class Sensing {
      * Finds tiles adjacent to rc that
      *      1. Can be moved to
      *      2. Have no paint on them
+     *      3. Hasn't been at this tile in the last 8 tiles it has moved to
      * Returns an ArrayList of MapInfo for these tiles
      */
     public static List<MapInfo> getMovableEmptyTiles(RobotController rc) throws GameActionException{
         MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(2);
         List<MapInfo> validAdjacent = new ArrayList<>();
         for (MapInfo adjacentTile: adjacentTiles){
-            if (adjacentTile.getPaint() == PaintType.EMPTY && adjacentTile.isPassable()) {
+            if (adjacentTile.getPaint() == PaintType.EMPTY && adjacentTile.isPassable() &&
+                    !RobotPlayer.last8.contains(adjacentTile.getMapLocation())) {
                 validAdjacent.add(adjacentTile);
             }
         }
@@ -159,5 +161,20 @@ public class Sensing {
             }
         }
         return null;
+    }
+
+    /**
+     * Counts the number of empty, passable tiles in a 3x3 area centered at center, assuming it is all visible
+     */
+    public static int countEmptyAround(RobotController rc, MapLocation center) throws GameActionException {
+        MapInfo[] surroundingTiles = rc.senseNearbyMapInfos(center, 2);
+        int count = 0;
+        for (MapInfo surroundingTile: surroundingTiles) {
+            if (surroundingTile.getPaint() == PaintType.EMPTY && surroundingTile.isPassable()
+                    && !rc.canSenseRobotAtLocation(surroundingTile.getMapLocation())) {
+                count++;
+            }
+        }
+        return count;
     }
 }
