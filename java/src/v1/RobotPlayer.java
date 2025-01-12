@@ -273,7 +273,52 @@ public class RobotPlayer {
     }
 
     public static void runSplasher(RobotController rc) throws GameActionException{
-        rc.move(Pathfinding.pathfind(rc, new MapLocation(0, 0)));
+
+        Mopper.receiveLastMessage(rc);
+        Robot.updateLastPaintTower(rc);
+        if (Soldier.hasLowPaint(rc, 20)) {
+            Soldier.lowPaintBehavior(rc);
+            return;
+        }
+        // splash assigned tile or move towards it
+        if (removePaint != null){
+            if (rc.canAttack(removePaint.getMapLocation()) && rc.isActionReady()){
+                rc.attack(removePaint.getMapLocation());
+                removePaint = null;
+
+            } else if (rc.canAttack(removePaint.getMapLocation())){
+                Clock.yield(); // wait for cooldown
+            }
+
+            else {
+                Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
+                if (rc.canMove(dir)){
+                    rc.move(dir);
+
+                }
+            }
+            return;
+        } else { //splash other tiles it sees but avoid overlap
+            MapInfo[] all = rc.senseNearbyMapInfos();
+            for (int i =0; i < all.length; i++){
+                if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
+                    continue;
+                } else {
+                    if (all[i].getPaint().isEnemy()){
+                        removePaint = all[i];
+                        Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
+                        if (rc.canMove(dir)){
+                            rc.move(dir);
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+        Direction dir = Pathfinding.getUnstuck(rc);
+        if (dir != null && rc.canMove(dir)){
+            rc.move(dir);
+        }
     }
 
     public static void runMopper(RobotController rc) throws GameActionException{
