@@ -20,11 +20,9 @@ public class RobotPlayer {
     static int turnCount = 0;
     static MapInfo[][] currGrid;
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
-    static MapInfo lastTower = null; // TODO: Somehow navigate back to paint towers and not money towers
+    static MapInfo lastTower = null;
     static boolean fillingTower = false;
     static MapInfo enemyTile = null;
-    static RobotInfo lastEnemy = null;
-    static boolean botNotSent = false;
     static MapInfo removePaint = null;
     static boolean sendEnemyPaintMsg = false;
     static MapLocation enemySpawn = null;
@@ -142,7 +140,6 @@ public class RobotPlayer {
             }
         }
 
-        // TODO: make sure this works: tower attack a robot in range that has the lowest hp
         Tower.attackLowestRobot(rc);
         Tower.aoeAttackIfPossible(rc);
     }
@@ -220,7 +217,6 @@ public class RobotPlayer {
             // Mark the pattern we need to draw to build a tower here if we haven't already.
             Soldier.markRandomTower(rc, ruinLocation);
 
-            // TODO: What happens if we run into enemy bots/paint while filling?
             // Move towards the ruin
             // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
             Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
