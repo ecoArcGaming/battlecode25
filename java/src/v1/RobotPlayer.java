@@ -48,6 +48,7 @@ public class RobotPlayer {
     static boolean isStuck = false;
     static MapLocation oppositeCorner = null;
     static Direction towardsEnemy = null;
+    static boolean seenPaintTower = false;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -260,7 +261,14 @@ public class RobotPlayer {
 
                 // TODO: Improve logic for choosing which tower to build?
                 // Mark the pattern we need to draw to build a tower here if we haven't already.
-                Soldier.markRandomTower(rc, ruinLocation);
+                // If robot has seen a paint tower, mark random tower
+                if (seenPaintTower){
+                    Soldier.markRandomTower(rc, ruinLocation);
+                }
+                // Otherwise, mark a paint tower
+                else {
+                    Soldier.markTower(rc, UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation);
+                }
 
                 // Move towards the ruin
                 // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS

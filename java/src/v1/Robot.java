@@ -43,6 +43,7 @@ public abstract class Robot {
                 UnitType towerType = rc.senseRobotAtLocation(loc.getMapLocation()).getType();
                 if (towerType.getBaseType() == UnitType.LEVEL_ONE_PAINT_TOWER.getBaseType())
                 {
+                    RobotPlayer.seenPaintTower = true;
                     int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
                     if (min_distance == -1 || min_distance > distance){
                         lastTower = loc;
