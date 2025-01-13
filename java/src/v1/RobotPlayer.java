@@ -144,6 +144,7 @@ public class RobotPlayer {
      */
     public static void runTower(RobotController rc) throws GameActionException{
         Tower.readNewMessages(rc);
+        System.out.println(spawnQueue);
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot at the north of the tower
@@ -169,7 +170,7 @@ public class RobotPlayer {
                 }
             }
 
-            else if (rc.getMoney() > 2000 && (rc.getPaint() > 750 || rc.getRoundNum() <= 200)) {
+            else if (rc.getMoney() > 2000 && rc.getPaint() > 500) {
                 Tower.buildCompletelyRandom(rc);
             }
         }
