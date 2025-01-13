@@ -11,17 +11,13 @@ import java.util.*;
  */
 /*
 FIXME (General issues we noticed)
-    - Robots clumping together around towers
-    - Robots clumping together around ruins
-    - Robots not attacking towers
-    - Soldiers behavior when encountering enemy paint very inefficient
-    - Can't really fight about against other enemy robots
-TODO (Specific issues we noticed)
-    - Different types of movement / navigation for robots
-    - Splasher behavior (ensure they don't paint over tower patterns)?
-    - Upgrade towers when we have a ton of coins
-    - Towers are not being built sometimes even when pattern is complete
-    - Robots still get stuck (lectureplayer vs v1 on DefaultHuge)
+    - We get cooked when the other team sends a splasher to harass us at the beginning
+    - Mid-late game, too many coins and not enough paint (robots are all waiting for paint)
+    - Soldier/Mopper/Splasher distribution is too heavily skewed towards soldier mid-late game
+TODO (Specific issues we noticed that currently have a solution)
+    - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce
+    - Robots still get stuck when navigating to a location (they try to only go on painted tiles)
+    - Non-attack tower robots don't have any functionality when they do see an enemy tower
  */
 
 public class RobotPlayer {
@@ -169,7 +165,6 @@ public class RobotPlayer {
                 }
             }
 
-            // TODO: Figure out tower spawning logic (when to spawn, what to spawn)
             else if (rc.getMoney() > 2000 && (rc.getPaint() > 750 || rc.getRoundNum() <= 200)) {
                 Tower.buildCompletelyRandom(rc);
             }
@@ -259,7 +254,6 @@ public class RobotPlayer {
                 // If true, the robot will not move
                 fillingTower = Sensing.canBuildTower(rc, ruinLocation);
 
-                // TODO: Improve logic for choosing which tower to build?
                 // Mark the pattern we need to draw to build a tower here if we haven't already.
                 // If robot has seen a paint tower, mark random tower
                 if (seenPaintTower){
@@ -287,7 +281,6 @@ public class RobotPlayer {
                 }
                 Soldier.completeRuinIfPossible(rc, ruinLocation);
             } else if (!fillingTower){
-                // TODO: Improve exploration behavior: use all information in vision to choose where to move next
                 if (enemySpawn != null && rc.getRoundNum()  < 15){
                     Direction dir = Pathfinding.pathfind(rc, enemySpawn);
                     if (dir != null && rc.canMove(dir)){
