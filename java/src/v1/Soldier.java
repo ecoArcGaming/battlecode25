@@ -44,4 +44,60 @@ public class Soldier extends Robot {
             RobotPlayer.enemyTile = null;
         }
     }
+
+    public static void markSRP(RobotController rc, MapInfo towerLoc) throws GameActionException {
+        int centerX = towerLoc.getMapLocation().x;
+        int centerY = towerLoc.getMapLocation().y;
+        int[][] corners = new int[4][2];
+
+        // Top-left corner
+        corners[0] = new int[]{centerX - 3, centerY + 3};
+        // Top-right corner
+        corners[1] = new int[]{centerX + 3, centerY + 3};
+        // Bottom-left corner
+        corners[2] = new int[]{centerX - 3, centerY - 3};
+        // Bottom-right corner
+        corners[3] = new int[]{centerX + 3, centerY - 3};
+
+        for (int i = 0; i < 4; i++) {
+            if (RobotPlayer.curr != i){
+                continue;
+            }
+            MapLocation corn = new MapLocation(corners[i][0], corners[i][1]);
+            if (!rc.getLocation().equals(corn)) {
+                Direction dir = Pathfinding.pathfind(rc, corn);
+                if (dir != null) {
+                    rc.move(dir);
+                }
+            }
+            else if (rc.canMarkResourcePattern(corn)){
+                rc.markResourcePattern(corn);
+                RobotPlayer.SRPLocation = corn;
+                RobotPlayer.markingSRP = false;
+                RobotPlayer.fillingSRP = true;
+                RobotPlayer.curr = 0;
+
+            }
+            else {
+                RobotPlayer.curr++;
+            }
+        }
+    }
+    public static void fillSRP(RobotController rc, MapLocation SRPLoc) throws GameActionException {
+        if (!rc.getLocation().equals(SRPLoc)){
+            Direction dir = Pathfinding.pathfind(rc, SRPLoc);
+            if (dir != null){
+                rc.move(dir);
+            }
+//            return;
+        } else {
+            RobotPlayer.tries++;
+            MapInfo paint = Sensing.findPaintableTile(rc);
+            if (paint != null) {
+                Soldier.paintIfPossible(rc, paint);
+//                return;
+            }
+        }
+        Robot.completeSRPIfPossible(rc, SRPLoc);
+    }
 }

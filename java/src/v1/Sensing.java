@@ -100,6 +100,17 @@ public class Sensing {
         return null;
     }
 
+    public static MapInfo findPaintableTile(RobotController rc) throws GameActionException {
+        for (MapInfo patternTile : rc.senseNearbyMapInfos()){
+            if (rc.canPaint(patternTile.getMapLocation()) &&
+                    (patternTile.getPaint() == PaintType.EMPTY ||
+                            patternTile.getMark() != patternTile.getPaint() && patternTile.getMark() != PaintType.EMPTY)) {
+                return patternTile;
+            }
+        }
+        return null;
+    }
+
     /**
      * Finds tiles adjacent to rc that
      *      1. Can be moved to

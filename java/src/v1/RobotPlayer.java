@@ -43,7 +43,12 @@ public class RobotPlayer {
     static boolean sendEnemyPaintMsg = false;
     static MapLocation enemySpawn = null;
     static int soldierMsgCooldown = -1;
-    // Controls whether the soldier is currently filling in a ruin or not
+
+    static boolean markingSRP = false;
+    static boolean fillingSRP = false;
+    static MapLocation SRPLocation = null;
+    static int tries = 0;
+    static int curr = 0;
     /**
      * A random number generator.
      * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
@@ -197,6 +202,11 @@ public class RobotPlayer {
             return;
         }
 
+        if (fillingSRP && SRPLocation != null) {
+            System.out.println("Found SRP");
+            Soldier.fillSRP(rc, SRPLocation);
+        }
+
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
 
@@ -207,7 +217,7 @@ public class RobotPlayer {
             if (soldierMsgCooldown != -1 && rc.getRoundNum() % 10 == soldierMsgCooldown) {
                 System.out.println("Soldier msg cooldown");
                 Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
-                enemyTile = enemyPaint;
+//                enemyTile = enemyPaint;
                 return;
             } else if (soldierMsgCooldown == -1) {
                 soldierMsgCooldown = rc.getRoundNum() % 10;
@@ -259,6 +269,15 @@ public class RobotPlayer {
                     return;
                 }
             }
+
+            if (markingSRP){
+                System.out.println("start a srp");
+                Soldier.markSRP(rc, lastTower);
+            }
+
+
+
+
             Direction dir = Pathfinding.exploreUnpainted(rc);
             if (dir != null && rc.canMove(dir)){
                 rc.move(dir);
@@ -294,7 +313,6 @@ public class RobotPlayer {
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
                 if (rc.canMove(dir)){
                     rc.move(dir);
-
                 }
             }
             return;

@@ -128,9 +128,27 @@ public abstract class Robot {
     public static void completeRuinIfPossible(RobotController rc, MapLocation ruinLocation) throws GameActionException {
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLocation)) {
             rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLocation);
+            RobotPlayer.lastTower = new MapInfo(ruinLocation,false, false, PaintType.EMPTY, PaintType.EMPTY, true );
+            RobotPlayer.markingSRP = true;
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation)) {
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation);
+            RobotPlayer.lastTower = new MapInfo(ruinLocation,false, false, PaintType.EMPTY, PaintType.EMPTY, true );
+            RobotPlayer.markingSRP = true;
+
         }
+    }
+
+    public static void completeSRPIfPossible(RobotController rc, MapLocation SRPLoc) throws GameActionException {
+        if (RobotPlayer.tries > 35){
+            RobotPlayer.fillingSRP = false;
+            RobotPlayer.tries = 0;
+        }
+
+        if (rc.canCompleteResourcePattern(SRPLoc)) {
+            rc.completeResourcePattern(SRPLoc);
+            RobotPlayer.fillingSRP = false;
+        }
+        // TODO: IMPLEMENT!
     }
 }
