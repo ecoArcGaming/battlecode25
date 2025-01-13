@@ -114,6 +114,14 @@ public abstract class Tower {
         }
     }
 
+    public static void createSplasher(RobotController rc) throws GameActionException {
+        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        if (rc.canBuildRobot(UnitType.SPLASHER, addedDir)) {
+            rc.buildRobot(UnitType.SPLASHER, addedDir);
+            RobotPlayer.sendTypeMessage = true;
+        }
+    }
+
     public static void sendTypeMessage(RobotController rc, int robotType) throws GameActionException {
         MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
         if (rc.canSendMessage(addedDir)){

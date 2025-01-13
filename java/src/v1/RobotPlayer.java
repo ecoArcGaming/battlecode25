@@ -37,6 +37,7 @@ public class RobotPlayer {
     static boolean fillingTower = false;
     static MapInfo enemyTile = null;
     static MapInfo removePaint = null;
+    static MapInfo fillEmpty = null;
     static boolean sendEnemyPaintMsg = false;
     static MapLocation enemySpawn = null;
     static int soldierMsgCooldown = -1;
@@ -46,6 +47,7 @@ public class RobotPlayer {
     static boolean sendTypeMessage = false;
     static boolean isStuck = false;
     static MapLocation oppositeCorner = null;
+    static Direction towardsEnemy = null;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -154,7 +156,15 @@ public class RobotPlayer {
             else if (!spawnQueue.isEmpty()){
                 switch (spawnQueue.getFirst()){
                     case 0, 1, 2: Tower.createSoldier(rc); break;
-                    case 3: Tower.createMopper(rc); break;
+                    case 3:
+                        double robotType = Constants.rng.nextDouble();
+                        if (robotType > 0.1){
+                            System.out.println("splashers spawn");
+                            Tower.createSplasher(rc);
+                        } else {
+                            Tower.createMopper(rc);
+                        }
+                        break;
                 }
             }
 
@@ -332,7 +342,12 @@ public class RobotPlayer {
 
         Mopper.receiveLastMessage(rc);
         Robot.updateLastPaintTower(rc);
-        if (Robot.hasLowPaint(rc, 20)) {
+
+        if (towardsEnemy == null){
+            towardsEnemy = Pathfinding.pathfind(rc, removePaint.getMapLocation() );
+        }
+
+        if (Robot.hasLowPaint(rc, 50)) {
             Robot.lowPaintBehavior(rc);
             return;
         }
@@ -342,15 +357,13 @@ public class RobotPlayer {
                 rc.attack(removePaint.getMapLocation());
                 removePaint = null;
 
-            } else if (rc.canAttack(removePaint.getMapLocation())){
+            } else if (!rc.isActionReady()){
                 Clock.yield(); // wait for cooldown
             }
-
             else {
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
                 if (rc.canMove(dir)){
                     rc.move(dir);
-
                 }
             }
             isStuck = false;
@@ -361,6 +374,10 @@ public class RobotPlayer {
                 if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
                     continue;
                 } else {
+                    if (all[i].getPaint() == PaintType.EMPTY){
+                        fillEmpty = all[i];
+                    }
+
                     if (all[i].getPaint().isEnemy()){
                         removePaint = all[i];
                         Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
@@ -373,6 +390,13 @@ public class RobotPlayer {
                 }
             }
         }
+        if (fillEmpty != null){
+            removePaint = fillEmpty;
+        }
+        if (rc.canMove(towardsEnemy)){
+            rc.move(towardsEnemy);
+        }
+
         Direction dir = Pathfinding.getUnstuck(rc);
         if (dir != null && rc.canMove(dir)){
             rc.move(dir);
