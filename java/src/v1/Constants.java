@@ -17,5 +17,5 @@ public class Constants {
     };
     public static final Random rng = new Random(6147);
     public static final double TOWER_SPLIT = 0.39;
-    public static final int RESIGN_AFTER = 1000;
+    public static final int RESIGN_AFTER = 2500;
 }

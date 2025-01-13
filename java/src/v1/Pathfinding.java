@@ -115,7 +115,6 @@ public class Pathfinding {
                 }
             }
         }
-        System.out.println("We should never reach here");
         return rc.getLocation().add(Constants.directions[Constants.rng.nextInt(Constants.directions.length)]);
     }
 

@@ -176,10 +176,10 @@ public class RobotPlayer {
                 Tower.buildCompletelyRandom(rc);
             }
         }
-        if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 2500) {
+        if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
             rc.upgradeTower(rc.getLocation());
         }
-        if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 5000) {
+        if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 7500) {
             rc.upgradeTower(rc.getLocation());
         }
         Tower.attackLowestRobot(rc);
@@ -305,7 +305,7 @@ public class RobotPlayer {
                 }
             }
         } else {
-            System.out.println("ID: " + rc.getID() + " Enemy Tile:" + enemyTile + " Enemy Tower:" + enemyTower);
+            rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
             // If enemy tower already defined, then attack enemy tower
             if (enemyTower != null && rc.canAttack(enemyTower.getMapLocation())) {
                 rc.attack(enemyTower.getMapLocation());
