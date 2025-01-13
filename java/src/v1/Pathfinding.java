@@ -50,6 +50,42 @@ public class Pathfinding {
     }
 
     /**
+     * Returns a Direction that brings rc closer to target
+     * Prioritizes going along the three closest directions pointing to the target
+     * Then, it finds any painted tile adjacent to the robot
+     * Then, it just finds any tile adjacent to the robot that the robot can move on and null otherwise
+     */
+    public static Direction originalPathfind(RobotController rc, MapLocation target) throws GameActionException {
+        Direction currDir = rc.getLocation().directionTo(target);
+        Direction left = currDir.rotateLeft();
+        Direction right = currDir.rotateRight();
+        if (rc.canMove(currDir)) {
+            return currDir;
+        }
+        else if (rc.canMove(left)) {
+            return left;
+        }
+        else if (rc.canMove(right)) {
+            return right;
+        }
+
+        Direction[] allDirections = Direction.allDirections();
+        for (Direction dir: allDirections){
+            if (rc.canMove(dir) && !RobotPlayer.last8.contains(rc.getLocation().add(currDir))) {
+                return dir;
+            }
+        }
+
+        for (Direction dir: allDirections){
+            if (rc.canMove(dir)) {
+                return dir;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns a Direction that brings rc closer to target, going along painted areas
      * Prioritizes going along the three closest directions pointing to the target
      * Then, it finds any painted tile adjacent to the robot

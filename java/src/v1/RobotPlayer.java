@@ -276,7 +276,7 @@ public class RobotPlayer {
 
                 // Move towards the ruin
                 // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
-                Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
+                Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
                 if (moveDir != null) {
                     rc.move(moveDir);}
 
