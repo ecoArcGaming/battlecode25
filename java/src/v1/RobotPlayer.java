@@ -16,10 +16,10 @@ FIXME (General issues we noticed)
     - Soldier/Mopper/Splasher distribution is too heavily skewed towards soldier mid-late game
         - Possible reason: they die too much from running into towers
         - Possible reason: spawning is still skewed towards soldiers
+    - We don't take advantage of SRPs
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce
-    - Robots still get stuck when navigating to a location (they try to only go on painted tiles)
-    - Non-attack tower robots don't have any functionality when they do see an enemy tower
+    - Robots spin around ruins that cannot be painted around but don't have a tower built & cannot be built
     - Robots wait for paint around money towers that don't have paint
     - Pathfind still gets stuck if we hit a long wall
  */
