@@ -155,7 +155,7 @@ public class RobotPlayer {
             }
 
             // Otherwise, if the spawn queue isn't empty, spawn the required unit
-            else if (!spawnQueue.isEmpty()){
+            else if (!spawnQueue.isEmpty() && rc.getMoney() > 500){
                 switch (spawnQueue.getFirst()){
                     case 0, 1, 2: Tower.createSoldier(rc); break;
                     case 3:
