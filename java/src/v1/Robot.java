@@ -21,10 +21,11 @@ public abstract class Robot {
         }
     }
     /**
-     * Given MapInfo loc, return True if there is a tower at loc
+     * Given MapInfo loc, return True if there is an allied tower at loc
      */
-    public static boolean checkTower(RobotController rc, MapInfo loc){
-        if (loc.hasRuin() && rc.canSenseRobotAtLocation(loc.getMapLocation())){
+    public static boolean checkAlliedTower(RobotController rc, MapInfo loc) throws GameActionException {
+        MapLocation location = loc.getMapLocation();
+        if (loc.hasRuin() && rc.canSenseRobotAtLocation(location) && rc.senseRobotAtLocation(location).getTeam() == rc.getTeam()){
             return true;
         } else {
             return false;
@@ -32,15 +33,15 @@ public abstract class Robot {
     }
 
     /**
-     * Updates the lastTower variable to any paint tower currently in range
+     * Updates the lastTower variable to any allied paint tower currently in range
      */
     public static void updateLastPaintTower(RobotController rc) throws GameActionException {
         int min_distance = -1;
         MapInfo lastTower = null;
         for (MapInfo loc: rc.senseNearbyMapInfos()) {
-            if (checkTower(rc, loc)) {
+            if (checkAlliedTower(rc, loc)) {
                 UnitType towerType = rc.senseRobotAtLocation(loc.getMapLocation()).getType();
-                if (towerType == UnitType.LEVEL_ONE_PAINT_TOWER || towerType == UnitType.LEVEL_TWO_PAINT_TOWER || towerType == UnitType.LEVEL_THREE_PAINT_TOWER)
+                if (towerType.getBaseType() == UnitType.LEVEL_ONE_PAINT_TOWER.getBaseType())
                 {
                     int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
                     if (min_distance == -1 || min_distance > distance){
@@ -56,13 +57,13 @@ public abstract class Robot {
     }
 
     /**
-     * Updates the lastTower variable to any paint tower currently in range
+     * Updates the lastTower variable to any allied paint tower currently in range
      */
-    public static void updateLastTower(RobotController rc){
+    public static void updateLastTower(RobotController rc) throws GameActionException {
         int min_distance = -1;
         MapInfo lastTower = null;
         for (MapInfo loc: rc.senseNearbyMapInfos()) {
-            if (checkTower(rc, loc)) {
+            if (checkAlliedTower(rc, loc)) {
                 int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
                 if (min_distance == -1 || min_distance > distance){
                     lastTower = loc;
