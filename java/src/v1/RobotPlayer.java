@@ -156,7 +156,6 @@ public class RobotPlayer {
                     case 3:
                         double robotType = Constants.rng.nextDouble();
                         if (robotType > 0.1){
-                            System.out.println("splashers spawn");
                             Tower.createSplasher(rc);
                         } else {
                             Tower.createMopper(rc);
@@ -227,6 +226,12 @@ public class RobotPlayer {
 
         // Only care about enemy tiles and ruins if robot is a develop or advance type
         if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.ADVANCE) {
+            RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
+            // If enemy tower within range, switch to attack type
+            if (closestEnemyTower != null) {
+                enemyTower = rc.senseMapInfo(closestEnemyTower.getLocation());
+                soldierType = SoldierType.ATTACK;
+            }
             // Find all Enemy Tiles
             MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
             if (enemyPaint != null) {
@@ -303,18 +308,25 @@ public class RobotPlayer {
                 }
             }
         } else {
-            rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+            MapLocation enemyTowerLoc = null;
+            if (enemyTower != null){
+                enemyTowerLoc = enemyTower.getMapLocation();
+            }
+
             // If enemy tower already defined, then attack enemy tower
-            if (enemyTower != null && rc.canAttack(enemyTower.getMapLocation())) {
-                rc.attack(enemyTower.getMapLocation());
+            if (enemyTower != null && rc.canSenseRobotAtLocation(enemyTowerLoc) && rc.canAttack(enemyTowerLoc)) {
+                rc.attack(enemyTowerLoc);
             }
             // If enemy tower detected but can't attack, move towards it
             else if (enemyTower != null){
-                Direction dir = Pathfinding.pathfind(rc, enemyTower.getMapLocation());
+                Direction dir = Pathfinding.pathfind(rc, enemyTowerLoc);
                 if (dir != null) {
                     rc.move(dir);
                 }
-
+                // If tower not there anymore, set it to null
+                if (rc.canSenseLocation(enemyTowerLoc) && rc.canSenseRobotAtLocation(enemyTowerLoc)){
+                    enemyTower = null;
+                }
             }
             // Otherwise, pathfind toward enemy tower
             else if (enemyTile != null){
