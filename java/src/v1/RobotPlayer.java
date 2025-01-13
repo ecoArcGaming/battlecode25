@@ -169,7 +169,7 @@ public class RobotPlayer {
             }
 
             // TODO: Figure out tower spawning logic (when to spawn, what to spawn)
-            else if (rc.getMoney() > 2000) {
+            else if (rc.getMoney() > 2000 && (rc.getPaint() > 750 || rc.getRoundNum() <= 200)) {
                 Tower.buildCompletelyRandom(rc);
             }
         }
