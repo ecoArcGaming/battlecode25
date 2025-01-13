@@ -12,7 +12,7 @@ public class Soldier extends Robot {
      * */
     public static void paintIfPossible(RobotController rc, MapInfo paintTile, MapLocation paintLocation) throws GameActionException {
         if (paintTile.getPaint() == PaintType.EMPTY
-                && rc.canAttack(paintLocation)) {
+                && rc.canAttack(paintLocation) && paintTile.getMark() == PaintType.EMPTY) {
             rc.attack(paintLocation);
         } else if ((!paintTile.getPaint().isEnemy()) && paintTile.getMark() != paintTile.getPaint()
                 && rc.canAttack(paintLocation)){

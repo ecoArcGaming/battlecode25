@@ -296,7 +296,10 @@ public class RobotPlayer {
                     if (dir != null && rc.canMove(dir)){
                         isStuck = false;
                         rc.move(dir);
-                        Soldier.paintIfPossible(rc, rc.getLocation());
+                        // Optimize paint usage at beginning of round
+                        if (rc.getRoundNum() > Constants.START_PAINTING_ROUND) {
+                            Soldier.paintIfPossible(rc, rc.getLocation());
+                        }
                         return;
                     }
                 }
@@ -304,7 +307,9 @@ public class RobotPlayer {
                 if (dir != null && rc.canMove(dir)){
                     isStuck = false;
                     rc.move(dir);
-                    Soldier.paintIfPossible(rc, rc.getLocation());
+                    if (rc.getRoundNum() > Constants.START_PAINTING_ROUND) {
+                        Soldier.paintIfPossible(rc, rc.getLocation());
+                    }
                     return;
                 }
                 Direction newDir = Pathfinding.getUnstuck(rc);
