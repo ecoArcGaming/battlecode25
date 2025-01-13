@@ -11,39 +11,42 @@ import java.util.List;
  */
 public class Pathfinding {
     /**
-     * Returns a Direction that brings rc closer to target, regardless of its painted or not
-     * Prioritizes going along the three closest directions pointing to the target
-     * Then, it finds any painted tile adjacent to the robot
-     * Then, it just finds any tile adjacent to the robot that the robot can move on and null otherwise
+     * Returns a Direction that brings rc closer to target
+     * Prioritizes distance first, then type of paint (ally tiles, then neutral tiles, then enemy tiles)
+     * Exception: does not move onto a tile if doing so will kill itself
+     * If the robot cannot move, return null
      */
     public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException {
-        Direction currDir = rc.getLocation().directionTo(target);
-        Direction left = currDir.rotateLeft();
-        Direction right = currDir.rotateRight();
-        if (rc.canMove(currDir)) {
-            return currDir;
-        }
-        else if (rc.canMove(left)) {
-            return left;
-        }
-        else if (rc.canMove(right)) {
-            return right;
-        }
-
-        Direction[] allDirections = Direction.allDirections();
-        for (Direction dir: allDirections){
-            if (rc.canMove(dir) && !RobotPlayer.last8.contains(rc.getLocation().add(currDir))) {
-                    return dir;
-            }
-        }
-
-        for (Direction dir: allDirections){
+        int minDistance = -1;
+        PaintType bestPaintType = PaintType.EMPTY;
+        MapLocation curLocation = rc.getLocation();
+        MapInfo bestLocation = null;
+        for (Direction dir: Constants.directions) {
             if (rc.canMove(dir)) {
-                return dir;
+                MapInfo adjLocation = rc.senseMapInfo(curLocation.add(dir));
+                int distance = adjLocation.getMapLocation().distanceSquaredTo(target);
+                PaintType adjType = adjLocation.getPaint();
+                if ((distance < minDistance || minDistance == -1) && rc.getPaint() - Constants.paintLossValues.get(adjType) > 2) {
+                    minDistance = distance;
+                    bestPaintType = adjType;
+                    bestLocation = adjLocation;
+                } else if (distance == minDistance) {
+                    PaintType adjPaintType = adjLocation.getPaint();
+                    if ((bestPaintType.isEnemy() && !adjPaintType.isEnemy() ||
+                            bestPaintType == PaintType.EMPTY && adjPaintType.isAlly()) &&
+                            rc.getPaint() - Constants.paintLossValues.get(adjType) > 2) {
+                        minDistance = distance;
+                        bestPaintType = adjLocation.getPaint();
+                        bestLocation = adjLocation;
+                    }
+                }
             }
         }
-
-        return null;
+        if (minDistance != -1) {
+            return curLocation.directionTo(bestLocation.getMapLocation());
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -89,7 +92,7 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        return paintedPathfind(rc, RobotPlayer.lastTower.getMapLocation());
+        return pathfind(rc, RobotPlayer.lastTower.getMapLocation());
     }
 
     /**
@@ -170,7 +173,7 @@ public class Pathfinding {
             }
             RobotPlayer.oppositeCorner = new MapLocation(target_x, target_y);
         }
-        return paintedPathfind(rc, RobotPlayer.oppositeCorner);
+        return pathfind(rc, RobotPlayer.oppositeCorner);
     }
 
 }

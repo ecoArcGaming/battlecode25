@@ -20,6 +20,8 @@ TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce
     - Robots still get stuck when navigating to a location (they try to only go on painted tiles)
     - Non-attack tower robots don't have any functionality when they do see an enemy tower
+    - Robots wait for paint around money towers that don't have paint
+    - Pathfind still gets stuck if we hit a long wall
  */
 
 public class RobotPlayer {
@@ -343,13 +345,17 @@ public class RobotPlayer {
     public static void runSplasher(RobotController rc) throws GameActionException{
 
         Mopper.receiveLastMessage(rc);
-        Robot.updateLastPaintTower(rc);
+        if (lastTower == null) {
+            Soldier.updateLastTower(rc);
+        } else {
+            Soldier.updateLastPaintTower(rc);
+        }
 
         if (towardsEnemy == null){
             towardsEnemy = Pathfinding.pathfind(rc, removePaint.getMapLocation() );
         }
 
-        if (Robot.hasLowPaint(rc, 50)) {
+        if (Robot.hasLowPaint(rc, 75)) {
             Robot.lowPaintBehavior(rc);
             return;
         }
@@ -364,7 +370,7 @@ public class RobotPlayer {
             }
             else {
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
-                if (rc.canMove(dir)){
+                if (dir != null){
                     rc.move(dir);
                 }
             }
@@ -383,7 +389,7 @@ public class RobotPlayer {
                     if (all[i].getPaint().isEnemy()){
                         removePaint = all[i];
                         Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
-                        if (rc.canMove(dir)){
+                        if (dir != null){
                             rc.move(dir);
                         }
                         isStuck = false;
