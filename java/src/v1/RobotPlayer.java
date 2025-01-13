@@ -155,12 +155,12 @@ public class RobotPlayer {
             }
 
             // Otherwise, if the spawn queue isn't empty, spawn the required unit
-            else if (!spawnQueue.isEmpty() && rc.getMoney() > 500){
+            else if (!spawnQueue.isEmpty() && rc.getMoney() > 400 && rc.getPaint() > 300){
                 switch (spawnQueue.getFirst()){
                     case 0, 1, 2: Tower.createSoldier(rc); break;
                     case 3:
                         double robotType = Constants.rng.nextDouble();
-                        if (robotType > 0.1){
+                        if (robotType > Constants.MOPPER_SPLIT){
                             Tower.createSplasher(rc);
                         } else {
                             Tower.createMopper(rc);
@@ -383,7 +383,8 @@ public class RobotPlayer {
                 if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
                     continue;
                 } else {
-                    if (all[i].getPaint() == PaintType.EMPTY && !all[i].hasRuin()){
+                    fillEmpty = null;
+                    if (all[i].getPaint() == PaintType.EMPTY && !all[i].hasRuin() && !all[i].isWall()){
                         fillEmpty = all[i];
                     }
 
@@ -402,9 +403,9 @@ public class RobotPlayer {
         if (fillEmpty != null){
             removePaint = fillEmpty;
         }
-        if (rc.canMove(towardsEnemy)){
-            rc.move(towardsEnemy);
-        }
+//        if (rc.canMove(towardsEnemy)){
+//            rc.move(towardsEnemy);
+//        }
 
         Direction dir = Pathfinding.getUnstuck(rc);
         if (dir != null && rc.canMove(dir)){
