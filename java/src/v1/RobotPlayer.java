@@ -14,6 +14,8 @@ FIXME (General issues we noticed)
     - We get cooked when the other team sends a splasher to harass us at the beginning
     - Mid-late game, too many coins and not enough paint (robots are all waiting for paint)
     - Soldier/Mopper/Splasher distribution is too heavily skewed towards soldier mid-late game
+        - Possible reason: they die too much from running into towers
+        - Possible reason: spawning is still skewed towards soldiers
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce
     - Robots still get stuck when navigating to a location (they try to only go on painted tiles)
