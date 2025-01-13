@@ -362,7 +362,7 @@ public class RobotPlayer {
                 if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
                     continue;
                 } else {
-                    if (all[i].getPaint() == PaintType.EMPTY){
+                    if (all[i].getPaint() == PaintType.EMPTY && !all[i].hasRuin()){
                         fillEmpty = all[i];
                     }
 
