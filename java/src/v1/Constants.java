@@ -25,7 +25,7 @@ public class Constants {
             entry(PaintType.ENEMY_SECONDARY, -2)
     );
     public static final Random rng = new Random(6147);
-    public static final double TOWER_SPLIT = 0.3;
+    public static final double PERCENT_COIN = 0.5;
     public static final int RESIGN_AFTER = 2500;
     public static final double MOPPER_SPLIT = 0.4;
     public static final int START_PAINTING_ROUND = 50;

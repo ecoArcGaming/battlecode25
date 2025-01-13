@@ -15,6 +15,7 @@ public abstract class Robot {
             rc.move(dir);
         }
         MapLocation towerLocation = RobotPlayer.lastTower.getMapLocation();
+        Robot.completeRuinIfPossible(rc, towerLocation);
         int amtToTransfer = rc.getPaint()-rc.getType().paintCapacity;
         if (rc.canTransferPaint(towerLocation, amtToTransfer)) {
             rc.transferPaint(towerLocation, amtToTransfer);
@@ -94,7 +95,7 @@ public abstract class Robot {
      */
     public static UnitType genRandomTower() {
         double hehe = Constants.rng.nextDouble();
-        return ((hehe < Constants.TOWER_SPLIT) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
+        return ((hehe < Constants.PERCENT_COIN) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
     }
 
     /**

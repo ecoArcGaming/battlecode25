@@ -17,6 +17,7 @@ FIXME (General issues we noticed)
         - Possible reason: they die too much from running into towers
         - Possible reason: spawning is still skewed towards soldiers
     - We don't take advantage of SRPs
+    - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce - bandaged by making them go to
         opposite corner if they are close enough to their target
@@ -50,6 +51,7 @@ public class RobotPlayer {
     static MapLocation oppositeCorner = null;
     static Direction towardsEnemy = null;
     static boolean seenPaintTower = false;
+    static int numEnemyVisits = 0;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -159,14 +161,8 @@ public class RobotPlayer {
             else if (!spawnQueue.isEmpty() && rc.getMoney() > 400 && rc.getPaint() > 300){
                 switch (spawnQueue.getFirst()){
                     case 0, 1, 2: Tower.createSoldier(rc); break;
-                    case 3:
-                        double robotType = Constants.rng.nextDouble();
-                        if (robotType > Constants.MOPPER_SPLIT){
-                            Tower.createSplasher(rc);
-                        } else {
-                            Tower.createMopper(rc);
-                        }
-                        break;
+                    case 3: Tower.createMopper(rc); break;
+                    case 4: Tower.createSplasher(rc); break;
                 }
             }
 
@@ -358,7 +354,7 @@ public class RobotPlayer {
             Soldier.updateLastPaintTower(rc);
         }
 
-        if (towardsEnemy == null){
+        if (towardsEnemy == null && removePaint != null){
             towardsEnemy = Pathfinding.pathfind(rc, removePaint.getMapLocation() );
         }
 
@@ -422,34 +418,33 @@ public class RobotPlayer {
     public static void runMopper(RobotController rc) throws GameActionException{
         // Read all incoming messages
         Mopper.receiveLastMessage(rc);
-
-        if (removePaint != null){
-            isStuck = false;
-            Mopper.removePaint(rc, removePaint);
-
-        } else {
-            // attack adjacent tiles if possible
-            for (MapInfo tile: rc.senseNearbyMapInfos(2)) {
-                if (tile.getPaint().isEnemy()) {
-                    if (rc.canAttack(tile.getMapLocation())) {
-                        rc.attack(tile.getMapLocation());
-                    }
-                    isStuck = false;
+        // check around the mopper's attack radius
+        for (MapInfo tile: rc.senseNearbyMapInfos(2)) {
+            if (tile.getPaint().isEnemy()) {
+                if (rc.canAttack(tile.getMapLocation())) {
+                    rc.attack(tile.getMapLocation());
+                }
+                isStuck = false;
+                return;
+            }
+        }
+        // move towards opponent tiles in vision range
+        for (MapInfo tile: rc.senseNearbyMapInfos()){
+            if (tile.getPaint().isEnemy()){
+                isStuck = false;
+                Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
+                if (dir != null){
+                    rc.move(dir);
                     return;
                 }
             }
-            // move towards opponent tiles in vision range
-            for (MapInfo tile: rc.senseNearbyMapInfos()){
-                if (tile.getPaint().isEnemy()){
-                    isStuck = false;
-                    Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
-                    if (dir != null){
-                        rc.move(dir);
-                        return;
-                    }
-                }
-            }
-            // Path to opposite corner if we can't find enemy paint
+        }
+        // Path to opposite corner if we can't find enemy paint
+        if (removePaint != null){
+            isStuck = false;
+            Mopper.removePaint(rc, removePaint);
+        } else {
+            // attack adjacent tiles if possible
             Direction exploreDir = Pathfinding.getUnstuck(rc);
             System.out.println(exploreDir);
             if (exploreDir != null && rc.canMove(exploreDir)) {

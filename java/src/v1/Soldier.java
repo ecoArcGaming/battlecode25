@@ -15,7 +15,7 @@ public class Soldier extends Robot {
                 && rc.canAttack(paintLocation) && paintTile.getMark() == PaintType.EMPTY) {
             rc.attack(paintLocation);
         } else if ((!paintTile.getPaint().isEnemy()) && paintTile.getMark() != paintTile.getPaint()
-                && rc.canAttack(paintLocation)){
+                && paintTile.getMark() != PaintType.EMPTY && rc.canAttack(paintLocation)){
             boolean useSecondaryColor = paintTile.getMark() == PaintType.ALLY_SECONDARY;
             rc.attack(paintLocation, useSecondaryColor);
         }

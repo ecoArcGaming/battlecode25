@@ -21,9 +21,15 @@ public abstract class Tower {
             else{
                 MapInfo msg = MapInfoCodec.decode(bytes);
                 if (msg.getPaint().isEnemy()){
-                    RobotPlayer.spawnQueue.add(3);
+                    double robotType = Constants.rng.nextDouble();
+                    if (robotType > Constants.MOPPER_SPLIT){
+                        RobotPlayer.spawnQueue.add(4);
+                    } else {
+                        RobotPlayer.spawnQueue.add(3);
+                    }
                     RobotPlayer.spawnQueue.add(2);
                     RobotPlayer.enemyTile = msg;
+                    RobotPlayer.numEnemyVisits += 1;
                 }
             }
         }
@@ -54,14 +60,13 @@ public abstract class Tower {
      * Builds a random robot at a random location
      */
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
-//        double robotType = Constants.rng.nextDouble();
-//        if (robotType < 0.33) {
-        RobotPlayer.spawnQueue.add(1);
-//        } else if (robotType < 0.66) {
-//            buildAtRandomLocation(rc, UnitType.MOPPER);
-//        } else {
-//            //buildAtRandomLocation(rc, UnitType.SPLASHER);
-//        }
+        double robotType = Constants.rng.nextDouble();
+        if (robotType < RobotPlayer.numEnemyVisits*0.2) {
+            RobotPlayer.spawnQueue.add(4);
+            RobotPlayer.numEnemyVisits = 0;
+        } else {
+            RobotPlayer.spawnQueue.add(1);
+        }
     }
 
     /**
