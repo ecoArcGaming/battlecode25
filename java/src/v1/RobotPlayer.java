@@ -168,19 +168,6 @@ public class RobotPlayer {
                 }
             }
 
-
-//            // If attack soldier requested, build it
-//            if (sendAttackMessage){
-//                Tower.createAttackSoldier(rc);
-//                return;
-//            }
-//
-//            // If advance soldier requested, build it
-//            if (sendAdvanceMessage) {
-//                Tower.createAdvanceSoldier(rc);
-//                return;
-//            }
-
             // TODO: Figure out tower spawning logic (when to spawn, what to spawn)
             else if (rc.getMoney() > 2000) {
                 Tower.buildCompletelyRandom(rc);
