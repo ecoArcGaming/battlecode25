@@ -18,7 +18,8 @@ FIXME (General issues we noticed)
         - Possible reason: spawning is still skewed towards soldiers
     - We don't take advantage of SRPs
 TODO (Specific issues we noticed that currently have a solution)
-    - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce
+    - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce - bandaged by making them go to
+        opposite corner if they are close enough to their target
     - Robots spin around ruins that cannot be painted around but don't have a tower built & cannot be built
     - Robots wait for paint around money towers that don't have paint
     - Pathfind still gets stuck if we hit a long wall

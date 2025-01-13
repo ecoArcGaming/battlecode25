@@ -156,7 +156,7 @@ public class Pathfinding {
      * Finds the furthest corner and move towards it
      */
     public static Direction getUnstuck(RobotController rc) throws GameActionException{
-        if (!RobotPlayer.isStuck) {
+        if (!RobotPlayer.isStuck || rc.getLocation().distanceSquaredTo(RobotPlayer.oppositeCorner) <= 20) {
             RobotPlayer.isStuck = true;
             int x = rc.getLocation().x;
             int y = rc.getLocation().y;
