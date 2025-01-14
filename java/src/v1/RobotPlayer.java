@@ -11,19 +11,13 @@ import java.util.*;
  */
 /*
 FIXME (General issues we noticed)
-    - We get cooked when the other team sends a splasher to harass us at the beginning
-    - Mid-late game, too many coins and not enough paint (robots are all waiting for paint)
-    - Soldier/Mopper/Splasher distribution is too heavily skewed towards soldier mid-late game
-        - Possible reason: they die too much from running into towers
-        - Possible reason: spawning is still skewed towards soldiers
     - We don't take advantage of SRPs
     - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce - bandaged by making them go to
         opposite corner if they are close enough to their target
-    - Robots spin around ruins that cannot be painted around but don't have a tower built & cannot be built
-    - Robots wait for paint around money towers that don't have paint
-    - Pathfind still gets stuck if we hit a long wall
+    - Robots wait for paint around money towers
+    - Pathfind still gets stuck if we hit a long wall (bugnav?)
  */
 
 public class RobotPlayer {
