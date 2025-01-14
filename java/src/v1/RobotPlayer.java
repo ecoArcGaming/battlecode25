@@ -160,7 +160,7 @@ public class RobotPlayer {
                 }
             }
 
-            else if (rc.getMoney() > 2000 && rc.getPaint() > 500) {
+            else if ((rc.getMoney() > 2100 && rc.getPaint() > 500) || rc.getRoundNum() < 50) {
                 Tower.buildCompletelyRandom(rc);
             }
         }
