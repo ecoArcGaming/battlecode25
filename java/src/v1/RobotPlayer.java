@@ -13,11 +13,16 @@ import java.util.*;
 FIXME (General issues we noticed)
     - We don't take advantage of SRPs
     - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
+    - Improve splasher behavior
+    - Improve soldier behavior (send more bots to the frontline)
+    - Review scrim at Monday, January 13, 2025 at 7:42 PM EST against Husky Dawg - they cook us with better initial
+        exploration & better splasher behavior
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce - bandaged by making them go to
         opposite corner if they are close enough to their target
     - Robots wait for paint around money towers
     - Pathfind still gets stuck if we hit a long wall (bugnav?)
+    - Spawn robots closer to the middle of the board (instead of always the north)
  */
 
 public class RobotPlayer {
