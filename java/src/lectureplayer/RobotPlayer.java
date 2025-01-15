@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+// import java.time.Clock;
+// import apple.laf.JRSUIConstants.Direction;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -27,6 +29,17 @@ public class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
+    
+    /* Variables for pathfinding bug algorithms */
+    //bug 1
+    static boolean isTracing = false;
+    static int smallestDistance = 10000000;
+    static MapLocation closestLocation = null;
+    static Direction tracingDir= null;
+    //bug 2
+    static MapLocation prevDest = null;
+    static HashSet<MapLocation> line = null;
+    static int obstacleStartDist = 0;
 
     /* Variables for communication */
     static ArrayList<MapLocation> knownTowers = new ArrayList<>();
@@ -93,8 +106,8 @@ public class RobotPlayer {
                     case MOPPER: runMopper(rc); break;
                     case SPLASHER: break; // Consider upgrading examplefuncsplayer to use splashers!
                     default: runTower(rc); break;
-                    }
                 }
+            }
              catch (GameActionException e) {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
@@ -165,8 +178,6 @@ public class RobotPlayer {
                 shouldSave = true;
             }
         }
-
-        // TODO: can we attack other bots?
     }
 
 
@@ -190,6 +201,7 @@ public class RobotPlayer {
                 }
             }
         }
+
         if (curRuin != null){
             MapLocation targetLoc = curRuin.getMapLocation();
             Direction dir = rc.getLocation().directionTo(targetLoc);
@@ -344,5 +356,180 @@ public class RobotPlayer {
             }
             */
         }
+    }
+
+
+    /*
+     * Pathfinding algorithms: Bug0, Bug1, Bug2 (None are currently being called in the run function)
+     * Navigates robot to desired target destination in the presence of obstacles
+     */
+
+    public static void bug0(RobotController rc, MapLocation target) throws GameActionException{
+        // get direction from current location to target
+        Direction dir = rc.getLocation().directionTo(target);
+
+        MapLocation nextLoc = rc.getLocation().add(dir);
+        rc.setIndicatorDot(nextLoc, 255, 0, 0);
+        Clock.yield();
+
+        // try to move in the target direction
+        if(rc.canMove(dir)){
+            rc.move(dir);
+        }
+
+        // keep turning left until we can move
+        for (int i=0; i<8; i++){
+            dir = dir.rotateLeft();
+            if(rc.canMove(dir)){
+                rc.move(dir);
+                break;
+            }
+        }
+    }
+
+    public static void bug1(RobotController rc, MapLocation target) throws GameActionException{
+        if (!isTracing){ 
+            //proceed as normal
+            Direction dir = rc.getLocation().directionTo(target);
+            MapLocation nextLoc = rc.getLocation().add(dir);
+            rc.setIndicatorDot(nextLoc, 255, 0, 0);
+            Clock.yield();
+            // try to move in the target direction
+            if(rc.canMove(dir)){
+                rc.move(dir);
+            }
+            else{
+                isTracing = true;
+                tracingDir = dir;
+            }
+        }
+        else{
+            // tracing mode
+            
+            // need a stopping condition - this will be when we see the closestLocation again
+            if (rc.getLocation().equals(closestLocation)){
+                // returned to closest location along perimeter of the obstacle
+                isTracing = false;
+                smallestDistance = 10000000;
+                closestLocation = null;
+                tracingDir= null;
+            }
+            else{
+                // keep tracing
+
+                // update closestLocation and smallestDistance
+                int distToTarget = rc.getLocation().distanceSquaredTo(target);
+                if(distToTarget < smallestDistance){
+                    smallestDistance = distToTarget;
+                    closestLocation = rc.getLocation();
+                }
+
+                // go along perimeter of obstacle
+                if(rc.canMove(tracingDir)){
+                    //move forward and try to turn right
+                    rc.move(tracingDir);
+                    tracingDir = tracingDir.rotateRight();
+                    tracingDir = tracingDir.rotateRight();
+                }
+                else{
+                    // turn left because we cannot proceed forward
+                    // keep turning left until we can move again
+                    for (int i=0; i<8; i++){
+                        tracingDir = tracingDir.rotateLeft();
+                        if(rc.canMove(tracingDir)){
+                            rc.move(tracingDir);
+                            tracingDir = tracingDir.rotateRight();
+                            tracingDir = tracingDir.rotateRight();
+                            break;
+                        }
+                    }
+                }
+
+                MapLocation nextLoc = rc.getLocation().add(tracingDir);
+                rc.setIndicatorDot(nextLoc, 255, 0, 0);
+                Clock.yield();
+            }
+        }
+    }
+
+    public static void bug2(RobotController rc, MapLocation target) throws GameActionException{
+        
+        if(!target.equals(prevDest)) {
+            prevDest = target;
+            line = createLine(rc.getLocation(), target);
+        }
+
+        for(MapLocation loc : line) {
+            rc.setIndicatorDot(loc, 255, 0, 0);
+        }
+
+        if(!isTracing) {
+            Direction dir = rc.getLocation().directionTo(target);
+            rc.setIndicatorDot(rc.getLocation().add(dir), 255, 0, 0);
+            Clock.yield();
+
+            if(rc.canMove(dir)){
+                rc.move(dir);
+            } else {
+                isTracing = true;
+                obstacleStartDist = rc.getLocation().distanceSquaredTo(target);
+                tracingDir = dir;
+            }
+        } else {
+            if(line.contains(rc.getLocation()) && rc.getLocation().distanceSquaredTo(target) < obstacleStartDist) {
+                isTracing = false;
+            }
+
+            for(int i = 0; i < 9; i++){
+                if(rc.canMove(tracingDir)){
+                    rc.move(tracingDir);
+                    tracingDir = tracingDir.rotateRight();
+                    tracingDir = tracingDir.rotateRight();
+                    break;
+                } else {
+                    tracingDir = tracingDir.rotateLeft();
+                }
+            }
+        }
+    }
+
+    // Bresenham's line algorithm for bug2
+    public static HashSet<MapLocation> createLine(MapLocation a, MapLocation b) {
+        HashSet<MapLocation> locs = new HashSet<>();
+        int x = a.x, y = a.y;
+        int dx = b.x - a.x;
+        int dy = b.y - a.y;
+        int sx = (int) Math.signum(dx);
+        int sy = (int) Math.signum(dy);
+        dx = Math.abs(dx);
+        dy = Math.abs(dy);
+        int d = Math.max(dx,dy);
+        int r = d/2;
+        if (dx > dy) {
+            for (int i = 0; i < d; i++) {
+                locs.add(new MapLocation(x, y));
+                x += sx;
+                r += dy;
+                if (r >= dx) {
+                    locs.add(new MapLocation(x, y));
+                    y += sy;
+                    r -= dx;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < d; i++) {
+                locs.add(new MapLocation(x, y));
+                y += sy;
+                r += dx;
+                if (r >= dy) {
+                    locs.add(new MapLocation(x, y));
+                    x += sx;
+                    r -= dy;
+                }
+            }
+        }
+        locs.add(new MapLocation(x, y));
+        return locs;
     }
 }
