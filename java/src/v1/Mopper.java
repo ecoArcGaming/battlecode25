@@ -1,6 +1,7 @@
 package v1;
 
 import battlecode.common.*;
+import v2.Pathfinding;
 
 public class Mopper extends Robot{
     public static void receiveLastMessage(RobotController rc) throws GameActionException {
@@ -25,7 +26,10 @@ public class Mopper extends Robot{
             RobotPlayer.removePaint = null;
         }
         else {
-            rc.move(Pathfinding.pathfind(rc, enemyLoc));
+            Direction moveDir = Pathfinding.bug2(rc, enemyLoc);
+            if (moveDir == null) {
+                rc.move(moveDir);
+            }
         }
     }
 }

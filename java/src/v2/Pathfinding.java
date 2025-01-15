@@ -2,7 +2,10 @@ package v2;
 
 import battlecode.common.*;
 
+import static v2.RobotPlayer.*;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -128,7 +131,7 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        return pathfind(rc, RobotPlayer.lastTower.getMapLocation());
+        return bug2(rc, RobotPlayer.lastTower.getMapLocation());
     }
 
     /**
@@ -209,7 +212,92 @@ public class Pathfinding {
             }
             RobotPlayer.oppositeCorner = new MapLocation(target_x, target_y);
         }
-        return pathfind(rc, RobotPlayer.oppositeCorner);
+        return bug2(rc, RobotPlayer.oppositeCorner);
     }
+
+    /**
+     * Bresenham's line algorithm for bug2
+     */
+    public static HashSet<MapLocation> createLine(MapLocation a, MapLocation b) {
+        HashSet<MapLocation> locs = new HashSet<>();
+        int x = a.x, y = a.y;
+        int dx = b.x - a.x;
+        int dy = b.y - a.y;
+        int sx = (int) Math.signum(dx);
+        int sy = (int) Math.signum(dy);
+        dx = Math.abs(dx);
+        dy = Math.abs(dy);
+        int d = Math.max(dx,dy);
+        int r = d/2;
+        if (dx > dy) {
+            for (int i = 0; i < d; i++) {
+                locs.add(new MapLocation(x, y));
+                x += sx;
+                r += dy;
+                if (r >= dx) {
+                    locs.add(new MapLocation(x, y));
+                    y += sy;
+                    r -= dx;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < d; i++) {
+                locs.add(new MapLocation(x, y));
+                y += sy;
+                r += dx;
+                if (r >= dy) {
+                    locs.add(new MapLocation(x, y));
+                    x += sx;
+                    r -= dy;
+                }
+            }
+        }
+        locs.add(new MapLocation(x, y));
+        return locs;
+    }
+
+    /**
+     * bug2 pathfinding algorithm
+     */
+    public static Direction bug2(RobotController rc, MapLocation target) throws GameActionException{
+        // If we changed destinations, draw a new line
+        if(!target.equals(prevDest)) {
+            prevDest = target;
+            line = createLine(rc.getLocation(), target);
+        }
+        if(!isTracing) {
+            // Standard behavior: attempt to move in the direction to the target
+            Direction dir = rc.getLocation().directionTo(target);
+            if(rc.canMove(dir)){
+                return dir;
+            } else {
+                // Note: we do not move when we run into an obstacle
+                // Change state once we run into an obstacle
+                isTracing = true;
+                obstacleStartDist = rc.getLocation().distanceSquaredTo(target);
+                tracingDir = dir;
+            }
+        } else {
+            if(line.contains(rc.getLocation()) && rc.getLocation().distanceSquaredTo(target) < obstacleStartDist) {
+                // Note: we do not move when we are free from an obstacle
+                // Done tracing, revert state
+                isTracing = false;
+            } else {
+                for (int i = 0; i < 9; i++) {
+                    if (rc.canMove(tracingDir)) {
+                        Direction returnDir = tracingDir;
+                        tracingDir = tracingDir.rotateRight();
+                        tracingDir = tracingDir.rotateRight();
+                        return returnDir;
+                    } else {
+                        tracingDir = tracingDir.rotateLeft();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 
 }
