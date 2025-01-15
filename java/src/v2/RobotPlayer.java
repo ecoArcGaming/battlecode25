@@ -26,6 +26,8 @@ TODO (Specific issues we noticed that currently have a solution)
         opposite corner if they are close enough to their target
     - Robots wait for paint around money towers
     - Still get nullPointerException errors when trying to communicate to a robot that is not there
+    - Soldiers still spin around ruins they cannot build (there is enemy paint there) and moppers cannot be created
+        due to many soldiers clogging up the spawn queue (play on the small default map to see this behavior)
  */
     
 public class RobotPlayer {
