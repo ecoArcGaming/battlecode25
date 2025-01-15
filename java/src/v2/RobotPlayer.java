@@ -24,7 +24,6 @@ TODO (Specific issues we noticed that currently have a solution)
         opposite corner if they are close enough to their target
     - Robots wait for paint around money towers
     - Pathfind still gets stuck if we hit a long wall (bugnav?)
-    - Spawn robots closer to the middle of the board (instead of always the north)
  */
     
 public class RobotPlayer {
@@ -236,12 +235,12 @@ public class RobotPlayer {
 
         // Only care about enemy tiles and ruins if robot is a develop or advance type
         if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.ADVANCE) {
-            RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
-            // If enemy tower within range, switch to attack type
-            if (closestEnemyTower != null) {
-                enemyTower = rc.senseMapInfo(closestEnemyTower.getLocation());
-                soldierType = SoldierType.ATTACK;
-            }
+//            RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
+//            // If enemy tower within range, switch to attack type
+//            if (closestEnemyTower != null) {
+//                enemyTower = rc.senseMapInfo(closestEnemyTower.getLocation());
+//                soldierType = SoldierType.ATTACK;
+//            }
             // Find all Enemy Tiles
             MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
             if (enemyPaint != null) {
