@@ -20,7 +20,7 @@ FIXME (General issues we noticed)
     - Take advantage of the new tower broadcasting system
     - Think about mopper mop swings
     - Clumped robots is a bit problematic
-    - Exploration aroud walls is ass
+    - Exploration around walls is ass
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce - bandaged by making them go to
         opposite corner if they are close enough to their target
