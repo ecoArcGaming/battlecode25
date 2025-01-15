@@ -85,7 +85,6 @@ public class Soldier extends Robot {
         // Looks at all incoming messages
         for (Message message: rc.readMessages(rc.getRoundNum()-1)){
             int bytes = message.getBytes();
-
             // Information is type of robot
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {

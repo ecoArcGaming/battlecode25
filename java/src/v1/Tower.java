@@ -2,6 +2,8 @@ package v1;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 /**
  *  Class for all general-purpose tower methods
  */
@@ -10,19 +12,18 @@ public abstract class Tower {
     /**
      * Reads new messages and does stuff
      */
-    public static void readNewMessages(RobotController rc) throws GameActionException{
+    public static void readNewMessages(RobotController rc) throws GameActionException {
         // Looks at all incoming messages
-        for (Message message: rc.readMessages(rc.getRoundNum()-1)){
+        for (Message message : rc.readMessages(rc.getRoundNum() - 1)) {
             int bytes = message.getBytes();
-            if (Communication.isRobotInfo(bytes)){
+            if (Communication.isRobotInfo(bytes)) {
                 RobotInfo msg = RobotInfoCodec.decode(bytes);
                 continue;
-            }
-            else{
+            } else {
                 MapInfo msg = MapInfoCodec.decode(bytes);
-                if (msg.getPaint().isEnemy()){
+                if (msg.getPaint().isEnemy()) {
                     double robotType = Constants.rng.nextDouble();
-                    if (robotType > Constants.MOPPER_SPLIT){
+                    if (robotType > Constants.MOPPER_SPLIT) {
                         RobotPlayer.spawnQueue.add(4);
                     } else {
                         RobotPlayer.spawnQueue.add(3);
@@ -38,7 +39,7 @@ public abstract class Tower {
     /**
      * Builds a robot of type robotType at location
      */
-    public static void buildIfPossible(RobotController rc, UnitType robotType, MapLocation location)  throws GameActionException {
+    public static void buildIfPossible(RobotController rc, UnitType robotType, MapLocation location) throws GameActionException {
         if (rc.canBuildRobot(robotType, location)) {
             rc.buildRobot(robotType, location);
         }
@@ -51,7 +52,7 @@ public abstract class Tower {
         Direction dir = Constants.directions[Constants.rng.nextInt(Constants.directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         buildIfPossible(rc, robotType, nextLoc);
-        if (rc.canSendMessage(nextLoc)){
+        if (rc.canSendMessage(nextLoc)) {
             rc.sendMessage(nextLoc, 1);
         }
     }
@@ -61,7 +62,7 @@ public abstract class Tower {
      */
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
         double robotType = Constants.rng.nextDouble();
-        if (robotType < RobotPlayer.numEnemyVisits*0.2) {
+        if (robotType < RobotPlayer.numEnemyVisits * 0.2) {
             RobotPlayer.spawnQueue.add(4);
             RobotPlayer.numEnemyVisits = 0;
         } else {
@@ -73,7 +74,7 @@ public abstract class Tower {
      * Fires an attack at location if possible
      */
     public static void fireAttackIfPossible(RobotController rc, MapLocation location) throws GameActionException {
-        if (rc.canAttack(location))  {
+        if (rc.canAttack(location)) {
             rc.attack(location);
         }
     }
@@ -119,6 +120,9 @@ public abstract class Tower {
         }
     }
 
+    /**
+     * Creates a splasher at the north
+     */
     public static void createSplasher(RobotController rc) throws GameActionException {
         MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
         if (rc.canBuildRobot(UnitType.SPLASHER, addedDir)) {
@@ -127,9 +131,12 @@ public abstract class Tower {
         }
     }
 
+    /**
+     * Send message to the robot indicating what type of bot it is
+     */
     public static void sendTypeMessage(RobotController rc, int robotType) throws GameActionException {
         MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
-        if (rc.canSendMessage(addedDir)){
+        if (rc.canSendMessage(addedDir)) {
             rc.sendMessage(addedDir, robotType);
             // If robot is an attack soldier or mopper, send enemy tile location as well
             if (robotType == 3 || robotType == 2) {

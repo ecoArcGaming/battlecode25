@@ -26,7 +26,7 @@ TODO (Specific issues we noticed that currently have a solution)
     - Pathfind still gets stuck if we hit a long wall (bugnav?)
     - Spawn robots closer to the middle of the board (instead of always the north)
  */
-
+    
 public class RobotPlayer {
     /**
      * We will use this variable to count the number of turns this robot has been alive.
@@ -53,6 +53,7 @@ public class RobotPlayer {
     static Direction towardsEnemy = null;
     static boolean seenPaintTower = false;
     static int numEnemyVisits = 0;
+    static Direction spawnDirection = null;
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
@@ -117,7 +118,7 @@ public class RobotPlayer {
                     last8.add(rc.getLocation());
                 }
             }
-             catch (GameActionException e) {
+            catch (GameActionException e) {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                 // world. Remember, uncaught exceptions cause your robot to explode!
@@ -146,11 +147,18 @@ public class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     public static void runTower(RobotController rc) throws GameActionException{
+        // Sets spawn direction of each tower when created
+        if (spawnDirection == null){
+            spawnDirection = Tower.spawnDirection(rc);
+        }
+
         Tower.readNewMessages(rc);
         // starting condition
         if (rc.getRoundNum() == 1) {
-            // spawn a soldier bot at the north of the tower
+            // spawn a soldier bot
+            Tower.createSoldier(rc);
             spawnQueue.add(1);
+            sendTypeMessage = true;
         } else {
             // If unit has been spawned and communication hasn't happened yet
             if (sendTypeMessage) {
@@ -195,7 +203,7 @@ public class RobotPlayer {
         Soldier.readNewMessages(rc);
 
         // On round 1, just paint tile it is on
-        if (rc.getRoundNum() == 3) {
+        if (rc.getRoundNum() == 2) {
             Soldier.paintIfPossible(rc, rc.getLocation());
             enemySpawn = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
             return;

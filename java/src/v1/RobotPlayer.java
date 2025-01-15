@@ -149,8 +149,10 @@ public class RobotPlayer {
         Tower.readNewMessages(rc);
         // starting condition
         if (rc.getRoundNum() == 1) {
-            // spawn a soldier bot at the north of the tower
+            // spawn a soldier bot
+            Tower.createSoldier(rc);
             spawnQueue.add(1);
+            sendTypeMessage = true;
         } else {
             // If unit has been spawned and communication hasn't happened yet
             if (sendTypeMessage) {
@@ -195,7 +197,7 @@ public class RobotPlayer {
         Soldier.readNewMessages(rc);
 
         // On round 1, just paint tile it is on
-        if (rc.getRoundNum() == 3) {
+        if (rc.getRoundNum() == 2) {
             Soldier.paintIfPossible(rc, rc.getLocation());
             enemySpawn = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
             return;

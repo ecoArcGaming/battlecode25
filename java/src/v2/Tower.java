@@ -2,6 +2,8 @@ package v2;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 /**
  *  Class for all general-purpose tower methods
  */
@@ -101,7 +103,7 @@ public abstract class Tower {
      * Creates a soldier at location NORTH if possible
      */
     public static void createSoldier(RobotController rc) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
         if (rc.canBuildRobot(UnitType.SOLDIER, addedDir)) {
             rc.buildRobot(UnitType.SOLDIER, addedDir);
             RobotPlayer.sendTypeMessage = true;
@@ -112,23 +114,30 @@ public abstract class Tower {
      * Creates a mopper at location NORTH if possible
      */
     public static void createMopper(RobotController rc) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
         if (rc.canBuildRobot(UnitType.MOPPER, addedDir)) {
             rc.buildRobot(UnitType.MOPPER, addedDir);
             RobotPlayer.sendTypeMessage = true;
         }
     }
 
+    /**
+     * Creates a splasher at the north
+     */
     public static void createSplasher(RobotController rc) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
         if (rc.canBuildRobot(UnitType.SPLASHER, addedDir)) {
             rc.buildRobot(UnitType.SPLASHER, addedDir);
             RobotPlayer.sendTypeMessage = true;
         }
     }
 
+    /**
+     * Send message to the robot indicating what type of bot it is
+     */
     public static void sendTypeMessage(RobotController rc, int robotType) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(Direction.NORTH);
+        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
+        System.out.println(rc.canSendMessage(addedDir));
         if (rc.canSendMessage(addedDir)){
             rc.sendMessage(addedDir, robotType);
             // If robot is an attack soldier or mopper, send enemy tile location as well
@@ -138,5 +147,20 @@ public abstract class Tower {
             RobotPlayer.sendTypeMessage = false;
             RobotPlayer.spawnQueue.removeFirst();
         }
+    }
+
+
+    /**
+     * Finds spawning direction for a given tower
+     */
+    public static Direction spawnDirection(RobotController rc) throws GameActionException {
+        int height = rc.getMapHeight();
+        int width = rc.getMapWidth();
+        MapLocation center = new MapLocation(width/2, height/2);
+        Direction toCenter = rc.getLocation().directionTo(center);
+        if (toCenter.getDeltaX() != 0 && toCenter.getDeltaY() != 0) {
+            toCenter = toCenter.rotateLeft();
+        }
+        return toCenter;
     }
 }
