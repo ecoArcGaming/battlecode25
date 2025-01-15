@@ -13,7 +13,6 @@ public class Mopper extends Robot{
                 MapInfo message = MapInfoCodec.decode(bytes);
                 if (message.getPaint().isEnemy()) {
                     RobotPlayer.removePaint = message;
-                    System.out.println(message);
                 }
             }
         }

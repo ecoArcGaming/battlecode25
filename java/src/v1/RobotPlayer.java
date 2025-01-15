@@ -14,9 +14,11 @@ FIXME (General issues we noticed)
     - We don't take advantage of SRPs
     - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
     - Improve splasher behavior
-    - Improve soldier behavior (send more bots to the frontline)
-    - Review scrim at Monday, January 13, 2025 at 7:42 PM EST against Husky Dawg - they cook us with better initial
-        exploration & better splasher behavior
+    - Get better at sending units to the front line
+    - Take better advantage of defense towers
+    - Take advantage of the new tower broadcasting system
+    - Think about mopper mop swings
+    - Clumped robots is a bit problematic
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce - bandaged by making them go to
         opposite corner if they are close enough to their target
@@ -145,7 +147,6 @@ public class RobotPlayer {
      */
     public static void runTower(RobotController rc) throws GameActionException{
         Tower.readNewMessages(rc);
-        System.out.println(spawnQueue);
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot at the north of the tower
@@ -445,7 +446,6 @@ public class RobotPlayer {
         } else {
             // attack adjacent tiles if possible
             Direction exploreDir = Pathfinding.getUnstuck(rc);
-            System.out.println(exploreDir);
             if (exploreDir != null && rc.canMove(exploreDir)) {
                 rc.move(exploreDir);
             }
