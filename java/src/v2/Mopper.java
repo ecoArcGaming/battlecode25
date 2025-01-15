@@ -26,7 +26,7 @@ public class Mopper extends Robot{
         }
         else {
             Direction moveDir = Pathfinding.bug2(rc, enemyLoc);
-            if (moveDir == null) {
+            if (moveDir != null) {
                 rc.move(moveDir);
             }
         }
