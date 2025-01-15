@@ -104,7 +104,7 @@ public class Soldier extends Robot {
                     return;
                 }
                 // For attack robots to get enemy paint location
-                else{
+                else if (RobotPlayer.soldierType == SoldierType.ATTACK){
                     RobotPlayer.enemyTile = MapInfoCodec.decode(bytes);
                 }
             }
