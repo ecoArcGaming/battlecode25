@@ -20,7 +20,7 @@ public class MapInfoCodec {
             for(int x = 0; x < GameConstants.MAP_MAX_WIDTH; x++) {
                 for(int y = 0; y < GameConstants.MAP_MAX_HEIGHT; y++) {
                     MapLocation locationInput = new MapLocation(x, y);
-                    MapInfo infoInput = new MapInfo(locationInput, true, true, PaintType.EMPTY, PaintType.ENEMY_SECONDARY, true);
+                    MapInfo infoInput = new MapInfo(locationInput, true, true, PaintType.EMPTY, PaintType.ENEMY_SECONDARY, true, false);
                     int messagePayload = encode(infoInput);
                     System.out.println(x+" "+y+" "+messagePayload);
                     if(set.contains(messagePayload)) {
@@ -81,7 +81,7 @@ public class MapInfoCodec {
         PaintType paint = PaintType.values()[ (i>>14)&((1<<3)-1) ];
         PaintType mark = PaintType.values()[ (i>>17)&((1<<3)-1) ];
         boolean hasRuin = (i&(1<<20)) != 0;
-        return new MapInfo(new MapLocation(x, y), isPassable, isWall, paint, mark, hasRuin);
+        return new MapInfo(new MapLocation(x, y), isPassable, isWall, paint, mark, hasRuin, false);
     }
 
     public static boolean equals(MapInfo a, MapInfo b) {
