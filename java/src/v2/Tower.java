@@ -24,16 +24,24 @@ public abstract class Tower {
                 MapInfo msg = MapInfoCodec.decode(bytes);
                 if (msg.getPaint().isEnemy()){
                     double robotType = Constants.rng.nextDouble();
-                    if (robotType > Constants.MOPPER_SPLIT){
-                        RobotPlayer.spawnQueue.add(4);
-                    } else {
-                        RobotPlayer.spawnQueue.add(3);
+                    // prepare to broadcast new enemy location
+                    if (Sensing.isRobot(rc, message.getSenderID()) && !RobotPlayer.ignore){
+                        RobotPlayer.broadcast = true;
                     }
-                    RobotPlayer.spawnQueue.add(2);
+
+                    if (Sensing.isTower(rc, message.getSenderID())){
+                        RobotPlayer.broadcast = true;
+                    }
+                    RobotPlayer.spawnQueue.add(4);
+                    RobotPlayer.spawnQueue.add(3);
                     RobotPlayer.enemyTile = msg;
                     RobotPlayer.numEnemyVisits += 1;
                 }
             }
+        }
+        // stop ignoring after round one
+        if (RobotPlayer.ignore){
+            RobotPlayer.ignore = false;
         }
     }
 

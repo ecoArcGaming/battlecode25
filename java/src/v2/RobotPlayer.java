@@ -162,8 +162,10 @@ public class RobotPlayer {
         if (spawnDirection == null){
             spawnDirection = Tower.spawnDirection(rc);
         }
+        if (!ignore){
+            Tower.readNewMessages(rc);
 
-        Tower.readNewMessages(rc);
+        }
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot
@@ -171,6 +173,12 @@ public class RobotPlayer {
             spawnQueue.add(1);
             sendTypeMessage = true;
         } else {
+            if (broadcast){
+                System.out.println("broadcasting" + enemyTile + "from " + rc.getLocation());
+                rc.broadcastMessage(MapInfoCodec.encode(enemyTile));
+                ignore = true;
+            }
+
             // If unit has been spawned and communication hasn't happened yet
             if (sendTypeMessage) {
                 Tower.sendTypeMessage(rc, spawnQueue.getFirst());
@@ -189,6 +197,11 @@ public class RobotPlayer {
                 Tower.buildCompletelyRandom(rc);
             }
         }
+        if (enemyTile != null && broadcast) {
+            Tower.broadcastNearbyBots(rc);
+            System.out.println("sent to all bots" + enemyTile);
+        }
+
         if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
             rc.upgradeTower(rc.getLocation());
         }
@@ -247,22 +260,22 @@ public class RobotPlayer {
 
         // Only care about enemy tiles and ruins if robot is a develop or advance type
         if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.ADVANCE) {
-//            RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
+             RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
 //            // If enemy tower within range, switch to attack type
-//            if (closestEnemyTower != null) {
-//                enemyTower = rc.senseMapInfo(closestEnemyTower.getLocation());
-//                soldierType = SoldierType.ATTACK;
-//            }
+              if (closestEnemyTower != null) {
+                 enemyTower = rc.senseMapInfo(closestEnemyTower.getLocation());
+                  soldierType = SoldierType.ATTACK;
+            }
             // Find all Enemy Tiles
             MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
             if (enemyPaint != null) {
                 // send msg about enemyPaint every 10 turns if seen
-                if (soldierMsgCooldown != -1 && rc.getRoundNum() % 20 == 0) {
+                if (soldierMsgCooldown != -1 && rc.getRoundNum() % 15 == 0) {
                     Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
                     enemyTile = enemyPaint;
                     return;
                 } else if (soldierMsgCooldown == -1) {
-                    soldierMsgCooldown = rc.getRoundNum() % 20;
+                    soldierMsgCooldown = rc.getRoundNum() % 15;
                 }
             }
             // Finds closest ruin
@@ -294,7 +307,8 @@ public class RobotPlayer {
                 // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
                 Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
                 if (moveDir != null) {
-                    rc.move(moveDir);}
+                    rc.move(moveDir);
+                }
 
                 // Fill in any spots in the pattern with the appropriate paint.
                 // Prioritize the tile under our own feet
@@ -313,9 +327,7 @@ public class RobotPlayer {
                         isStuck = false;
                         rc.move(dir);
                         // Optimize paint usage at beginning of round
-                        if (rc.getRoundNum() > Constants.START_PAINTING_ROUND) {
-                            Soldier.paintIfPossible(rc, rc.getLocation());
-                        }
+                        Soldier.paintIfPossible(rc, rc.getLocation());
                         return;
                     }
                 }
@@ -323,9 +335,7 @@ public class RobotPlayer {
                 if (dir != null && rc.canMove(dir)){
                     isStuck = false;
                     rc.move(dir);
-                    if (rc.getRoundNum() > Constants.START_PAINTING_ROUND) {
-                        Soldier.paintIfPossible(rc, rc.getLocation());
-                    }
+                    Soldier.paintIfPossible(rc, rc.getLocation());
                     return;
                 }
                 Direction newDir = Pathfinding.getUnstuck(rc);

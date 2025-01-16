@@ -12,6 +12,8 @@ public class Mopper extends Robot{
             } else {
                 MapInfo message = MapInfoCodec.decode(bytes);
                 if (message.getPaint().isEnemy()) {
+                    System.out.println("Splahser/mopper received" + MapInfoCodec.decode(bytes));
+
                     RobotPlayer.removePaint = message;
                 }
             }
