@@ -131,7 +131,7 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        return bug2(rc, RobotPlayer.lastTower.getMapLocation());
+        return bug1(rc, RobotPlayer.lastTower.getMapLocation());
     }
 
     /**
@@ -212,92 +212,70 @@ public class Pathfinding {
             }
             RobotPlayer.oppositeCorner = new MapLocation(target_x, target_y);
         }
-        return bug2(rc, RobotPlayer.oppositeCorner);
+        return bug1(rc, RobotPlayer.oppositeCorner);
     }
 
     /**
-     * Bresenham's line algorithm for bug2
+     * Bug1 pathfinding algorithm
      */
-    public static HashSet<MapLocation> createLine(MapLocation a, MapLocation b) {
-        HashSet<MapLocation> locs = new HashSet<>();
-        int x = a.x, y = a.y;
-        int dx = b.x - a.x;
-        int dy = b.y - a.y;
-        int sx = (int) Math.signum(dx);
-        int sy = (int) Math.signum(dy);
-        dx = Math.abs(dx);
-        dy = Math.abs(dy);
-        int d = Math.max(dx,dy);
-        int r = d/2;
-        if (dx > dy) {
-            for (int i = 0; i < d; i++) {
-                locs.add(new MapLocation(x, y));
-                x += sx;
-                r += dy;
-                if (r >= dx) {
-                    locs.add(new MapLocation(x, y));
-                    y += sy;
-                    r -= dx;
-                }
-            }
-        }
-        else {
-            for (int i = 0; i < d; i++) {
-                locs.add(new MapLocation(x, y));
-                y += sy;
-                r += dx;
-                if (r >= dy) {
-                    locs.add(new MapLocation(x, y));
-                    x += sx;
-                    r -= dy;
-                }
-            }
-        }
-        locs.add(new MapLocation(x, y));
-        return locs;
-    }
-
-    /**
-     * bug2 pathfinding algorithm
-     */
-    public static Direction bug2(RobotController rc, MapLocation target) throws GameActionException{
-        // If we changed destinations, draw a new line
-        if(!target.equals(prevDest)) {
-            prevDest = target;
-            line = createLine(rc.getLocation(), target);
-        }
-        if(!isTracing) {
-            // Standard behavior: attempt to move in the direction to the target
+    public static Direction bug1(RobotController rc, MapLocation target) throws GameActionException{
+        // Issue: if the robot doesn't move because of paint cooldowns, could lead to early termination of tracing mode
+        if (!isTracing){
+            //proceed as normal
             Direction dir = rc.getLocation().directionTo(target);
+            MapLocation nextLoc = rc.getLocation().add(dir);
+            // try to move in the target direction
             if(rc.canMove(dir)){
                 return dir;
-            } else {
-                // Note: we do not move when we run into an obstacle
-                // Change state once we run into an obstacle
+            }
+            else{
                 isTracing = true;
-                obstacleStartDist = rc.getLocation().distanceSquaredTo(target);
                 tracingDir = dir;
             }
-        } else {
-            if(line.contains(rc.getLocation()) && rc.getLocation().distanceSquaredTo(target) < obstacleStartDist) {
-                // Note: we do not move when we are free from an obstacle
-                // Done tracing, revert state
+        }
+        else{
+            // tracing mode
+
+            // need a stopping condition - this will be when we see the closestLocation again
+            if (rc.getLocation().equals(closestLocation)){
+                // returned to closest location along perimeter of the obstacle
                 isTracing = false;
-            } else {
-                for (int i = 0; i < 9; i++) {
-                    if (rc.canMove(tracingDir)) {
-                        Direction returnDir = tracingDir;
-                        tracingDir = tracingDir.rotateRight();
-                        tracingDir = tracingDir.rotateRight();
-                        return returnDir;
-                    } else {
+                smallestDistance = 10000000;
+                closestLocation = null;
+                tracingDir= null;
+            }
+            else{
+                // keep tracing
+
+                // update closestLocation and smallestDistance
+                int distToTarget = rc.getLocation().distanceSquaredTo(target);
+                if(distToTarget < smallestDistance){
+                    smallestDistance = distToTarget;
+                    closestLocation = rc.getLocation();
+                }
+
+                // go along perimeter of obstacle
+                if(rc.canMove(tracingDir)){
+                    //move forward and try to turn right
+                    rc.move(tracingDir);
+                    tracingDir = tracingDir.rotateRight();
+                    tracingDir = tracingDir.rotateRight();
+                }
+                else{
+                    // turn left because we cannot proceed forward
+                    // keep turning left until we can move again
+                    for (int i=0; i<8; i++){
                         tracingDir = tracingDir.rotateLeft();
+                        if(rc.canMove(tracingDir)){
+                            Direction returnDir = tracingDir;
+                            tracingDir = tracingDir.rotateRight();
+                            tracingDir = tracingDir.rotateRight();
+                            return returnDir;
+                        }
                     }
                 }
             }
         }
         return null;
     }
-
-
 }
