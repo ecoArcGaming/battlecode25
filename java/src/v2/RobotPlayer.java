@@ -264,12 +264,12 @@ public class RobotPlayer {
 
         // Only care about enemy tiles and ruins if robot is a develop or advance type
         if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.ADVANCE) {
-//            RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
+             RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
 //            // If enemy tower within range, switch to attack type
-//            if (closestEnemyTower != null) {
-//                enemyTower = rc.senseMapInfo(closestEnemyTower.getLocation());
-//                soldierType = SoldierType.ATTACK;
-//            }
+              if (closestEnemyTower != null) {
+                 enemyTower = rc.senseMapInfo(closestEnemyTower.getLocation());
+                  soldierType = SoldierType.ATTACK;
+            }
             // Find all Enemy Tiles
             MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
             if (enemyPaint != null) {

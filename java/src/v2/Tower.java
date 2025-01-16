@@ -32,12 +32,7 @@ public abstract class Tower {
                     if (Sensing.isTower(rc, message.getSenderID())){
                         RobotPlayer.broadcast = true;
                     }
-
-                    if (robotType > Constants.MOPPER_SPLIT){
-                        RobotPlayer.spawnQueue.add(4);
-                    } else {
-                        RobotPlayer.spawnQueue.add(2);
-                    }
+                    RobotPlayer.spawnQueue.add(4);
                     RobotPlayer.spawnQueue.add(3);
                     RobotPlayer.enemyTile = msg;
                     RobotPlayer.numEnemyVisits += 1;
