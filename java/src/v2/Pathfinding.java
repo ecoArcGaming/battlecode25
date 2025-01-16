@@ -131,7 +131,7 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        return bug1(rc, RobotPlayer.lastTower.getMapLocation());
+        return pathfind(rc, RobotPlayer.lastTower.getMapLocation());
     }
 
     /**
@@ -212,67 +212,28 @@ public class Pathfinding {
             }
             RobotPlayer.oppositeCorner = new MapLocation(target_x, target_y);
         }
-        return bug1(rc, RobotPlayer.oppositeCorner);
+        return pathfind(rc, RobotPlayer.oppositeCorner);
     }
 
     /**
-     * Bug1 pathfinding algorithm
+     * Modified bug1 pathfinding algorithm
      */
     public static Direction bug1(RobotController rc, MapLocation target) throws GameActionException{
-        // Issue: if the robot doesn't move because of paint cooldowns, could lead to early termination of tracing mode
-        if (!isTracing){
-            //proceed as normal
-            Direction dir = rc.getLocation().directionTo(target);
-            MapLocation nextLoc = rc.getLocation().add(dir);
-            // try to move in the target direction
-            if(rc.canMove(dir)){
-                return dir;
-            }
-            else{
-                isTracing = true;
-                tracingDir = dir;
-            }
-        }
-        else{
-            // tracing mode
-
-            // need a stopping condition - this will be when we see the closestLocation again
-            if (rc.getLocation().equals(closestLocation)){
-                // returned to closest location along perimeter of the obstacle
-                isTracing = false;
-                smallestDistance = 10000000;
-                closestLocation = null;
-                tracingDir= null;
-            }
-            else{
-                // keep tracing
-
-                // update closestLocation and smallestDistance
-                int distToTarget = rc.getLocation().distanceSquaredTo(target);
-                if(distToTarget < smallestDistance){
-                    smallestDistance = distToTarget;
-                    closestLocation = rc.getLocation();
-                }
-
-                // go along perimeter of obstacle
-                if(rc.canMove(tracingDir)){
-                    //move forward and try to turn right
-                    rc.move(tracingDir);
-                    tracingDir = tracingDir.rotateRight();
-                    tracingDir = tracingDir.rotateRight();
-                }
-                else{
-                    // turn left because we cannot proceed forward
-                    // keep turning left until we can move again
-                    for (int i=0; i<8; i++){
-                        tracingDir = tracingDir.rotateLeft();
-                        if(rc.canMove(tracingDir)){
-                            Direction returnDir = tracingDir;
-                            tracingDir = tracingDir.rotateRight();
-                            tracingDir = tracingDir.rotateRight();
-                            return returnDir;
-                        }
-                    }
+        MapLocation curLocation = rc.getLocation();
+        Direction dir = curLocation.directionTo(target);
+        MapLocation nextLoc = rc.getLocation().add(dir);
+        if (lastDifTile == null || !lastDifTile.equals(nextLoc) && rc.canMove(dir)){
+            lastDifTile = curLocation;
+            return dir;
+        } else {
+            // trace
+            // turn left because we cannot proceed forward
+            // keep turning left until we can move again
+            for (int i=0; i<7; i++){
+                dir = dir.rotateLeft();
+                if(rc.canMove(dir)){
+                    lastDifTile = curLocation;
+                    return dir;
                 }
             }
         }

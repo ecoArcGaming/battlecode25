@@ -57,7 +57,7 @@ public class Soldier extends Robot {
                     rc.attack(nearbyTile.getMapLocation());
                 }
                 else{
-                    Direction dir = Pathfinding.bug1(rc, nearbyTile.getMapLocation());
+                    Direction dir = Pathfinding.pathfind(rc, nearbyTile.getMapLocation());
                     if (dir != null) {
                         rc.move(dir);
                     }
@@ -67,7 +67,7 @@ public class Soldier extends Robot {
         }
         RobotPlayer.enemyTower = null;
         // If no visible tower, keep moving towards enemy tile
-        Direction dir = Pathfinding.bug1(rc, RobotPlayer.enemyTile.getMapLocation());
+        Direction dir = Pathfinding.pathfind(rc, RobotPlayer.enemyTile.getMapLocation());
         if (dir != null) {
             rc.move(dir);
         }

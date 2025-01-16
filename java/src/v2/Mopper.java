@@ -25,7 +25,7 @@ public class Mopper extends Robot{
             RobotPlayer.removePaint = null;
         }
         else {
-            Direction moveDir = Pathfinding.bug1(rc, enemyLoc);
+            Direction moveDir = Pathfinding.pathfind(rc, enemyLoc);
             if (moveDir != null) {
                 rc.move(moveDir);
             }
