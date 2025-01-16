@@ -205,7 +205,7 @@ public class RobotPlayer {
         }
         if (enemyTile != null && broadcast) {
             Tower.broadcastNearbyBots(rc);
-
+            System.out.println("sent to all bots" + enemyTile);
         }
 
         if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
