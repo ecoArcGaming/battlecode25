@@ -28,6 +28,8 @@ TODO (Specific issues we noticed that currently have a solution)
     - Still get nullPointerException errors when trying to communicate to a robot that is not there
     - Soldiers still spin around ruins they cannot build (there is enemy paint there) and moppers cannot be created
         due to many soldiers clogging up the spawn queue (play on the small default map to see this behavior)
+    - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
+    - Don't use markers when painting
  */
     
 public class RobotPlayer {
