@@ -59,7 +59,9 @@ public class RobotPlayer {
     static boolean seenPaintTower = false;
     static int numEnemyVisits = 0;
     static Direction spawnDirection = null;
-
+    // towers broadcasting variables
+    static boolean broadcast = false;
+    static boolean ignore = false;
     // bug2 static variables
     //bug 1
     static boolean isTracing = false;

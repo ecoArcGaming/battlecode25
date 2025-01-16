@@ -163,4 +163,12 @@ public abstract class Tower {
         }
         return toCenter;
     }
+    // message all nearby robots about lastest enemyTile
+    public static void broadcastNearbyBots(RobotController rc) throws GameActionException {
+        for (RobotInfo bot: rc.senseNearbyRobots()){
+            if (rc.canSendMessage(bot.getLocation())){
+                rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(RobotPlayer.enemyTile));
+            }
+        }
+    }
 }

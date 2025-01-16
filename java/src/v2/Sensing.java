@@ -177,4 +177,25 @@ public class Sensing {
         }
         return count;
     }
+
+    // Checks if a Robot is a tower or robot by ID
+    public static boolean isRobot(RobotController rc, int robotId)  throws GameActionException {
+        if (rc.canSenseRobot(robotId)) {
+            RobotInfo bot = rc.senseRobot(robotId);
+            return bot.getType().isRobotType();
+        }
+        else {
+            return false;
+        }
+    }
+
+    public static boolean isTower(RobotController rc, int robotId) throws GameActionException {
+        if (rc.canSenseRobot(robotId)) {
+            RobotInfo bot = rc.senseRobot(robotId);
+            return bot.getType().isTowerType();
+        }
+        else {
+            return false;
+        }
+    }
 }
