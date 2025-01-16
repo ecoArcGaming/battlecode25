@@ -3,7 +3,9 @@ package v2;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Comparator;
 
 public class Sensing {
     /**
@@ -197,5 +199,22 @@ public class Sensing {
         else {
             return false;
         }
+    }
+
+    public static ArrayList<MapInfo> getNearByEnemiesSortedShuffled(RobotController rc) throws GameActionException {
+        ArrayList<MapInfo> nearbyEnemies = new ArrayList<>();
+        MapInfo[] enemies = rc.senseNearbyMapInfos();
+        for (MapInfo enemy: enemies){
+            if (enemy.getPaint().isEnemy()){
+                nearbyEnemies.add(enemy);
+            }
+            if (enemy.getPaint() == PaintType.EMPTY && enemy.isPassable()){
+                RobotPlayer.fillEmpty = enemy;
+            }
+        }
+
+        Collections.shuffle(nearbyEnemies);
+        Collections.sort(nearbyEnemies, new MapInfoDistanceComparator(rc).reversed() );
+        return nearbyEnemies;
     }
 }

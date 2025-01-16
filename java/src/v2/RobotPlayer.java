@@ -167,7 +167,6 @@ public class RobotPlayer {
         }
         if (!ignore){
             Tower.readNewMessages(rc);
-
         }
         // starting condition
         if (rc.getRoundNum() == 1) {
@@ -413,30 +412,37 @@ public class RobotPlayer {
             return;
         } else { //splash other tiles it sees but avoid overlap
             MapInfo[] all = rc.senseNearbyMapInfos();
-            for (int i =0; i < all.length; i++){
-                if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
-                    continue;
-                } else {
-                    fillEmpty = null;
-                    if (all[i].getPaint() == PaintType.EMPTY && !all[i].hasRuin() && !all[i].isWall()){
-                        fillEmpty = all[i];
-                    }
+            ArrayList<MapInfo> enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
+            if (!enemies.isEmpty()){
+                removePaint = enemies.getFirst();
+                isStuck = false;
+                return;
+            } else {
+                removePaint = fillEmpty;
 
-                    if (all[i].getPaint().isEnemy()){
-                        removePaint = all[i];
-                        Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
-                        if (dir != null){
-                            rc.move(dir);
-                        }
-                        isStuck = false;
-                        return;
-                    }
-                }
             }
+//            for (int i =0; i < all.length; i++){
+//                if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
+//                    continue;
+//                } else {
+//                    fillEmpty = null;
+//                    if (all[i].getPaint() == PaintType.EMPTY && !all[i].hasRuin() && !all[i].isWall()){
+//                        fillEmpty = all[i];
+//                    }
+//
+//                    if (all[i].getPaint().isEnemy()){
+//                        removePaint = all[i];
+//                        Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
+//                        if (dir != null){
+//                            rc.move(dir);
+//                        }
+//                        isStuck = false;
+//                        return;
+//                    }
+//                }
+//            }
         }
-        if (fillEmpty != null){
-            removePaint = fillEmpty;
-        }
+
 //        if (rc.canMove(towardsEnemy)){
 //            rc.move(towardsEnemy);
 //        }
