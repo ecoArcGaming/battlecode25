@@ -166,8 +166,10 @@ public class RobotPlayer {
         if (spawnDirection == null){
             spawnDirection = Tower.spawnDirection(rc);
         }
+        if (!ignore){
+            Tower.readNewMessages(rc);
 
-        Tower.readNewMessages(rc);
+        }
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot
@@ -175,6 +177,12 @@ public class RobotPlayer {
             spawnQueue.add(1);
             sendTypeMessage = true;
         } else {
+            if (broadcast){
+                System.out.println("broadcasting" + enemyTile + "from " + rc.getLocation());
+                rc.broadcastMessage(MapInfoCodec.encode(enemyTile));
+                ignore = true;
+            }
+
             // If unit has been spawned and communication hasn't happened yet
             if (sendTypeMessage) {
                 Tower.sendTypeMessage(rc, spawnQueue.getFirst());
@@ -193,6 +201,11 @@ public class RobotPlayer {
                 Tower.buildCompletelyRandom(rc);
             }
         }
+        if (enemyTile != null && broadcast) {
+            Tower.broadcastNearbyBots(rc);
+            System.out.println("sent to all bots" + enemyTile);
+        }
+
         if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
             rc.upgradeTower(rc.getLocation());
         }
@@ -261,12 +274,12 @@ public class RobotPlayer {
             MapInfo enemyPaint = Sensing.findEnemyPaint(rc, nearbyTiles);
             if (enemyPaint != null) {
                 // send msg about enemyPaint every 10 turns if seen
-                if (soldierMsgCooldown != -1 && rc.getRoundNum() % 20 == 0) {
+                if (soldierMsgCooldown != -1 && rc.getRoundNum() % 15 == 0) {
                     Soldier.informTowerOfEnemyPaint(rc, enemyPaint);
                     enemyTile = enemyPaint;
                     return;
                 } else if (soldierMsgCooldown == -1) {
-                    soldierMsgCooldown = rc.getRoundNum() % 20;
+                    soldierMsgCooldown = rc.getRoundNum() % 15;
                 }
             }
             // Finds closest ruin
