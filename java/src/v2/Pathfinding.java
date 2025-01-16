@@ -214,7 +214,12 @@ public class Pathfinding {
         }
         return bug1(rc, RobotPlayer.oppositeCorner);
     }
+
+    /**
+     * Bug1 pathfinding algorithm
+     */
     public static Direction bug1(RobotController rc, MapLocation target) throws GameActionException{
+        // Issue: if the robot doesn't move because of paint cooldowns, could lead to early termination of tracing mode
         if (!isTracing){
             //proceed as normal
             Direction dir = rc.getLocation().directionTo(target);
