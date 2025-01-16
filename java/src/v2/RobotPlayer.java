@@ -62,16 +62,12 @@ public class RobotPlayer {
     // towers broadcasting variables
     static boolean broadcast = false;
     static boolean ignore = false;
-    // bug2 static variables
-    //bug 1
+
+    //bug 1 static variables
     static boolean isTracing = false;
     static int smallestDistance = 10000000;
     static MapLocation closestLocation = null;
     static Direction tracingDir= null;
-    //bug 2
-    static MapLocation prevDest = null;
-    static HashSet<MapLocation> line = null;
-    static int obstacleStartDist = 0;
 
     // Controls whether the soldier is currently filling in a ruin or not
     /**
@@ -316,7 +312,7 @@ public class RobotPlayer {
                 Soldier.completeRuinIfPossible(rc, ruinLocation);
             } else if (!fillingTower){
                 if (enemySpawn != null && rc.getRoundNum()  < 15){
-                    Direction dir = Pathfinding.bug2(rc, enemySpawn);
+                    Direction dir = Pathfinding.bug1(rc, enemySpawn);
                     if (dir != null && rc.canMove(dir)){
                         isStuck = false;
                         rc.move(dir);
@@ -353,7 +349,7 @@ public class RobotPlayer {
             }
             // If enemy tower detected but can't attack, move towards it
             else if (enemyTower != null){
-                Direction dir = Pathfinding.bug2(rc, enemyTowerLoc);
+                Direction dir = Pathfinding.bug1(rc, enemyTowerLoc);
                 if (dir != null) {
                     rc.move(dir);
                 }
@@ -382,7 +378,7 @@ public class RobotPlayer {
         }
 
         if (towardsEnemy == null && removePaint != null){
-            towardsEnemy = Pathfinding.bug2(rc, removePaint.getMapLocation() );
+            towardsEnemy = Pathfinding.bug1(rc, removePaint.getMapLocation() );
         }
 
         if (Robot.hasLowPaint(rc, 75)) {
@@ -399,7 +395,7 @@ public class RobotPlayer {
                 Clock.yield(); // wait for cooldown
             }
             else {
-                Direction dir = Pathfinding.bug2(rc, removePaint.getMapLocation());
+                Direction dir = Pathfinding.bug1(rc, removePaint.getMapLocation());
                 if (dir != null){
                     rc.move(dir);
                 }
@@ -419,7 +415,7 @@ public class RobotPlayer {
 
                     if (all[i].getPaint().isEnemy()){
                         removePaint = all[i];
-                        Direction dir = Pathfinding.bug2(rc, removePaint.getMapLocation());
+                        Direction dir = Pathfinding.bug1(rc, removePaint.getMapLocation());
                         if (dir != null){
                             rc.move(dir);
                         }
@@ -459,7 +455,7 @@ public class RobotPlayer {
         for (MapInfo tile: rc.senseNearbyMapInfos()){
             if (tile.getPaint().isEnemy()){
                 isStuck = false;
-                Direction dir = Pathfinding.bug2(rc, tile.getMapLocation());
+                Direction dir = Pathfinding.bug1(rc, tile.getMapLocation());
                 if (dir != null){
                     rc.move(dir);
                     return;
