@@ -30,6 +30,9 @@ TODO (Specific issues we noticed that currently have a solution)
         due to many soldiers clogging up the spawn queue (play on the small default map to see this behavior)
     - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
     - Don't use markers when painting
+    - Pathfinding is still broken
+
+    Priorities: splasher behavior, pathfinding, exploration, and maybe lecture stuff
  */
     
 public class RobotPlayer {
@@ -398,7 +401,7 @@ public class RobotPlayer {
                 removePaint = null;
 
             } else if (!rc.isActionReady()){
-                Clock.yield(); // wait for cooldown
+                return; // wait for cooldown
             }
             else {
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());

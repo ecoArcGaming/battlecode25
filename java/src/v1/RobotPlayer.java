@@ -371,7 +371,7 @@ public class RobotPlayer {
                 removePaint = null;
 
             } else if (!rc.isActionReady()){
-                Clock.yield(); // wait for cooldown
+                return; // wait for cooldown
             }
             else {
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
