@@ -72,6 +72,9 @@ public class RobotPlayer {
     // last tile the robot left while doing pathfinding
     static MapLocation lastDifTile = null;
 
+    static int stuckTurnCount = 0;
+    static int closestPath = -1;
+
     // Controls whether the soldier is currently filling in a ruin or not
     /**
      * A random number generator.
