@@ -300,7 +300,8 @@ public class RobotPlayer {
                 // NOTE: PATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
                 Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
                 if (moveDir != null) {
-                    rc.move(moveDir);}
+                    rc.move(moveDir);
+                }
 
                 // Fill in any spots in the pattern with the appropriate paint.
                 // Prioritize the tile under our own feet
@@ -319,9 +320,7 @@ public class RobotPlayer {
                         isStuck = false;
                         rc.move(dir);
                         // Optimize paint usage at beginning of round
-                        if (rc.getRoundNum() > Constants.START_PAINTING_ROUND) {
-                            Soldier.paintIfPossible(rc, rc.getLocation());
-                        }
+                        Soldier.paintIfPossible(rc, rc.getLocation());
                         return;
                     }
                 }
@@ -329,9 +328,7 @@ public class RobotPlayer {
                 if (dir != null && rc.canMove(dir)){
                     isStuck = false;
                     rc.move(dir);
-                    if (rc.getRoundNum() > Constants.START_PAINTING_ROUND) {
-                        Soldier.paintIfPossible(rc, rc.getLocation());
-                    }
+                    Soldier.paintIfPossible(rc, rc.getLocation());
                     return;
                 }
                 Direction newDir = Pathfinding.getUnstuck(rc);
