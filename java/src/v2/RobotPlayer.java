@@ -20,6 +20,8 @@ FIXME (General issues we noticed)
     - Think about mopper mop swings
     - Clumped robots is a bit problematic
     - Exploration around walls is ass
+    - Differential behavior given map size
+    - Improve splasher survivability
 TODO (Specific issues we noticed that currently have a solution)
     - getUnstuck pushes robots to a corner, but we want them to DVD logo bounce - bandaged by making them go to
         opposite corner if they are close enough to their target
