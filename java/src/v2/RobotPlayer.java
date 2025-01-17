@@ -452,31 +452,17 @@ public class RobotPlayer {
             isStuck = false;
             return;
         } else { //splash other tiles it sees but avoid overlap
-            for (int i =0; i < all.length; i++){
-                if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
-                    continue;
-                } else {
-                    fillEmpty = null;
-                    if (all[i].getPaint() == PaintType.EMPTY && !all[i].hasRuin() && !all[i].isWall()){
-                        fillEmpty = all[i];
-                    }
-
-                    if (all[i].getPaint().isEnemy()){
-                        removePaint = all[i];
-                        Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
-                        if (dir != null){
-                            rc.move(dir);
-                        }
-                        isStuck = false;
-                        return;
-                    }
-                }
+            MapInfo[] all = rc.senseNearbyMapInfos();
+            ArrayList<MapInfo> enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
+            System.out.println(enemies);
+            if (!enemies.isEmpty()){
+                removePaint = enemies.getFirst();
+                isStuck = false;
+                return;
+            } else {
+                removePaint = fillEmpty;
             }
         }
-        if (fillEmpty != null){
-            removePaint = fillEmpty;
-        }
-
         Direction dir = Pathfinding.getUnstuck(rc);
         if (dir != null && rc.canMove(dir)){
             rc.move(dir);
