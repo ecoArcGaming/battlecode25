@@ -36,7 +36,7 @@ TODO (Specific issues we noticed that currently have a solution)
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
     - Make broadcasting work for attack soldiers
-    -
+    - LOW health behavior to improve survivability
 
     Priorities: splasher behavior, pathfinding, exploration, and maybe lecture stuff
  */

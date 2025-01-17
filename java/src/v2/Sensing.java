@@ -201,7 +201,7 @@ public class Sensing {
     public static ArrayList<MapInfo> getNearByEnemiesSortedShuffled(RobotController rc) throws GameActionException {
         ArrayList<MapInfo> nearbyEnemies = new ArrayList<>();
         List<MapInfo> enemies = Arrays.asList(rc.senseNearbyMapInfos());
-        Collections.shuffle(enemies);
+//        Collections.shuffle(enemies);
         for (MapInfo enemy: enemies){
             if (enemy.getPaint().isEnemy()){
                 nearbyEnemies.add(enemy);
