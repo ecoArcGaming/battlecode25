@@ -14,7 +14,6 @@ import java.util.*;
 FIXME (General issues we noticed)
     - We don't take advantage of SRPs
     - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
-    - Improve splasher behavior
     - Get better at sending units to the front line
     - Take better advantage of defense towers
     - Take advantage of the new tower broadcasting system
@@ -31,6 +30,12 @@ TODO (Specific issues we noticed that currently have a solution)
     - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
     - Don't use markers when painting
     - Pathfinding is still broken
+    - If enemy paint is at spawn location, spawn a mopper to destroy the enemy paint
+    - Fix splasher functionality where it won't splash on ally paint for a ruin
+    - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
+        finish the ruin pattern
+    - Make broadcasting work for attack soldiers
+    -
 
     Priorities: splasher behavior, pathfinding, exploration, and maybe lecture stuff
  */
@@ -58,15 +63,17 @@ public class RobotPlayer {
     static boolean sendTypeMessage = false;
     static boolean isStuck = false;
     static MapLocation oppositeCorner = null;
-    static Direction towardsEnemy = null;
     static boolean seenPaintTower = false;
     static int numEnemyVisits = 0;
     static Direction spawnDirection = null;
     // towers broadcasting variables
     static boolean broadcast = false;
-    static boolean ignore = false;
+    static boolean alertRobots = false;
     // last tile the robot left while doing pathfinding
     static MapLocation lastDifTile = null;
+
+    static int stuckTurnCount = 0;
+    static int closestPath = -1;
 
     // Controls whether the soldier is currently filling in a ruin or not
     /**
@@ -165,9 +172,9 @@ public class RobotPlayer {
         if (spawnDirection == null){
             spawnDirection = Tower.spawnDirection(rc);
         }
-        if (!ignore){
-            Tower.readNewMessages(rc);
-        }
+
+        Tower.readNewMessages(rc);
+
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot
@@ -178,7 +185,6 @@ public class RobotPlayer {
             if (broadcast){
                 System.out.println("broadcasting" + enemyTile + "from " + rc.getLocation());
                 rc.broadcastMessage(MapInfoCodec.encode(enemyTile));
-                ignore = true;
             }
 
             // If unit has been spawned and communication hasn't happened yet
@@ -195,19 +201,24 @@ public class RobotPlayer {
                 }
             }
 
-            else if ((rc.getMoney() > 2100 && rc.getPaint() > 500) || rc.getRoundNum() < 50) {
+            else if (rc.getMoney() > 1200 && rc.getPaint() > 400) {
                 Tower.buildCompletelyRandom(rc);
             }
         }
-        if (enemyTile != null && broadcast) {
+        if (enemyTile != null && alertRobots) {
             Tower.broadcastNearbyBots(rc);
-            System.out.println("sent to all bots" + enemyTile);
         }
 
         if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
             rc.upgradeTower(rc.getLocation());
         }
         if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 7500) {
+            rc.upgradeTower(rc.getLocation());
+        }
+        if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER && rc.getMoney() > 7500) {
+            rc.upgradeTower(rc.getLocation());
+        }
+        if (rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER && rc.getMoney() > 10000) {
             rc.upgradeTower(rc.getLocation());
         }
         Tower.attackLowestRobot(rc);
@@ -377,36 +388,63 @@ public class RobotPlayer {
     }
 
     public static void runSplasher(RobotController rc) throws GameActionException{
+        System.out.println(removePaint);
 
-        Mopper.receiveLastMessage(rc);
+        // Read input messages for information on enemy tile location
+        Splasher.receiveLastMessage(rc);
+
+        // Update last paint tower location
         if (lastTower == null) {
             Soldier.updateLastTower(rc);
         } else {
             Soldier.updateLastPaintTower(rc);
         }
 
-        if (towardsEnemy == null && removePaint != null){
-            towardsEnemy = Pathfinding.pathfind(rc, removePaint.getMapLocation() );
-        }
-
+        // If paint is low, go back to refill
         if (Robot.hasLowPaint(rc, 75)) {
             Robot.lowPaintBehavior(rc);
             return;
         }
+
+        MapInfo[] all = rc.senseNearbyMapInfos();
+
+        // If splasher can attack an enemy tile, attack it
+        // If see enemy tower, prioritize attacking enemy tower
+        for (MapInfo info : all) {
+            MapLocation infoLocation = info.getMapLocation();
+            if (info.hasRuin() && rc.canSenseRobotAtLocation(infoLocation)){
+                if (rc.senseRobotAtLocation(infoLocation).getTeam().opponent() == rc.getTeam()){
+                    if (rc.canAttack(infoLocation)){
+                        rc.attack(infoLocation);
+                    }
+                }
+            }
+            else if (info.getPaint().isEnemy() && rc.canAttack(infoLocation)) {
+                rc.attack(infoLocation);
+            }
+        }
+
+        // Check to see if assigned tile is already filled in with our paint
+        // Prevents splasher from painting already painted tiles
+        if (removePaint != null && rc.canSenseLocation(removePaint.getMapLocation()) && rc.senseMapInfo(removePaint.getMapLocation()).getPaint().isAlly()){
+            removePaint = null;
+        }
+
         // splash assigned tile or move towards it
         if (removePaint != null){
             if (rc.canAttack(removePaint.getMapLocation()) && rc.isActionReady()){
                 rc.attack(removePaint.getMapLocation());
                 removePaint = null;
 
-            } else if (!rc.isActionReady()){
-                return; // wait for cooldown
             }
-            else {
+            else if (!rc.canAttack(removePaint.getMapLocation())){
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
                 if (dir != null){
                     rc.move(dir);
                 }
+            }
+            else{
+                return;
             }
             isStuck = false;
             return;
@@ -421,32 +459,7 @@ public class RobotPlayer {
             } else {
                 removePaint = fillEmpty;
             }
-//            for (int i =0; i < all.length; i++){
-//                if (i == 8 || i == 15 || i == 17 || i == 23 || i ==27 || i==31 || i == 37 || i == 41 || i == 45 || i == 51 || i == 53 || i == 60){
-//                    continue;
-//                } else {
-//                    fillEmpty = null;
-//                    if (all[i].getPaint() == PaintType.EMPTY && !all[i].hasRuin() && !all[i].isWall()){
-//                        fillEmpty = all[i];
-//                    }
-//
-//                    if (all[i].getPaint().isEnemy()){
-//                        removePaint = all[i];
-//                        Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
-//                        if (dir != null){
-//                            rc.move(dir);
-//                        }
-//                        isStuck = false;
-//                        return;
-//                    }
-//                }
-//            }
         }
-
-//        if (rc.canMove(towardsEnemy)){
-//            rc.move(towardsEnemy);
-//        }
-
         Direction dir = Pathfinding.getUnstuck(rc);
         if (dir != null && rc.canMove(dir)){
             rc.move(dir);

@@ -2,12 +2,12 @@ package v2;
 
 import battlecode.common.*;
 
-public class Mopper extends Robot{
+public class Splasher {
     public static void receiveLastMessage(RobotController rc) throws GameActionException {
         for(Message msg: rc.readMessages(-1)) {
             int bytes = msg.getBytes();
-            // Receives what type of mopper the bot is
-            if (bytes == 3){
+            // Receives message of what type of splasher it is
+            if (bytes == 4){
                 continue;
             }
             if (Communication.isRobotInfo(bytes)) {
@@ -21,20 +21,6 @@ public class Mopper extends Robot{
                         RobotPlayer.removePaint = message;
                     }
                 }
-            }
-        }
-    }
-
-    public static void removePaint(RobotController rc, MapInfo enemyPaint) throws GameActionException {
-        MapLocation enemyLoc = enemyPaint.getMapLocation();
-        if (rc.canAttack(enemyLoc) && enemyPaint.getPaint().isEnemy()){
-            rc.attack(enemyLoc);
-            RobotPlayer.removePaint = null;
-        }
-        else {
-            Direction moveDir = Pathfinding.pathfind(rc, enemyLoc);
-            if (moveDir != null) {
-                rc.move(moveDir);
             }
         }
     }

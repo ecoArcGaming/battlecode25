@@ -239,4 +239,23 @@ public class Pathfinding {
         }
         return null;
     }
+
+    public static Direction pathfindSwitch(RobotController rc, MapLocation target) throws GameActionException{
+        MapLocation curLocation = rc.getLocation();
+        int dist = curLocation.distanceSquaredTo(target);
+        if (dist == 0){
+            stuckTurnCount = 0;
+            closestPath = -1;
+        }
+        if (stuckTurnCount < 20){
+            if (dist < closestPath){
+                closestPath = dist;
+            } else if (closestPath != -1){
+                stuckTurnCount++;
+            }
+            return pathfind(rc, target);
+        } else{
+            return bug1(rc, target);
+        }
+    }
 }

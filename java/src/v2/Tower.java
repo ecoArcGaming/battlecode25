@@ -23,25 +23,26 @@ public abstract class Tower {
             else{
                 MapInfo msg = MapInfoCodec.decode(bytes);
                 if (msg.getPaint().isEnemy()){
-                    double robotType = Constants.rng.nextDouble();
-                    // prepare to broadcast new enemy location
-                    if (Sensing.isRobot(rc, message.getSenderID()) && !RobotPlayer.ignore){
+                    // If tower receives enemy message from robots, broadcast the information to other
+                    // towers. Additionally, spawn a splasher and a mopper
+                    if (Sensing.isRobot(rc, message.getSenderID())){
                         RobotPlayer.broadcast = true;
+                        RobotPlayer.alertRobots = true;
+                        RobotPlayer.spawnQueue.add(4); //  Spawns a splasher
+                        RobotPlayer.spawnQueue.add(3); //  Spawns a mopper
+                        RobotPlayer.numEnemyVisits += 1; //   Increases probability of spawning a splasher
                     }
 
+                    // If tower receives message from tower, just alert the surrounding bots to target the enemy
+                    // paint
                     if (Sensing.isTower(rc, message.getSenderID())){
-                        RobotPlayer.broadcast = true;
+                        RobotPlayer.alertRobots = true;
                     }
-                    RobotPlayer.spawnQueue.add(4);
-                    RobotPlayer.spawnQueue.add(3);
+
+                    // Update enemy tile regardless
                     RobotPlayer.enemyTile = msg;
-                    RobotPlayer.numEnemyVisits += 1;
                 }
             }
-        }
-        // stop ignoring after round one
-        if (RobotPlayer.ignore){
-            RobotPlayer.ignore = false;
         }
     }
 
@@ -174,9 +175,14 @@ public abstract class Tower {
     // message all nearby robots about lastest enemyTile
     public static void broadcastNearbyBots(RobotController rc) throws GameActionException {
         for (RobotInfo bot: rc.senseNearbyRobots()){
-            if (rc.canSendMessage(bot.getLocation())){
+            // Only sends messages to moppers and splashers
+            if (rc.canSendMessage(bot.getLocation()) && isAttackType(rc, bot)){
                 rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(RobotPlayer.enemyTile));
             }
         }
+    }
+
+    public static boolean isAttackType(RobotController rc, RobotInfo bot) throws GameActionException {
+        return bot.getType() == UnitType.MOPPER || bot.getType() == UnitType.SPLASHER;
     }
 }
