@@ -69,11 +69,14 @@ public class RobotPlayer {
     // towers broadcasting variables
     static boolean broadcast = false;
     static boolean alertRobots = false;
-    // last tile the robot left while doing pathfinding
-    static MapLocation lastDifTile = null;
-
     static int stuckTurnCount = 0;
     static int closestPath = -1;
+
+    //bug 1 variables
+    static boolean isTracing = false;
+    static int smallestDistance = 10000000;
+    static MapLocation closestLocation = null;
+    static Direction tracingDir = null;
 
     // Controls whether the soldier is currently filling in a ruin or not
     /**

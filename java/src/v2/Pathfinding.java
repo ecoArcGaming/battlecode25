@@ -216,24 +216,62 @@ public class Pathfinding {
     }
 
     /**
-     * Modified bug1 pathfinding algorithm
+     * bug1 pathfinding algorithm
      */
     public static Direction bug1(RobotController rc, MapLocation target) throws GameActionException{
-        MapLocation curLocation = rc.getLocation();
-        Direction dir = curLocation.directionTo(target);
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        if (lastDifTile == null || !lastDifTile.equals(nextLoc) && rc.canMove(dir)){
-            lastDifTile = curLocation;
-            return dir;
-        } else {
-            // trace
-            // turn left because we cannot proceed forward
-            // keep turning left until we can move again
-            for (int i=0; i<7; i++){
-                dir = dir.rotateLeft();
-                if(rc.canMove(dir)){
-                    lastDifTile = curLocation;
-                    return dir;
+        if (!isTracing){
+            //proceed as normal
+            Direction dir = rc.getLocation().directionTo(target);
+            if(rc.canMove(dir)){
+                return dir;
+            } else {
+                isTracing = true;
+                tracingDir = dir;
+            }
+        }
+        else{
+            // tracing mode
+
+            // need a stopping condition - this will be when we see the closestLocation again
+            // TODO: 2 potential issues: 1. robot forces us to never get to closestLocation again
+            //  2. robot doesn't move due to movement cooldowns and immediately thinks it rereached closestLocation
+            if (rc.getLocation().equals(closestLocation)){
+                // returned to closest location along perimeter of the obstacle
+                isTracing = false;
+                smallestDistance = 10000000;
+                closestLocation = null;
+                tracingDir= null;
+            }
+            else{
+                // keep tracing
+
+                // update closestLocation and smallestDistance
+                int distToTarget = rc.getLocation().distanceSquaredTo(target);
+                if(distToTarget < smallestDistance){
+                    smallestDistance = distToTarget;
+                    closestLocation = rc.getLocation();
+                }
+
+                // go along perimeter of obstacle
+                if(rc.canMove(tracingDir)){
+                    //move forward and try to turn right
+                    Direction returnDir = tracingDir;
+                    tracingDir = tracingDir.rotateRight();
+                    tracingDir = tracingDir.rotateRight();
+                    return returnDir;
+                }
+                else{
+                    // turn left because we cannot proceed forward
+                    // keep turning left until we can move again
+                    for (int i=0; i<8; i++){
+                        tracingDir = tracingDir.rotateLeft();
+                        if(rc.canMove(tracingDir)){
+                            Direction returnDir = tracingDir;
+                            tracingDir = tracingDir.rotateRight();
+                            tracingDir = tracingDir.rotateRight();
+                            return returnDir;
+                        }
+                    }
                 }
             }
         }
