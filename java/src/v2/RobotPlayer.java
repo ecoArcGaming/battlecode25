@@ -67,6 +67,8 @@ public class RobotPlayer {
     static boolean seenPaintTower = false;
     static int numEnemyVisits = 0;
     static Direction spawnDirection = null;
+    static int botRoundNum = 0;
+
     // towers broadcasting variables
     static boolean broadcast = false;
     static boolean alertRobots = false;
@@ -119,6 +121,8 @@ public class RobotPlayer {
                 for (MapInfo mi : rc.senseNearbyMapInfos()) {
                     currGrid[mi.getMapLocation().y][mi.getMapLocation().x] = mi;
                 }
+
+                botRoundNum += 1;
 
                 switch (rc.getType()) {
                     case SOLDIER:
@@ -179,12 +183,13 @@ public class RobotPlayer {
 
         Tower.readNewMessages(rc);
 
+        System.out.println(spawnQueue);
+
         // starting condition
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot
             Tower.createSoldier(rc);
             spawnQueue.add(1);
-            sendTypeMessage = true;
         } else {
             if (broadcast){
                 rc.broadcastMessage(MapInfoCodec.encode(enemyTile));
@@ -243,7 +248,7 @@ public class RobotPlayer {
         Soldier.readNewMessages(rc);
 
         // On round 1, just paint tile it is on
-        if (rc.getRoundNum() == 2) {
+        if (botRoundNum == 1) {
             Soldier.paintIfPossible(rc, rc.getLocation());
             enemySpawn = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
             return;
@@ -473,6 +478,13 @@ public class RobotPlayer {
     }
 
     public static void runMopper(RobotController rc) throws GameActionException{
+        // When spawning in, check tile to see if it needs to be cleared
+        System.out.println(botRoundNum);
+        if (botRoundNum == 3 && rc.senseMapInfo(rc.getLocation()).getPaint().isEnemy()){
+            rc.attack(rc.getLocation());
+            rc.move(Direction.NORTHEAST);
+            return;
+        }
         // Read all incoming messages
         Mopper.receiveLastMessage(rc);
         // check around the mopper's attack radius

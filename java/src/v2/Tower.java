@@ -113,6 +113,12 @@ public abstract class Tower {
      */
     public static void createSoldier(RobotController rc) throws GameActionException {
         MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
+        if (startSquareCovered(rc)){
+            if (rc.canBuildRobot(UnitType.MOPPER, addedDir)) {
+                rc.buildRobot(UnitType.MOPPER, addedDir);
+                return;
+            }
+        }
         if (rc.canBuildRobot(UnitType.SOLDIER, addedDir)) {
             rc.buildRobot(UnitType.SOLDIER, addedDir);
             RobotPlayer.sendTypeMessage = true;
@@ -157,6 +163,12 @@ public abstract class Tower {
         }
     }
 
+    /**
+     * Checks to see if that spawning square is covered with enemy paint
+     */
+    public static boolean startSquareCovered(RobotController rc) throws GameActionException {
+        return rc.senseMapInfo(rc.getLocation().add(RobotPlayer.spawnDirection)).getPaint().isEnemy();
+    }
 
     /**
      * Finds spawning direction for a given tower
