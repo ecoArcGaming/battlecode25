@@ -31,7 +31,6 @@ TODO (Specific issues we noticed that currently have a solution)
         due to many soldiers clogging up the spawn queue (play on the small default map to see this behavior)
     - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
     - Don't use markers when painting
-    - If enemy paint is at spawn location, spawn a mopper to destroy the enemy paint
     - Fix splasher functionality where it won't splash on ally paint for a ruin
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
