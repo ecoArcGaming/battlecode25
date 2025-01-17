@@ -29,7 +29,6 @@ TODO (Specific issues we noticed that currently have a solution)
         due to many soldiers clogging up the spawn queue (play on the small default map to see this behavior)
     - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
     - Don't use markers when painting
-    - Pathfinding is still broken
     - If enemy paint is at spawn location, spawn a mopper to destroy the enemy paint
     - Fix splasher functionality where it won't splash on ally paint for a ruin
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
@@ -186,7 +185,6 @@ public class RobotPlayer {
             sendTypeMessage = true;
         } else {
             if (broadcast){
-                System.out.println("broadcasting" + enemyTile + "from " + rc.getLocation());
                 rc.broadcastMessage(MapInfoCodec.encode(enemyTile));
             }
 
@@ -302,7 +300,6 @@ public class RobotPlayer {
             } else {
                 fillingTower = false;
             }
-
             if (closestRuin != null){
                 isStuck = false;
                 MapLocation ruinLocation = closestRuin.getMapLocation();
@@ -337,26 +334,34 @@ public class RobotPlayer {
                 }
                 Soldier.completeRuinIfPossible(rc, ruinLocation);
             } else if (!fillingTower){
-                if (enemySpawn != null && rc.getRoundNum()  < 15){
+                if (enemySpawn != null && rc.getRoundNum() < 15){
                     Direction dir = Pathfinding.pathfind(rc, enemySpawn);
-                    if (dir != null && rc.canMove(dir)){
+                    if (dir != null){
                         isStuck = false;
                         rc.move(dir);
                         // Optimize paint usage at beginning of round
+                    }
+                } else {
+                    Direction dir = Pathfinding.exploreUnpainted(rc);
+                    if (dir != null) {
+                        isStuck = false;
+                        rc.move(dir);
                         Soldier.paintIfPossible(rc, rc.getLocation());
+                        MapInfo tileToPaint = Sensing.findPaintableTile(rc, rc.getLocation(),8);
+                        if (tileToPaint != null) {
+                            Soldier.paintIfPossible(rc, tileToPaint);
+                        }
                         return;
                     }
-                }
-                Direction dir = Pathfinding.exploreUnpainted(rc);
-                if (dir != null && rc.canMove(dir)){
-                    isStuck = false;
-                    rc.move(dir);
-                    Soldier.paintIfPossible(rc, rc.getLocation());
-                    return;
-                }
-                Direction newDir = Pathfinding.getUnstuck(rc);
-                if (newDir != null && rc.canMove(newDir)){
-                    rc.move(newDir);
+                    Direction newDir = Pathfinding.getUnstuck(rc);
+                    if (newDir != null) {
+                        rc.move(newDir);
+                        Soldier.paintIfPossible(rc, rc.getLocation());
+                        MapInfo tileToPaint = Sensing.findPaintableTile(rc, rc.getLocation(),8);
+                        if (tileToPaint != null) {
+                            Soldier.paintIfPossible(rc, tileToPaint);
+                        }
+                    }
                 }
             }
         } else {
@@ -391,8 +396,6 @@ public class RobotPlayer {
     }
 
     public static void runSplasher(RobotController rc) throws GameActionException{
-        System.out.println(removePaint);
-
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
 
@@ -453,7 +456,6 @@ public class RobotPlayer {
             return;
         } else { //splash other tiles it sees but avoid overlap
             ArrayList<MapInfo> enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
-            System.out.println(enemies);
             if (!enemies.isEmpty()){
                 removePaint = enemies.getFirst();
                 isStuck = false;

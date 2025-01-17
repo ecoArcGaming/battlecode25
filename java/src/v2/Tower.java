@@ -146,7 +146,6 @@ public abstract class Tower {
      */
     public static void sendTypeMessage(RobotController rc, int robotType) throws GameActionException {
         MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
-        System.out.println(rc.canSendMessage(addedDir));
         if (rc.canSendMessage(addedDir)){
             rc.sendMessage(addedDir, robotType);
             // If robot is an attack soldier or mopper, send enemy tile location as well

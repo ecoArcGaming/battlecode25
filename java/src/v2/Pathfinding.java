@@ -19,7 +19,7 @@ public class Pathfinding {
      * Exception: does not move onto a tile if doing so will kill itself
      * If the robot cannot move, return null
      */
-    public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException {
+    public static Direction lessOriginalPathfind(RobotController rc, MapLocation target) throws GameActionException {
         int minDistance = -1;
         PaintType bestPaintType = PaintType.EMPTY;
         MapLocation curLocation = rc.getLocation();
@@ -137,6 +137,7 @@ public class Pathfinding {
     /**
      * Given an ArrayList of tiles to move to, randomly chooses a tile, weighted by how many tiles are unpainted & unoccupied
      * in the 3x3 area centered at the tile behind the tile (relative to the robot)
+     * Returns null if everything appears painted or if validAdjacent is empty
      */
     public static MapLocation tiebreakUnpainted(RobotController rc, List<MapInfo> validAdjacent) throws GameActionException{
         int cumSum = 0;
@@ -148,7 +149,7 @@ public class Pathfinding {
             weightedAdjacent[i] = cumSum;
         }
         if (cumSum == 0) {
-            return rc.getLocation().add(Constants.directions[Constants.rng.nextInt(Constants.directions.length)]);
+            return null;
         } else {
             int randomValue = Constants.rng.nextInt(cumSum);
             for (int i = 0; i < numTiles; i++) {
@@ -157,35 +158,36 @@ public class Pathfinding {
                 }
             }
         }
-        return rc.getLocation().add(Constants.directions[Constants.rng.nextInt(Constants.directions.length)]);
+        return null;
     }
 
     /**
      * Returns a Direction representing the direction of an unpainted block
      * Smartly chooses an optimal direction among adjacent, unpainted tiles using the method tiebreakUnpainted
-     * If all surrounding blocks are painted, apply tiebreakUnpainted
+     * If all surrounding blocks are painted, looks past those blocks (ignoring passability of adjacent tiles)
+     *      and pathfinds to a passable tile, chosen by tiebreakUnpainted
      */
     public static Direction exploreUnpainted(RobotController rc) throws GameActionException {
         List<MapInfo> validAdjacent = Sensing.getMovableEmptyTiles(rc);
-        if (!validAdjacent.isEmpty()){
-            /* Previous code where we choose an adjacent unpainted block at random
-            MapInfo nextLoc = validAdjacent.get(Constants.rng.nextInt(validAdjacent.size()));
-            Direction moveDir = rc.getLocation().directionTo(nextLoc.getMapLocation());
-            if (rc.canMove(moveDir)) {
-                return moveDir;
-            }
-            */
-        } else {
+        if (validAdjacent.isEmpty()){
             MapLocation curLoc = rc.getLocation();
             for (Direction dir: Constants.directions) {
-                if (rc.canMove(dir)) {
-                    validAdjacent.add(rc.senseMapInfo(curLoc.add(dir)));
+                MapLocation fartherLocation = curLoc.add(dir);
+                if (rc.onTheMap(fartherLocation)) {
+                    MapInfo fartherInfo = rc.senseMapInfo(fartherLocation);
+                    if (fartherInfo.isPassable()) {
+                        validAdjacent.add(fartherInfo);
+                    }
                 }
             }
 
         }
-        Direction moveDir = rc.getLocation().directionTo(tiebreakUnpainted(rc, validAdjacent));
-        if (rc.canMove(moveDir)) {
+        MapLocation bestLocation = tiebreakUnpainted(rc, validAdjacent);
+        if (bestLocation == null) {
+            return null;
+        }
+        Direction moveDir = Pathfinding.pathfind(rc, bestLocation);
+        if (moveDir != null) {
             return moveDir;
         }
         return null;
@@ -228,8 +230,7 @@ public class Pathfinding {
                 isTracing = true;
                 tracingDir = dir;
             }
-        }
-        else{
+        } else{
             // tracing mode
 
             // need a stopping condition - this will be when we see the closestLocation again
@@ -278,21 +279,24 @@ public class Pathfinding {
         return null;
     }
 
-    public static Direction pathfindSwitch(RobotController rc, MapLocation target) throws GameActionException{
+    public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException{
         MapLocation curLocation = rc.getLocation();
         int dist = curLocation.distanceSquaredTo(target);
         if (dist == 0){
             stuckTurnCount = 0;
             closestPath = -1;
         }
-        if (stuckTurnCount < 20){
+        if (stuckTurnCount < 5){
             if (dist < closestPath){
                 closestPath = dist;
             } else if (closestPath != -1){
+                closestPath = dist;
                 stuckTurnCount++;
+            } else {
+                closestPath = dist;
             }
-            return pathfind(rc, target);
-        } else{
+            return lessOriginalPathfind(rc, target);
+        } else {
             return bug1(rc, target);
         }
     }
