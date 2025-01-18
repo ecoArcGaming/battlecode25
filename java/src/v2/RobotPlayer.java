@@ -459,9 +459,10 @@ public class RobotPlayer {
             isStuck = false;
             return;
         } else { //splash other tiles it sees but avoid overlap
-            ArrayList<MapInfo> enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
-            if (!enemies.isEmpty()){
-                removePaint = enemies.getFirst();
+//            ArrayList<MapInfo> enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
+            MapInfo enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
+            if (enemies != null){
+                removePaint = enemies;
                 isStuck = false;
                 return;
             } else {
