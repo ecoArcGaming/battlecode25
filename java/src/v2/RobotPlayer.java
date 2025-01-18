@@ -46,35 +46,48 @@ public class RobotPlayer {
      * You can use static variables like this to save any information you want. Keep in mind that even though
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
+    // Initialization Variables
     static int turnCount = 0;
     static MapInfo[][] currGrid;
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
     static MapInfo lastTower = null;
-    static boolean fillingTower = false;
-    static MapInfo enemyTile = null;
-    static MapInfo removePaint = null;
-    static MapInfo fillEmpty = null;
-    static boolean sendEnemyPaintMsg = false;
-    static MapLocation enemySpawn = null;
-    static int soldierMsgCooldown = -1;
     static SoldierType soldierType = null;
-    static MapInfo enemyTower = null;
-    static ArrayList<Integer> spawnQueue = new ArrayList<>();
-    static boolean sendTypeMessage = false;
-    static boolean isStuck = false;
-    static MapLocation oppositeCorner = null;
-    static boolean seenPaintTower = false;
-    static int numEnemyVisits = 0;
-    static Direction spawnDirection = null;
-    static int botRoundNum = 0;
 
-    // towers broadcasting variables
-    static boolean broadcast = false;
-    static boolean alertRobots = false;
+    // Pathfinding Variable
     static int stuckTurnCount = 0;
     static int closestPath = -1;
 
-    //bug 1 variables
+    // Fill Ruin Variables
+    static boolean fillingTower = false;
+
+    static MapInfo fillEmpty = null;
+    static int soldierMsgCooldown = -1;
+
+    // Alerting Tower Variables
+    static MapInfo enemyTile = null;
+
+    // Pathfinding to Enemy Variables
+    static MapLocation enemySpawn = null;
+    static MapInfo removePaint = null;
+    static MapInfo enemyTower = null;
+
+    // Tower Spawning Variables
+    static ArrayList<Integer> spawnQueue = new ArrayList<>();
+    static boolean sendTypeMessage = false;
+    static Direction spawnDirection = null;
+    static int numEnemyVisits = 0;
+
+    // Navigation Variables
+    static boolean isStuck = false;
+    static MapLocation oppositeCorner = null;
+    static boolean seenPaintTower = false;
+    static int botRoundNum = 0;
+
+    // Towers Broadcasting Variables
+    static boolean broadcast = false;
+    static boolean alertRobots = false;
+
+    // Bug 1 Variables
     static boolean isTracing = false;
     static int smallestDistance = 10000000;
     static MapLocation closestLocation = null;
@@ -478,7 +491,7 @@ public class RobotPlayer {
 
     public static void runMopper(RobotController rc) throws GameActionException{
         // When spawning in, check tile to see if it needs to be cleared
-        System.out.println(botRoundNum);
+
         if (botRoundNum == 3 && rc.senseMapInfo(rc.getLocation()).getPaint().isEnemy()){
             rc.attack(rc.getLocation());
             rc.move(Direction.NORTHEAST);
