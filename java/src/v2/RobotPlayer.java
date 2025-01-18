@@ -258,7 +258,7 @@ public class RobotPlayer {
 
         // Read incoming messages
         Soldier.readNewMessages(rc);
-
+        Helper.tryCompleteResourcePattern(rc);
         // On round 1, just paint tile it is on
         if (botRoundNum == 1) {
             Soldier.paintIfPossible(rc, rc.getLocation());
@@ -417,6 +417,7 @@ public class RobotPlayer {
     public static void runSplasher(RobotController rc) throws GameActionException{
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
+        Helper.tryCompleteResourcePattern(rc);
 
         // Update last paint tower location
         if (lastTower == null) {
@@ -499,6 +500,8 @@ public class RobotPlayer {
         }
         // Read all incoming messages
         Mopper.receiveLastMessage(rc);
+        Helper.tryCompleteResourcePattern(rc);
+
         // check around the mopper's attack radius
         for (MapInfo tile: rc.senseNearbyMapInfos(2)) {
             if (tile.getPaint().isEnemy()) {
