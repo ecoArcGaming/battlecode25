@@ -434,22 +434,6 @@ public class RobotPlayer {
 
         MapInfo[] all = rc.senseNearbyMapInfos();
 
-        // If splasher can attack an enemy tile, attack it
-        // If see enemy tower, prioritize attacking enemy tower
-        for (MapInfo info : all) {
-            MapLocation infoLocation = info.getMapLocation();
-            if (info.hasRuin() && rc.canSenseRobotAtLocation(infoLocation)){
-                if (rc.senseRobotAtLocation(infoLocation).getTeam().opponent() == rc.getTeam()){
-                    if (rc.canAttack(infoLocation)){
-                        rc.attack(infoLocation);
-                    }
-                }
-            }
-            else if (info.getPaint().isEnemy() && rc.canAttack(infoLocation)) {
-                rc.attack(infoLocation);
-            }
-        }
-
         // Check to see if assigned tile is already filled in with our paint
         // Prevents splasher from painting already painted tiles
         if (removePaint != null && rc.canSenseLocation(removePaint.getMapLocation()) && rc.senseMapInfo(removePaint.getMapLocation()).getPaint().isAlly()){
