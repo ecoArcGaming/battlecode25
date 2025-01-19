@@ -129,7 +129,11 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        return pathfind(rc, lastTower.getMapLocation());
+        if (rc.getRoundNum() > Math.min(rc.getMapHeight(), rc.getMapWidth()) * 2){ // Change in future for converting to regular pathfind
+            return pathfind(rc, lastTower.getMapLocation());
+        } else{
+            return paintedPathfind(rc, lastTower.getMapLocation());
+        }
     }
 
     /**

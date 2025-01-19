@@ -28,7 +28,7 @@ public class Constants {
     );
     public static final Random rng = new Random(6147);
     public static final double PERCENT_COIN = 0.5;
-    public static final int RESIGN_AFTER = 200;
+    public static final int RESIGN_AFTER = 2500;
     public static final int lowPaintThreshold = 20;
     public static final double MOPPER_SPLIT = 0.4;
     public static final int START_MAKE_DEVELOP = 50;
