@@ -67,7 +67,7 @@ public class Soldier extends Robot {
                         soldierType = SoldierType.ATTACK;
                         break;
                 }
-            } else if (soldierType == SoldierType.ADVANCE){
+            } else if (soldierType == SoldierType.ADVANCE || soldierType == SoldierType.ATTACK) {
                 MapInfo tile = MapInfoCodec.decode(bytes);
                 if (tile.hasRuin()) {
                     enemyTower = tile;
