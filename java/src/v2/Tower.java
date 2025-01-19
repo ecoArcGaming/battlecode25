@@ -2,6 +2,8 @@ package v2;
 
 import battlecode.common.*;
 
+import static v2.RobotPlayer.*;
+
 import java.util.Map;
 
 /**
@@ -26,21 +28,21 @@ public abstract class Tower {
                     // If tower receives enemy message from robots, broadcast the information to other
                     // towers. Additionally, spawn a splasher and a mopper
                     if (Sensing.isRobot(rc, message.getSenderID())){
-                        RobotPlayer.broadcast = true;
-                        RobotPlayer.alertRobots = true;
-                        RobotPlayer.spawnQueue.add(4); //  Spawns a splasher
-                        RobotPlayer.spawnQueue.add(3); //  Spawns a mopper
-                        RobotPlayer.numEnemyVisits += 1; //   Increases probability of spawning a splasher
+                        broadcast = true;
+                        alertRobots = true;
+                        spawnQueue.add(4); //  Spawns a splasher
+                        spawnQueue.add(3); //  Spawns a mopper
+                        numEnemyVisits += 1; //   Increases probability of spawning a splasher
                     }
 
                     // If tower receives message from tower, just alert the surrounding bots to target the enemy
                     // paint
                     if (Sensing.isTower(rc, message.getSenderID())){
-                        RobotPlayer.alertRobots = true;
+                        alertRobots = true;
                     }
 
                     // Update enemy tile regardless
-                    RobotPlayer.enemyTile = msg;
+                    enemyTile = msg;
                 }
             }
         }
@@ -72,11 +74,11 @@ public abstract class Tower {
      */
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
         double robotType = Constants.rng.nextDouble();
-        if (robotType < RobotPlayer.numEnemyVisits*0.2) {
-            RobotPlayer.spawnQueue.add(4);
-            RobotPlayer.numEnemyVisits = 0;
+        if (robotType < numEnemyVisits*0.2) {
+            spawnQueue.add(4);
+            numEnemyVisits = 0;
         } else {
-            RobotPlayer.spawnQueue.add(1);
+            spawnQueue.add(1);
         }
     }
 
@@ -112,7 +114,7 @@ public abstract class Tower {
      * Creates a soldier at location NORTH if possible
      */
     public static void createSoldier(RobotController rc) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
+        MapLocation addedDir = rc.getLocation().add(spawnDirection);
         if (startSquareCovered(rc)){
             if (rc.canBuildRobot(UnitType.MOPPER, addedDir)) {
                 rc.buildRobot(UnitType.MOPPER, addedDir);
@@ -121,7 +123,7 @@ public abstract class Tower {
         }
         if (rc.canBuildRobot(UnitType.SOLDIER, addedDir)) {
             rc.buildRobot(UnitType.SOLDIER, addedDir);
-            RobotPlayer.sendTypeMessage = true;
+            sendTypeMessage = true;
         }
     }
 
@@ -129,10 +131,10 @@ public abstract class Tower {
      * Creates a mopper at location NORTH if possible
      */
     public static void createMopper(RobotController rc) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
+        MapLocation addedDir = rc.getLocation().add(spawnDirection);
         if (rc.canBuildRobot(UnitType.MOPPER, addedDir)) {
             rc.buildRobot(UnitType.MOPPER, addedDir);
-            RobotPlayer.sendTypeMessage = true;
+            sendTypeMessage = true;
         }
     }
 
@@ -140,10 +142,10 @@ public abstract class Tower {
      * Creates a splasher at the north
      */
     public static void createSplasher(RobotController rc) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
+        MapLocation addedDir = rc.getLocation().add(spawnDirection);
         if (rc.canBuildRobot(UnitType.SPLASHER, addedDir)) {
             rc.buildRobot(UnitType.SPLASHER, addedDir);
-            RobotPlayer.sendTypeMessage = true;
+            sendTypeMessage = true;
         }
     }
 
@@ -151,15 +153,15 @@ public abstract class Tower {
      * Send message to the robot indicating what type of bot it is
      */
     public static void sendTypeMessage(RobotController rc, int robotType) throws GameActionException {
-        MapLocation addedDir = rc.getLocation().add(RobotPlayer.spawnDirection);
+        MapLocation addedDir = rc.getLocation().add(spawnDirection);
         if (rc.canSendMessage(addedDir)){
             rc.sendMessage(addedDir, robotType);
             // If robot is an attack soldier or mopper, send enemy tile location as well
             if (robotType == 3 || robotType == 2) {
-                Communication.sendMapInformation(rc, RobotPlayer.enemyTile, addedDir);
+                Communication.sendMapInformation(rc, enemyTile, addedDir);
             }
-            RobotPlayer.sendTypeMessage = false;
-            RobotPlayer.spawnQueue.removeFirst();
+            sendTypeMessage = false;
+            spawnQueue.removeFirst();
         }
     }
 
@@ -167,7 +169,7 @@ public abstract class Tower {
      * Checks to see if that spawning square is covered with enemy paint
      */
     public static boolean startSquareCovered(RobotController rc) throws GameActionException {
-        return rc.senseMapInfo(rc.getLocation().add(RobotPlayer.spawnDirection)).getPaint().isEnemy();
+        return rc.senseMapInfo(rc.getLocation().add(spawnDirection)).getPaint().isEnemy();
     }
 
     /**
@@ -188,7 +190,7 @@ public abstract class Tower {
         for (RobotInfo bot: rc.senseNearbyRobots()){
             // Only sends messages to moppers and splashers
             if (rc.canSendMessage(bot.getLocation()) && isAttackType(rc, bot)){
-                rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(RobotPlayer.enemyTile));
+                rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(  enemyTile));
             }
         }
     }

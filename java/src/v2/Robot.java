@@ -1,20 +1,18 @@
 package v2;
 
 import battlecode.common.*;
-
-import java.util.Random;
+import static v2.RobotPlayer.*;
 
 public abstract class Robot {
     /**
      * Method for robot behavior when they are low on paint
-     * Currently, just pathfinds to the last paint tower seen
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
         Direction dir = Pathfinding.returnToTower(rc);
         if (dir != null){
             rc.move(dir);
         }
-        MapLocation towerLocation = RobotPlayer.lastTower.getMapLocation();
+        MapLocation towerLocation = lastTower.getMapLocation();
         Robot.completeRuinIfPossible(rc, towerLocation);
         int amtToTransfer = rc.getPaint()-rc.getType().paintCapacity;
         if (rc.canTransferPaint(towerLocation, amtToTransfer)) {
@@ -44,7 +42,7 @@ public abstract class Robot {
                 UnitType towerType = rc.senseRobotAtLocation(loc.getMapLocation()).getType();
                 if (towerType.getBaseType() == UnitType.LEVEL_ONE_PAINT_TOWER.getBaseType())
                 {
-                    RobotPlayer.seenPaintTower = true;
+                    seenPaintTower = true;
                     int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
                     if (min_distance == -1 || min_distance > distance){
                         lastTower = loc;
@@ -104,7 +102,7 @@ public abstract class Robot {
      */
     public static void markRandomTower(RobotController rc, MapLocation targetLoc) throws GameActionException {
         MapLocation shouldBeMarked = targetLoc.subtract(rc.getLocation().directionTo(targetLoc));
-        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
+        if (rc.canSenseLocation(shouldBeMarked) && rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
                 rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
             UnitType towerType = genRandomTower();
             rc.markTowerPattern(towerType, targetLoc);
@@ -117,7 +115,7 @@ public abstract class Robot {
      */
     public static void markTower(RobotController rc, UnitType towerType, MapLocation targetLoc) throws GameActionException {
         MapLocation shouldBeMarked = targetLoc.subtract(rc.getLocation().directionTo(targetLoc));
-        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
+        if (rc.canSenseLocation(shouldBeMarked) && rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
                 rc.canMarkTowerPattern(towerType, targetLoc)){
             rc.markTowerPattern(towerType, targetLoc);
         }
@@ -133,5 +131,15 @@ public abstract class Robot {
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation)) {
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation);
         }
+    }
+    /**
+     * Resets bug1 variables
+     * Meant to be called when the robot has found else to do
+     */
+    public static void resetVariables() {
+        isTracing = false;
+        smallestDistance = 10000000;
+        closestLocation = null;
+        tracingDir = null;
     }
 }

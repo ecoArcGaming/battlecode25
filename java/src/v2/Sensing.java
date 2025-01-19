@@ -2,6 +2,7 @@ package v2;
 
 import battlecode.common.*;
 
+import static v2.RobotPlayer.*;
 import java.util.*;
 
 public class Sensing {
@@ -41,9 +42,8 @@ public class Sensing {
     /**
      * Given the MapLocation of a ruin, check if the pattern is correct for a tower to be built
      *      and if there is no tower there currently
-     * Returns False if the pattern is incorrect, there are no markers, there is enemy paint,
-     *      or if there is a tower already existing
-     * Purpose: Check of a tower can be built ignoring our coin amount
+     * Returns False if the pattern is incorrect, there is enemy paint, or if there is a tower already existing
+     * Purpose: Check if a tower can be built, ignoring our coin amount
      */
     public static boolean canBuildTower(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
@@ -51,9 +51,8 @@ public class Sensing {
                 if (rc.canSenseRobotAtLocation(patternTile.getMapLocation())) {
                     return false;
                 }
-            } else if ((patternTile.getMark() == PaintType.EMPTY
-                    || patternTile.getMark() != patternTile.getPaint()
-                    || patternTile.getPaint().isEnemy())) {
+            } else if (patternTile.getPaint().isEnemy() ||
+                    (patternTile.getMark() != PaintType.EMPTY && patternTile.getMark() != patternTile.getPaint())) {
                 return false;
             }
         }
@@ -111,7 +110,7 @@ public class Sensing {
         List<MapInfo> validAdjacent = new ArrayList<>();
         for (MapInfo adjacentTile: adjacentTiles){
             if (adjacentTile.getPaint() == PaintType.EMPTY && adjacentTile.isPassable() &&
-                    !RobotPlayer.last8.contains(adjacentTile.getMapLocation())) {
+                    !last8.contains(adjacentTile.getMapLocation())) {
                 validAdjacent.add(adjacentTile);
             }
         }
@@ -207,7 +206,7 @@ public class Sensing {
                 nearbyEnemies.add(enemy);
             }
             if (enemy.getPaint() == PaintType.EMPTY && !enemy.hasRuin() && !enemy.isWall()){
-                RobotPlayer.fillEmpty = enemy;
+                fillEmpty = enemy;
             }
         }
 //        Collections.shuffle(nearbyEnemies);
