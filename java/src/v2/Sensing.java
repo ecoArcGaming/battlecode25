@@ -40,10 +40,9 @@ public class Sensing {
     }
 
     /**
-     * Given the MapLocation of a ruin, check if the pattern is correct for a tower to be built
-     *      and if there is no tower there currently
-     * Returns False if the pattern is incorrect, there is enemy paint, or if there is a tower already existing
-     * Purpose: Check if a tower can be built, ignoring our coin amount
+     * Given the MapLocation of a ruin, check if we can eventually build a tower at the ruin
+     * Returns False if there is enemy paint, or if there is a tower already existing
+     * Purpose: Check if we should go to this ruin to build on it
      */
     public static boolean canBuildTower(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
@@ -51,8 +50,7 @@ public class Sensing {
                 if (rc.canSenseRobotAtLocation(patternTile.getMapLocation())) {
                     return false;
                 }
-            } else if (patternTile.getPaint().isEnemy() ||
-                    (patternTile.getMark() != PaintType.EMPTY && patternTile.getMark() != patternTile.getPaint())) {
+            } else if (patternTile.getPaint().isEnemy()) {
                 return false;
             }
         }

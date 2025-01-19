@@ -120,6 +120,10 @@ public class Soldier extends Robot {
                     storedState = soldierState;
                     soldierState = SoldierState.DELIVERINGMESSAGE;
                 } else {
+                    // TODO: soldier currently only checks the closest ruin. however, if this ruin is not buildable,
+                    //  we don't check any other ruins
+                    //  Issue with checking all ruins: we don't want to bounce between different ruins
+                    //  Possible fix: only update ruinToFill if state is not FILLINGTOWER
                     // Check if the robot can fill in paint for the ruin if no enemy tiles found
                     MapInfo closestRuin = Sensing.findClosestRuin(rc, curLocation, nearbyTiles);
                     if (closestRuin != null && Sensing.canBuildTower(rc, closestRuin.getMapLocation())) {
