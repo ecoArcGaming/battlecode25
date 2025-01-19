@@ -476,6 +476,7 @@ public class RobotPlayer {
         // Read all incoming messages
         Mopper.receiveLastMessage(rc);
         Helper.tryCompleteResourcePattern(rc);
+        Mopper.trySwing(rc);
 
         // check around the mopper's attack radius
         for (MapInfo tile: rc.senseNearbyMapInfos(2)) {

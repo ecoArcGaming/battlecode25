@@ -45,56 +45,71 @@ public class Mopper extends Robot{
     swing if there is enemy bots nearby, do nothing otherwise
      */
     public static void trySwing(RobotController rc) throws GameActionException {
-
+        if (rc.getActionCooldownTurns() > 10){
+            return;
+        }
         int north = 0;
         int east = 0;
         int south = 0;
         int west = 0;
         MapLocation loc = rc.getLocation();
 
-        if (!rc.senseRobotAtLocation(loc.add(Direction.EAST)).getTeam().isPlayer()){
-            east++;
-        }
-        if (!rc.senseRobotAtLocation(loc.add(Direction.NORTH)).getTeam().isPlayer()){
-            north++;
-        }
-        if (!rc.senseRobotAtLocation(loc.add(Direction.WEST)).getTeam().isPlayer()){
-            west++;
-        }
-        if (!rc.senseRobotAtLocation(loc.add(Direction.SOUTH)).getTeam().isPlayer()){
-            south++;
-        }
-        if (!rc.senseRobotAtLocation(loc.add(Direction.NORTHEAST)).getTeam().isPlayer()){
-            north++;
-            east++;
-        }
-        if (!rc.senseRobotAtLocation(loc.add(Direction.NORTHWEST)).getTeam().isPlayer()){
-            north++;
-            west++;
-        }
-        if (!rc.senseRobotAtLocation(loc.add(Direction.SOUTHEAST)).getTeam().isPlayer()){
-            south++;
-            east++;
-        }
-        if (!rc.senseRobotAtLocation(loc.add(Direction.SOUTHWEST)).getTeam().isPlayer()){
-            south++;
-            west++;
+        for (RobotInfo enemy: rc.senseNearbyRobots(2, rc.getTeam().opponent())){
+            if (loc.directionTo(enemy.getLocation()) == Direction.NORTH){
+                north++;
+            }
+            else if (loc.directionTo(enemy.getLocation()) == Direction.SOUTH){
+                south++;
+            }
+            else if (loc.directionTo(enemy.getLocation()) == Direction.WEST){
+                west++;
+            }
+            else if (loc.directionTo(enemy.getLocation()) == Direction.EAST){
+                east++;
+            }
+            else if (loc.directionTo(enemy.getLocation()) == Direction.NORTHWEST){
+                north++;
+                west++;
+            }
+            else if (loc.directionTo(enemy.getLocation()) == Direction.NORTHEAST){
+                north++;
+                east++;
+            }
+            else if (loc.directionTo(enemy.getLocation()) == Direction.SOUTHWEST){
+                south++;
+                west++;
+            }
+            else if (loc.directionTo(enemy.getLocation()) == Direction.SOUTHEAST){
+                south++;
+                east++;
+            }
         }
         if (north > 1 && north > east && north > south && north > west){
-            rc.mopSwing(Direction.NORTH);
+            if (rc.canMopSwing(Direction.NORTH)){
+                rc.mopSwing(Direction.NORTH);
+                System.out.println("Swang");
+            }
             return;
         }
         if (south > 1 && south > east && south > west){
-            rc.mopSwing(Direction.SOUTH);
+            if (rc.canMopSwing(Direction.SOUTH)){
+                rc.mopSwing(Direction.SOUTH);
+                System.out.println("Swang");
+            }
             return;
         }
         if (east > 1 && east > west){
-            rc.mopSwing(Direction.EAST);
+            if (rc.canMopSwing(Direction.EAST)){
+                rc.mopSwing(Direction.EAST);
+                System.out.println("Swang");
+            }
             return;
         }
-        if (west > 1){
-            rc.mopSwing(Direction.WEST);
+        if (west > 0){
+            if (rc.canMopSwing(Direction.WEST)){
+                rc.mopSwing(Direction.WEST);
+                System.out.println("Swang");
+            }
         }
-
     }
 }
