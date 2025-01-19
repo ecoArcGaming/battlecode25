@@ -99,6 +99,25 @@ public class Sensing {
         return validAdjacent;
     }
 
+    /**
+     * Finds tiles adjacent to rc that
+     *      1. Can be moved to
+     *      2. Has paint on them
+     *      3. Hasn't been at this tile in the last 8 tiles it has moved to
+     * Returns an ArrayList of MapInfo for these tiles
+     */
+    public static List<MapInfo> getMovablePaintedTiles(RobotController rc) throws GameActionException{
+        MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(2);
+        List<MapInfo> validAdjacent = new ArrayList<>();
+        for (MapInfo adjacentTile: adjacentTiles){
+            if (adjacentTile.getPaint().isAlly() && adjacentTile.isPassable() &&
+                    !last8.contains(adjacentTile.getMapLocation())) {
+                validAdjacent.add(adjacentTile);
+            }
+        }
+        return validAdjacent;
+    }
+
 
     /**
      * Returns RobotInfo of a tower if there is a tower with a range of radius
