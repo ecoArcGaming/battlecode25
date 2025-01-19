@@ -1,6 +1,9 @@
 package v2;
 
 import battlecode.common.*;
+
+import java.nio.file.Path;
+
 import static v2.RobotPlayer.*;
 
 public abstract class Robot {
@@ -12,6 +15,13 @@ public abstract class Robot {
         if (dir != null){
             rc.move(dir);
         }
+        // If last tower is null, then just random walk on paint
+        if (lastTower == null){
+            Direction moveTo = Pathfinding.randomPaintedWalk(rc);
+            rc.move(moveTo);
+            return;
+        }
+        // Otherwise, pathfind to the tower
         MapLocation towerLocation = lastTower.getMapLocation();
         Robot.completeRuinIfPossible(rc, towerLocation);
         int amtToTransfer = rc.getPaint()-rc.getType().paintCapacity;
@@ -54,6 +64,9 @@ public abstract class Robot {
         if (min_distance != -1){
             RobotPlayer.lastTower = lastTower;
         }
+        else if (lastTower != null && lastTower.getMapLocation().isWithinDistanceSquared(rc.getLocation(), 20)){
+            RobotPlayer.lastTower = null;
+        }
     }
 
     /**
@@ -73,6 +86,9 @@ public abstract class Robot {
         }
         if (min_distance != -1){
             RobotPlayer.lastTower = lastTower;
+        }
+        else if (lastTower != null && lastTower.getMapLocation().isWithinDistanceSquared(rc.getLocation(), 20)){
+            RobotPlayer.lastTower = null;
         }
     }
 
