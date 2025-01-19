@@ -102,7 +102,7 @@ public class Mopper extends Robot{
             }
             return;
         }
-        if (west > 0){
+        if (west > 1){
             if (rc.canMopSwing(Direction.WEST)){
                 rc.mopSwing(Direction.WEST);
             }

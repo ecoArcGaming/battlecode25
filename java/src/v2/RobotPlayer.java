@@ -57,6 +57,7 @@ public class RobotPlayer {
 
     static MapInfo fillEmpty = null;
     static int soldierMsgCooldown = -1;
+    static boolean waitARound = false;
 
     // Key Soldier Location variables
     static MapInfo enemyTile = null; // location of an enemy paint/tower for a develop/advance robot to report
@@ -367,15 +368,8 @@ public class RobotPlayer {
                     for (MapInfo nearbyTile : nearbyTiles) {
                         // If enemy tower detected, then attack if you can or move towards it
                         MapLocation nearbyLocation = nearbyTile.getMapLocation();
-                        if (nearbyTile.hasRuin() && rc.canSenseRobotAtLocation(nearbyLocation) && rc.senseRobotAtLocation(nearbyLocation).getTeam().opponent().equals(rc.getTeam())) {
-                            if (rc.canAttack(nearbyLocation)) {
-                                rc.attack(nearbyLocation);
-                            } else {
-                                Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
-                                if (dir != null) {
-                                    rc.move(dir);
-                                }
-                            }
+                        if (nearbyTile.hasRuin() && rc.canSenseRobotAtLocation(nearbyLocation) && !rc.senseRobotAtLocation(nearbyLocation).getTeam().isPlayer()) {
+                            enemyTower = nearbyTile;
                             rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
                             return;
                         }
@@ -384,10 +378,18 @@ public class RobotPlayer {
                     MapLocation enemyTowerLoc = enemyTower.getMapLocation();
                     if (rc.canSenseRobotAtLocation(enemyTowerLoc) && rc.canAttack(enemyTowerLoc)) {
                         rc.attack(enemyTowerLoc);
+                        Direction back = enemyTowerLoc.directionTo(rc.getLocation());
+                        if (rc.canMove(back)){
+                            rc.move(back);
+                        }
                     } else {
                         Direction dir = Pathfinding.pathfind(rc, enemyTowerLoc);
                         if (dir != null) {
                             rc.move(dir);
+                            if (rc.canAttack(enemyTowerLoc)){
+                                rc.attack(enemyTowerLoc);
+                                System.out.println("moew moew moew moew");
+                            }
                         }
                         // If tower not there anymore when we see it, set enemyTower to null
                         if (rc.canSenseLocation(enemyTowerLoc) && !rc.canSenseRobotAtLocation(enemyTowerLoc)) {
