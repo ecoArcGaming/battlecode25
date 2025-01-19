@@ -29,16 +29,14 @@ public class Pathfinding {
                 MapInfo adjLocation = rc.senseMapInfo(curLocation.add(dir));
                 int distance = adjLocation.getMapLocation().distanceSquaredTo(target);
                 PaintType adjType = adjLocation.getPaint();
-                if ((distance < minDistance || minDistance == -1) && rc.getPaint() - Constants.paintLossValues.get(adjType) > 2) {
+                if ((distance < minDistance || minDistance == -1)) {
                     minDistance = distance;
                     bestPaintType = adjType;
                     bestLocation = adjLocation;
                 } else if (distance == minDistance) {
                     PaintType adjPaintType = adjLocation.getPaint();
                     if ((bestPaintType.isEnemy() && !adjPaintType.isEnemy() ||
-                            bestPaintType == PaintType.EMPTY && adjPaintType.isAlly()) &&
-                            rc.getPaint() - Constants.paintLossValues.get(adjType) > 2) {
-                        minDistance = distance;
+                            bestPaintType == PaintType.EMPTY && adjPaintType.isAlly())) {
                         bestPaintType = adjLocation.getPaint();
                         bestLocation = adjLocation;
                     }
@@ -180,7 +178,6 @@ public class Pathfinding {
                     }
                 }
             }
-
         }
         MapLocation bestLocation = tiebreakUnpainted(rc, validAdjacent);
         if (bestLocation == null) {

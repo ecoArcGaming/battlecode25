@@ -307,7 +307,7 @@ public class RobotPlayer {
                         if (dir != null) {
                             rc.move(dir);
                             Soldier.paintIfPossible(rc, rc.getLocation());
-                        } else {
+                        } else if (rc.getMovementCooldownTurns() < 10){
                             soldierState = SoldierState.STUCK;
                             Soldier.resetVariables();
                         }
