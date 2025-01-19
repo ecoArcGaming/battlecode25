@@ -86,6 +86,7 @@ public class RobotPlayer {
     // Towers Broadcasting Variables
     static boolean broadcast = false;
     static boolean alertRobots = false;
+    static boolean alertAttackSoldiers = false;
 
     // Bug 1 Variables
     static boolean isTracing = false;
