@@ -194,23 +194,34 @@ public class Pathfinding {
      * Finds the furthest corner and move towards it
      */
     public static Direction getUnstuck(RobotController rc) throws GameActionException{
-        if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
-            int x = rc.getLocation().x;
-            int y = rc.getLocation().y;
-            int target_x, target_y;
-            if (x < rc.getMapWidth()/2){
-                target_x = rc.getMapWidth();
-            } else {
-                target_x = 0;
+        if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
+            Direction[] allDirections = Direction.allDirections();
+            int index = (int) (Math.random() * allDirections.length);
+            Direction dir = allDirections[index];
+            if (rc.canMove(dir)) {
+                return dir;
             }
-            if (y < rc.getMapHeight()/2){
-                target_y = rc.getMapHeight();
-            } else {
-                target_y = 0;
-            }
-            oppositeCorner = new MapLocation(target_x, target_y);
+            return null;
         }
-        return pathfind(rc, oppositeCorner);
+        else {
+            if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
+                int x = rc.getLocation().x;
+                int y = rc.getLocation().y;
+                int target_x, target_y;
+                if (x < rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                } else {
+                    target_x = 0;
+                }
+                if (y < rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                } else {
+                    target_y = 0;
+                }
+                oppositeCorner = new MapLocation(target_x, target_y);
+            }
+            return pathfind(rc, oppositeCorner);
+        }
     }
 
     /**
