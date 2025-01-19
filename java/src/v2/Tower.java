@@ -64,7 +64,6 @@ public abstract class Tower {
                     // Update enemy tile regardless
                    enemyTarget = msg;
                 }
-                System.out.println(enemyTarget);
             }
         }
     }

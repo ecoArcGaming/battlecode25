@@ -125,7 +125,8 @@ public class Soldier extends Robot {
                 //  Possible fix: only update ruinToFill if state is not FILLINGTOWER
                 // Check if the robot can fill in paint for the ruin if no enemy tiles found
                 MapInfo closestRuin = Sensing.findClosestRuin(rc, curLocation, nearbyTiles);
-                if (closestRuin != null && Sensing.canBuildTower(rc, closestRuin.getMapLocation())) {
+                if (soldierState != SoldierState.FILLINGTOWER && closestRuin != null
+                        && Sensing.canBuildTower(rc, closestRuin.getMapLocation())) {
                     ruinToFill = closestRuin.getMapLocation();
                     soldierState = SoldierState.FILLINGTOWER;
                     Soldier.resetVariables();
@@ -184,7 +185,7 @@ public class Soldier extends Robot {
         }
         // Move towards the ruin
         // NOTE: ORIGINALPATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
-        // NOTE2: We should try and make bug1 work with this somehow
+        // NOTE2: We should try and make bug1 work with this somehow because bots can get stuck here
         Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
         if (moveDir != null) {
             rc.move(moveDir);

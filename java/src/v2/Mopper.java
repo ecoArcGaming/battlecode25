@@ -87,28 +87,24 @@ public class Mopper extends Robot{
         if (north > 1 && north > east && north > south && north > west){
             if (rc.canMopSwing(Direction.NORTH)){
                 rc.mopSwing(Direction.NORTH);
-                System.out.println("Swang");
             }
             return;
         }
         if (south > 1 && south > east && south > west){
             if (rc.canMopSwing(Direction.SOUTH)){
                 rc.mopSwing(Direction.SOUTH);
-                System.out.println("Swang");
             }
             return;
         }
         if (east > 1 && east > west){
             if (rc.canMopSwing(Direction.EAST)){
                 rc.mopSwing(Direction.EAST);
-                System.out.println("Swang");
             }
             return;
         }
         if (west > 0){
             if (rc.canMopSwing(Direction.WEST)){
                 rc.mopSwing(Direction.WEST);
-                System.out.println("Swang");
             }
         }
     }
