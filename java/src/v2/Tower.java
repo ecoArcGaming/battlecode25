@@ -26,6 +26,7 @@ public abstract class Tower {
                 MapInfo msg = MapInfoCodec.decode(bytes);
                 // Check if message is enemy tower
                 if (msg.hasRuin()){
+                    roundsWithoutEnemy = 0;
                     // If tower receives enemy message from robots, broadcast the information to other
                     // towers. Additionally, spawn a splasher and a mopper
                     if (Sensing.isRobot(rc, message.getSenderID())){
@@ -47,6 +48,7 @@ public abstract class Tower {
                 }
                 // Check if message is enemy paint
                 else if (msg.getPaint().isEnemy()){
+                    roundsWithoutEnemy = 0;
                     // If tower receives enemy message from robots, broadcast the information to other
                     // towers. Additionally, spawn a splasher and a mopper
                     if (Sensing.isRobot(rc, message.getSenderID())){
@@ -64,7 +66,7 @@ public abstract class Tower {
                     }
 
                     // Update enemy tile regardless
-                    RobotPlayer.enemyTarget = msg;
+                   enemyTarget = msg;
                 }
             }
         }
@@ -80,18 +82,6 @@ public abstract class Tower {
     }
 
     /**
-     * Builds a robot of type robotType at a random location
-     */
-    public static void buildAtRandomLocation(RobotController rc, UnitType robotType) throws GameActionException {
-        Direction dir = Constants.directions[Constants.rng.nextInt(Constants.directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        buildIfPossible(rc, robotType, nextLoc);
-        if (rc.canSendMessage(nextLoc)){
-            rc.sendMessage(nextLoc, 1);
-        }
-    }
-
-    /**
      * Builds a random robot at a random location
      */
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
@@ -100,7 +90,17 @@ public abstract class Tower {
             spawnQueue.add(4);
             numEnemyVisits = 0;
         } else {
-            spawnQueue.add(1);
+            if (roundsWithoutEnemy > 50){
+                if (Math.random() < (roundsWithoutEnemy-Constants.START_MAKE_DEVELOP)/100){
+                    spawnQueue.add(0);
+                }
+                else{
+                    spawnQueue.add(1);
+                }
+            }
+            else {
+                spawnQueue.add(1);
+            }
         }
     }
 
@@ -180,7 +180,7 @@ public abstract class Tower {
             rc.sendMessage(addedDir, robotType);
             // If robot is an attack soldier or mopper, send enemy tile location as well
             if (robotType == 3 || robotType == 2) {
-                Communication.sendMapInformation(rc, enemyTile, addedDir);
+                Communication.sendMapInformation(rc, enemyTarget, addedDir);
             }
             sendTypeMessage = false;
             spawnQueue.removeFirst();

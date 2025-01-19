@@ -82,6 +82,7 @@ public class RobotPlayer {
     static boolean sendTypeMessage = false;
     static Direction spawnDirection = null;
     static int numEnemyVisits = 0;
+    static int roundsWithoutEnemy = 0;
 
     // Navigation Variables
     static MapLocation oppositeCorner = null;
@@ -200,6 +201,11 @@ public class RobotPlayer {
         // Sets spawn direction of each tower when created
         if (spawnDirection == null){
             spawnDirection = Tower.spawnDirection(rc);
+        }
+
+        roundsWithoutEnemy += 1; //  Update rounds without enemy
+        if (roundsWithoutEnemy == 50){
+            roundsWithoutEnemy += Constants.INIT_PROBABILITY_DEVELOP*100;
         }
 
         Tower.readNewMessages(rc);
