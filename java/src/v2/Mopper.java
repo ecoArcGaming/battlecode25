@@ -41,9 +41,9 @@ public class Mopper extends Robot{
         }
     }
 
-    /*
+    /**
     swing if there is enemy bots nearby, do nothing otherwise
-     */
+     **/
     public static void trySwing(RobotController rc) throws GameActionException {
         if (rc.getActionCooldownTurns() > 10){
             return;

@@ -3,6 +3,9 @@ package v2;
 import battlecode.common.*;
 import java.util.Comparator;
 
+/**
+ * compares which one of two maplocations is further from the bot
+ */
 public class MapInfoDistanceComparator implements Comparator<MapInfo> {
     private final RobotController rc;
 
