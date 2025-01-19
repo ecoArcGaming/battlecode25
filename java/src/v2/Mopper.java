@@ -1,5 +1,7 @@
 package v2;
 
+import static v2.RobotPlayer.*;
+
 import battlecode.common.*;
 
 public class Mopper extends Robot{
@@ -17,8 +19,8 @@ public class Mopper extends Robot{
                 MapInfo message = MapInfoCodec.decode(bytes);
                 if (message.getPaint().isEnemy()) {
                     MapLocation robotLoc = rc.getLocation();
-                    if (RobotPlayer.removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(RobotPlayer.removePaint.getMapLocation())){
-                        RobotPlayer.removePaint = message;
+                    if (RobotPlayer.removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(removePaint.getMapLocation())){
+                        removePaint = message;
                     }
                 }
             }
@@ -29,7 +31,7 @@ public class Mopper extends Robot{
         MapLocation enemyLoc = enemyPaint.getMapLocation();
         if (rc.canAttack(enemyLoc) && enemyPaint.getPaint().isEnemy()){
             rc.attack(enemyLoc);
-            RobotPlayer.removePaint = null;
+            removePaint = null;
         }
         else {
             Direction moveDir = Pathfinding.pathfind(rc, enemyLoc);

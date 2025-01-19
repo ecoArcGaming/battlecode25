@@ -1,5 +1,7 @@
 package v2;
 
+import static v2.RobotPlayer.*;
+
 import battlecode.common.*;
 
 public class Splasher {
@@ -17,8 +19,8 @@ public class Splasher {
                 MapInfo message = MapInfoCodec.decode(bytes);
                 if (message.getPaint().isEnemy()) {
                     MapLocation robotLoc = rc.getLocation();
-                    if (RobotPlayer.removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(RobotPlayer.removePaint.getMapLocation())){
-                        RobotPlayer.removePaint = message;
+                    if (removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(removePaint.getMapLocation())){
+                        removePaint = message;
                     }
                 }
             }

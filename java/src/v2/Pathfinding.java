@@ -74,7 +74,7 @@ public class Pathfinding {
 
         Direction[] allDirections = Direction.allDirections();
         for (Direction dir: allDirections){
-            if (rc.canMove(dir) && !RobotPlayer.last8.contains(rc.getLocation().add(currDir))) {
+            if (rc.canMove(dir) && !last8.contains(rc.getLocation().add(currDir))) {
                 return dir;
             }
         }
@@ -112,7 +112,7 @@ public class Pathfinding {
         Direction[] allDirections = Direction.allDirections();
         for (Direction dir: allDirections){
             if (rc.canMove(dir)){
-                if (rc.senseMapInfo(rc.getLocation().add(dir)).getPaint().isAlly() && !RobotPlayer.last8.contains(rc.getLocation().add(currDir))) {
+                if (rc.senseMapInfo(rc.getLocation().add(dir)).getPaint().isAlly() && !last8.contains(rc.getLocation().add(currDir))) {
                     return dir;
                 }
             }
@@ -131,7 +131,7 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
-        return pathfind(rc, RobotPlayer.lastTower.getMapLocation());
+        return pathfind(rc, lastTower.getMapLocation());
     }
 
     /**
@@ -197,8 +197,7 @@ public class Pathfinding {
      * Finds the furthest corner and move towards it
      */
     public static Direction getUnstuck(RobotController rc) throws GameActionException{
-        if (!RobotPlayer.isStuck || rc.getLocation().distanceSquaredTo(RobotPlayer.oppositeCorner) <= 20) {
-            RobotPlayer.isStuck = true;
+        if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
             int x = rc.getLocation().x;
             int y = rc.getLocation().y;
             int target_x, target_y;
@@ -212,9 +211,9 @@ public class Pathfinding {
             } else {
                 target_y = 0;
             }
-            RobotPlayer.oppositeCorner = new MapLocation(target_x, target_y);
+            oppositeCorner = new MapLocation(target_x, target_y);
         }
-        return pathfind(rc, RobotPlayer.oppositeCorner);
+        return pathfind(rc, oppositeCorner);
     }
 
     /**
