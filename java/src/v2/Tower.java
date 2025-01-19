@@ -43,7 +43,7 @@ public abstract class Tower {
                         RobotPlayer.alertRobots = true;
                     }
                     // Update enemy tile regardless
-                    RobotPlayer.enemyTile = msg;
+                    RobotPlayer.enemyTarget = msg;
                 }
                 // Check if message is enemy paint
                 else if (msg.getPaint().isEnemy()){
@@ -64,7 +64,7 @@ public abstract class Tower {
                     }
 
                     // Update enemy tile regardless
-                    enemyTile = msg;
+                    RobotPlayer.enemyTarget = msg;
                 }
             }
         }
@@ -215,7 +215,7 @@ public abstract class Tower {
         for (RobotInfo bot: rc.senseNearbyRobots()){
             // Only sends messages to moppers and splashers
             if (rc.canSendMessage(bot.getLocation()) && isAttackType(rc, bot)){
-                rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(  enemyTile));
+                rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(RobotPlayer.enemyTarget));
             }
         }
     }

@@ -74,7 +74,7 @@ public class RobotPlayer {
     static MapInfo enemyTower = null; // location of enemy tower for attack soldiers to pathfind to
 
     // Enemy Info variables
-    static MapLocation enemyTarget = null; //
+    static MapInfo enemyTarget = null; // location of enemy tower/tile for tower to tell
     static MapInfo removePaint = null;
 
     // Tower Spawning Variables
@@ -211,7 +211,7 @@ public class RobotPlayer {
             spawnQueue.add(1);
         } else {
             if (broadcast){
-                rc.broadcastMessage(MapInfoCodec.encode(enemyTile));
+                rc.broadcastMessage(MapInfoCodec.encode(enemyTarget));
             }
 
             // If unit has been spawned and communication hasn't happened yet
@@ -417,7 +417,6 @@ public class RobotPlayer {
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
         Helper.tryCompleteResourcePattern(rc);
-
         // Update last paint tower location
         if (lastTower == null) {
             Soldier.updateLastTower(rc);
