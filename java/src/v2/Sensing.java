@@ -195,7 +195,7 @@ public class Sensing {
         }
     }
 
-    public static ArrayList<MapInfo> getNearByEnemiesSortedShuffled(RobotController rc) throws GameActionException {
+    public static MapInfo getNearByEnemiesSortedShuffled(RobotController rc) throws GameActionException {
         ArrayList<MapInfo> nearbyEnemies = new ArrayList<>();
         List<MapInfo> enemies = Arrays.asList(rc.senseNearbyMapInfos());
 //        Collections.shuffle(enemies);
@@ -207,8 +207,12 @@ public class Sensing {
                 fillEmpty = enemy;
             }
         }
+        if (nearbyEnemies.isEmpty()) {
+            return null;
+        }
 //        Collections.shuffle(nearbyEnemies);
-        Collections.sort(nearbyEnemies, new MapInfoDistanceComparator(rc).reversed() );
-        return nearbyEnemies;
+//        Collections.sort(nearbyEnemies, new MapInfoDistanceComparator(rc).reversed() );
+//        return nearbyEnemies;
+        return Collections.max(nearbyEnemies, new MapInfoDistanceComparator(rc));
     }
 }

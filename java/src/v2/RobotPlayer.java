@@ -91,6 +91,7 @@ public class RobotPlayer {
     // Towers Broadcasting Variables
     static boolean broadcast = false;
     static boolean alertRobots = false;
+    static boolean alertAttackSoldiers = false;
 
     // Bug 1 Variables
     static boolean isTracing = false;
@@ -264,14 +265,14 @@ public class RobotPlayer {
         }
         // Read incoming messages
         Soldier.readNewMessages(rc);
-
+      
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
 
         // Get current location
         MapLocation initLocation = rc.getLocation();
 
-        // When any soldier first spawns, just paint tile it is on
+        // On round 1, just paint tile it is on
         if (botRoundNum == 1) {
             Soldier.paintIfPossible(rc, rc.getLocation());
             if (rc.getRoundNum() < 15) {
@@ -288,6 +289,7 @@ public class RobotPlayer {
                 return;
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
+                Helper.tryCompleteResourcePattern(rc);
 
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
@@ -414,6 +416,7 @@ public class RobotPlayer {
     public static void runSplasher(RobotController rc) throws GameActionException{
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
+        Helper.tryCompleteResourcePattern(rc);
 
         // Update last paint tower location
         if (lastTower == null) {
@@ -429,22 +432,6 @@ public class RobotPlayer {
         }
 
         MapInfo[] all = rc.senseNearbyMapInfos();
-
-        // If splasher can attack an enemy tile, attack it
-        // If see enemy tower, prioritize attacking enemy tower
-        for (MapInfo info : all) {
-            MapLocation infoLocation = info.getMapLocation();
-            if (info.hasRuin() && rc.canSenseRobotAtLocation(infoLocation)){
-                if (rc.senseRobotAtLocation(infoLocation).getTeam().opponent() == rc.getTeam()){
-                    if (rc.canAttack(infoLocation)){
-                        rc.attack(infoLocation);
-                    }
-                }
-            }
-            else if (info.getPaint().isEnemy() && rc.canAttack(infoLocation)) {
-                rc.attack(infoLocation);
-            }
-        }
 
         // Check to see if assigned tile is already filled in with our paint
         // Prevents splasher from painting already painted tiles
@@ -471,9 +458,9 @@ public class RobotPlayer {
             oppositeCorner = null;
             return;
         } else { //splash other tiles it sees but avoid overlap
-            ArrayList<MapInfo> enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
-            if (!enemies.isEmpty()){
-                removePaint = enemies.getFirst();
+            MapInfo enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
+            if (enemies != null){
+                removePaint = enemies;
                 oppositeCorner = null;
                 return;
             } else {
@@ -496,6 +483,8 @@ public class RobotPlayer {
         }
         // Read all incoming messages
         Mopper.receiveLastMessage(rc);
+        Helper.tryCompleteResourcePattern(rc);
+
         // check around the mopper's attack radius
         for (MapInfo tile: rc.senseNearbyMapInfos(2)) {
             if (tile.getPaint().isEnemy()) {

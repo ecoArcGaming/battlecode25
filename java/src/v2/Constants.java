@@ -4,6 +4,8 @@ import battlecode.common.*;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.HashSet;
 import static java.util.Map.entry;
 
 public class Constants {
@@ -30,4 +32,11 @@ public class Constants {
     public static final int lowPaintThreshold = 20;
     public static final double MOPPER_SPLIT = 0.4;
     public static final int START_PAINTING_ROUND = 50;
+
+    public static final Set<HashableCoords> primarySRP = Set.of(new HashableCoords(2,0),
+            new HashableCoords(1,1),new HashableCoords(2,1),new HashableCoords(3,1),
+            new HashableCoords(0,2),new HashableCoords(1,2),new HashableCoords(3,2),
+            new HashableCoords(1,3),new HashableCoords(2,3), new HashableCoords(3,3)
+
+    );
 }
