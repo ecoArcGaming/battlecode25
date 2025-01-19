@@ -36,6 +36,7 @@ TODO (Specific issues we noticed that currently have a solution)
     - Make broadcasting work for attack soldiers
     - Low health behavior to improve survivability
     - Can we move all the constants into the Constants class :D (things like thresholds to do certain actions)
+    - pathfind doesn't make soldiers stay on allied paint, but paintedPathfind can cause robots to get stuck
     -----
     - Priority: make sure soldier refactoring is working as intended with rigorous testing
     - 1. Make sure towers interact with soldier robots properly (sending messages of all sorts, spawning type)
