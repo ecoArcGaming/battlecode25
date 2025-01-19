@@ -13,32 +13,25 @@ import java.util.*;
  */
 /*
 FIXME (General issues we noticed)
-    - We don't take advantage of SRPs
+    - Could optimize SRPs a bit more
     - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
-    - Get better at sending units to the front line
     - Take better advantage of defense towers
-    - Take advantage of the new tower broadcasting system
-    - Think about mopper mop swings
+    - Mopper mop swings
     - Clumped robots is a bit problematic
-    - Exploration around walls is ass
+    - Exploration around walls is ass(?)
     - Differential behavior given map size
     - Improve splasher survivability
 TODO (Specific issues we noticed that currently have a solution)
     - Robots wait for paint around money towers
-    - Still get nullPointerException errors when trying to communicate to a robot that is not there
     - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
     - Don't use markers when painting
     - Fix splasher functionality where it won't splash on ally paint for a ruin
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
-    - Make broadcasting work for attack soldiers
     - Low health behavior to improve survivability
     - Can we move all the constants into the Constants class :D (things like thresholds to do certain actions)
     - pathfind doesn't make soldiers stay on allied paint, but paintedPathfind can cause robots to get stuck
-    -----
-    - Priority: make sure soldier refactoring is working as intended with rigorous testing
-    - 1. Make sure towers interact with soldier robots properly (sending messages of all sorts, spawning type)
-    - 2. Make sure soldier robots transition between types property (advance <-> attack)
+    - Handle the 25 tower limit
  */
     
 public class RobotPlayer {

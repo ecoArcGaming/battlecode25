@@ -167,6 +167,9 @@ public class Pathfinding {
      */
     public static Direction exploreUnpainted(RobotController rc) throws GameActionException {
         List<MapInfo> validAdjacent = Sensing.getMovableEmptyTiles(rc);
+        if (rc.getID() == 13510) {
+            System.out.println(validAdjacent);
+        }
         if (validAdjacent.isEmpty()){
             MapLocation curLoc = rc.getLocation();
             for (Direction dir: Constants.directions) {
@@ -180,6 +183,9 @@ public class Pathfinding {
             }
         }
         MapLocation bestLocation = tiebreakUnpainted(rc, validAdjacent);
+        if (rc.getID() == 13510) {
+            System.out.println(bestLocation);
+        }
         if (bestLocation == null) {
             return null;
         }

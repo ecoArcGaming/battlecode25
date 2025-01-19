@@ -24,22 +24,6 @@ public class Sensing {
     }
 
     /**
-     * Given the MapLocation of a ruin, check if that ruin has any spots needing to be filled in within vision
-     * Needs to be filled is defined as having empty paint or incorrect allied paint
-     * Returns True if there are blocks that can be painted to still be painted, False if otherwise.
-     * Purpose: Check if we need to pathfind to this tower to fill in the tower pattern
-     */
-    public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException {
-        for (MapInfo patternTile : rc.senseNearbyMapInfos(towerLocation, 8)){
-            if (!patternTile.hasRuin() && (patternTile.getPaint() == PaintType.EMPTY ||
-                    patternTile.getPaint().isAlly() && patternTile.getMark() != patternTile.getPaint())){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Given the MapLocation of a ruin, check if we can eventually build a tower at the ruin
      * Returns False if there is enemy paint, or if there is a tower already existing
      * Purpose: Check if we should go to this ruin to build on it
