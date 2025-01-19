@@ -159,12 +159,37 @@ public class Pathfinding {
         return null;
     }
 
+
+    public static MapLocation tiebreakSRP(RobotController rc, List<MapInfo> validAdjacent) throws GameActionException{
+        int cumSum = 0;
+        int numTiles = validAdjacent.size();
+        int[] weightedAdjacent = new int[numTiles];
+        for (int i = 0; i < numTiles; i++){
+            MapLocation adjLocation = validAdjacent.get(i).getMapLocation();
+            cumSum += Sensing.countEmptySRP(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
+            weightedAdjacent[i] = cumSum;
+        }
+        if (cumSum == 0) {
+            return null;
+        } else {
+            int randomValue = Constants.rng.nextInt(cumSum);
+            for (int i = 0; i < numTiles; i++) {
+                if (randomValue < weightedAdjacent[i]){
+                    return validAdjacent.get(i).getMapLocation();
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Returns a Direction representing the direction of an unpainted block
      * Smartly chooses an optimal direction among adjacent, unpainted tiles using the method tiebreakUnpainted
      * If all surrounding blocks are painted, looks past those blocks (ignoring passability of adjacent tiles)
      *      and pathfinds to a passable tile, chosen by tiebreakUnpainted
      */
+
+
     public static Direction exploreUnpainted(RobotController rc) throws GameActionException {
         List<MapInfo> validAdjacent = Sensing.getMovableEmptyTiles(rc);
         if (validAdjacent.isEmpty()){
@@ -189,6 +214,33 @@ public class Pathfinding {
         }
         return null;
     }
+
+
+    public static Direction exploreSRP(RobotController rc) throws GameActionException {
+        List<MapInfo> validAdjacent = Sensing.getMovableSRP(rc);
+        if (validAdjacent.isEmpty()){
+            MapLocation curLoc = rc.getLocation();
+            for (Direction dir: Constants.directions) {
+                MapLocation fartherLocation = curLoc.add(dir);
+                if (rc.onTheMap(fartherLocation)) {
+                    MapInfo fartherInfo = rc.senseMapInfo(fartherLocation);
+                    if (fartherInfo.isPassable()) {
+                        validAdjacent.add(fartherInfo);
+                    }
+                }
+            }
+        }
+        MapLocation bestLocation = tiebreakSRP(rc, validAdjacent);
+        if (bestLocation == null) {
+            return null;
+        }
+        Direction moveDir = Pathfinding.pathfind(rc, bestLocation);
+        if (moveDir != null) {
+            return moveDir;
+        }
+        return null;
+    }
+
 
     /**
      * Finds the furthest corner and move towards it

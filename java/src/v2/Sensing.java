@@ -100,6 +100,18 @@ public class Sensing {
     }
 
 
+    public static List<MapInfo> getMovableSRP(RobotController rc) throws GameActionException{
+        MapInfo[] adjacentTiles = rc.senseNearbyMapInfos(2);
+        List<MapInfo> validAdjacent = new ArrayList<>();
+        for (MapInfo adjacentTile: adjacentTiles){
+            if (adjacentTile.getPaint() == PaintType.EMPTY || !adjacentTile.getPaint().equals(Helper.resourcePatternGridType(rc, adjacentTile.getMapLocation())) && adjacentTile.isPassable() &&
+                    !last8.contains(adjacentTile.getMapLocation())) {
+                validAdjacent.add(adjacentTile);
+            }
+        }
+        return validAdjacent;
+    }
+
     /**
      * Returns RobotInfo of a tower if there is a tower with a range of radius
      * ally = true: search for allied towers, and vice versa
@@ -131,6 +143,15 @@ public class Sensing {
         return null;
     }
 
+    public static boolean ruinInRange(RobotController rc) throws GameActionException {
+        for (MapInfo loc: rc.senseNearbyMapInfos()) {
+            if (loc.hasRuin() && rc.senseRobotAtLocation(loc.getMapLocation()) == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Returns map info of location of enemy paint
      */
@@ -157,6 +178,19 @@ public class Sensing {
         }
         return count;
     }
+
+    public static int countEmptySRP(RobotController rc, MapLocation center) throws GameActionException {
+        MapInfo[] surroundingTiles = rc.senseNearbyMapInfos(center, 2);
+        int count = 0;
+        for (MapInfo surroundingTile: surroundingTiles) {
+            if (surroundingTile.getPaint() == PaintType.EMPTY || !surroundingTile.getPaint().equals(Helper.resourcePatternGridType(rc,surroundingTile.getMapLocation())) && surroundingTile.isPassable()
+                    && !rc.canSenseRobotAtLocation(surroundingTile.getMapLocation())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
 
     // Checks if a Robot is a tower or robot by ID
     public static boolean isRobot(RobotController rc, int robotId)  throws GameActionException {

@@ -32,11 +32,21 @@ public class Soldier extends Robot {
         if (paintTile.getPaint() == PaintType.EMPTY
                 && rc.canAttack(paintLocation) && paintTile.getMark() == PaintType.EMPTY) {
             rc.attack(paintLocation, !Helper.resourcePatternGrid(rc, paintLocation));
-        } else if ((!paintTile.getPaint().isEnemy()) && paintTile.getMark() != paintTile.getPaint()
+        }
+
+        if (freetoPaint && !paintTile.getPaint().equals(Helper.resourcePatternGridType(rc, paintLocation)) && rc.canAttack(paintLocation) ) {
+            rc.attack(paintLocation, !Helper.resourcePatternGrid(rc, paintLocation));
+        }
+
+        else if ((!paintTile.getPaint().isEnemy()) && paintTile.getMark() != paintTile.getPaint()
                 && paintTile.getMark() != PaintType.EMPTY && rc.canAttack(paintLocation)){
             boolean useSecondaryColor = paintTile.getMark() == PaintType.ALLY_SECONDARY;
             rc.attack(paintLocation, useSecondaryColor);
         }
+    }
+
+    public static void paintIfPossible(RobotController rc, boolean ruinInRange){
+
     }
     public static void paintIfPossible(RobotController rc, MapInfo paintTile) throws GameActionException {
         MapLocation paintLocation = paintTile.getMapLocation();

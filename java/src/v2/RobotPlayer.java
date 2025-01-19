@@ -54,6 +54,7 @@ public class RobotPlayer {
     // Soldier state variables
     static SoldierState soldierState = SoldierState.EXPLORING;
     static SoldierState storedState = SoldierState.EXPLORING;
+    static boolean freetoPaint = false;
 
     static MapInfo fillEmpty = null;
     static int soldierMsgCooldown = -1;
@@ -271,13 +272,14 @@ public class RobotPlayer {
             return;
         }
 
+        Helper.tryCompleteResourcePattern(rc);
+
         switch (soldierType) {
             case null:
                 rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
                 return;
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
-                Helper.tryCompleteResourcePattern(rc);
 
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
@@ -297,7 +299,13 @@ public class RobotPlayer {
                     }
                     case SoldierState.EXPLORING: {
                         rc.setIndicatorString("EXPLORING");
-                        Direction dir = Pathfinding.exploreUnpainted(rc);
+                        freetoPaint = Sensing.ruinInRange(rc);
+                        Direction dir;
+                        if (freetoPaint) {
+                             dir = Pathfinding.exploreSRP(rc);
+                        } else {
+                             dir = Pathfinding.exploreUnpainted(rc);
+                        }
                         if (dir != null) {
                             rc.move(dir);
                             Soldier.paintIfPossible(rc, rc.getLocation());
