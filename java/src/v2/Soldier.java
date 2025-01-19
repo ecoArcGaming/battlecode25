@@ -181,6 +181,10 @@ public class Soldier extends Robot {
             // Otherwise, mark a paint tower
             Soldier.markTower(rc, UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation);
         }
+        if (!Sensing.canBuildTower(rc, ruinLocation)) {
+            soldierState = SoldierState.EXPLORING;
+            wanderTarget = null;
+        }
         // Move towards the ruin
         // NOTE: ORIGINALPATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
         // NOTE2: We should try and make bug1 work with this somehow
