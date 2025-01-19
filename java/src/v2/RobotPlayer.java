@@ -197,7 +197,6 @@ public class RobotPlayer {
         if (roundsWithoutEnemy == 50){
             roundsWithoutEnemy += Constants.INIT_PROBABILITY_DEVELOP*100;
         }
-
         Tower.readNewMessages(rc);
 
         // starting condition
@@ -235,10 +234,10 @@ public class RobotPlayer {
         if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
             rc.upgradeTower(rc.getLocation());
         }
-        if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 7500) {
+        if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER && rc.getMoney() > 7500) {
             rc.upgradeTower(rc.getLocation());
         }
-        if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER && rc.getMoney() > 7500) {
+        if (rc.getType() == UnitType.LEVEL_TWO_PAINT_TOWER && rc.getMoney() > 7500) {
             rc.upgradeTower(rc.getLocation());
         }
         if (rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER && rc.getMoney() > 10000) {
