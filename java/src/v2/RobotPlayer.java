@@ -338,7 +338,14 @@ public class RobotPlayer {
                     case SoldierState.EXPLORING: {
                         rc.setIndicatorString("EXPLORING");
                         if (wanderTarget != null) {
-                            Direction dir = Pathfinding.pathfind(rc, wanderTarget);
+                            Direction dir;
+                            if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
+                                Direction[] allDirections = Direction.allDirections();
+                                dir = allDirections[(int) (Math.random() * allDirections.length)];
+                            }
+                            else {
+                                dir = Pathfinding.pathfind(rc, wanderTarget);
+                            }
                             if (dir != null) {
                                 rc.move(dir);
                                 Soldier.paintIfPossible(rc, rc.getLocation());
