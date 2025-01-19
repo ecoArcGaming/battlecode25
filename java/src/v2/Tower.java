@@ -31,7 +31,6 @@ public abstract class Tower {
                     // towers. Additionally, spawn a splasher and a mopper
                     if (Sensing.isRobot(rc, message.getSenderID())){
                         RobotPlayer.broadcast = true;
-                        RobotPlayer.alertRobots = true;
                         RobotPlayer.alertAttackSoldiers = true;
                         RobotPlayer.spawnQueue.add(4); //  Spawns a splasher
                         RobotPlayer.spawnQueue.add(3); //  Spawns a mopper
@@ -40,9 +39,8 @@ public abstract class Tower {
 
                     // If tower receives message from tower, just alert the surrounding bots to target the enemy
                     // paint
-                    if (Sensing.isTower(rc, message.getSenderID())){
-                        RobotPlayer.alertRobots = true;
-                    }
+                    RobotPlayer.alertRobots = true;
+
                     // Update enemy tile regardless
                     RobotPlayer.enemyTarget = msg;
                 }
@@ -53,7 +51,6 @@ public abstract class Tower {
                     // towers. Additionally, spawn a splasher and a mopper
                     if (Sensing.isRobot(rc, message.getSenderID())){
                         broadcast = true;
-                        alertRobots = true;
                         spawnQueue.add(4); //  Spawns a splasher
                         spawnQueue.add(3); //  Spawns a mopper
                         numEnemyVisits += 1; //   Increases probability of spawning a splasher
@@ -61,9 +58,8 @@ public abstract class Tower {
 
                     // If tower receives message from tower, just alert the surrounding bots to target the enemy
                     // paint
-                    if (Sensing.isTower(rc, message.getSenderID())){
-                        alertRobots = true;
-                    }
+                    alertRobots = true;
+
 
                     // Update enemy tile regardless
                    enemyTarget = msg;
@@ -218,9 +214,11 @@ public abstract class Tower {
                 rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(RobotPlayer.enemyTarget));
             }
         }
+        alertRobots = false;
+        alertAttackSoldiers = false;
     }
 
     public static boolean isAttackType(RobotController rc, RobotInfo bot) throws GameActionException {
-        return bot.getType() == UnitType.MOPPER || bot.getType() == UnitType.SPLASHER || (bot.getType() == UnitType.SOLDIER && RobotPlayer.alertAttackSoldiers);
+        return bot.getType() == UnitType.MOPPER || bot.getType() == UnitType.SPLASHER || (bot.getType() == UnitType.SOLDIER && alertAttackSoldiers);
     }
 }

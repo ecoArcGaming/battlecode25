@@ -207,6 +207,7 @@ public class RobotPlayer {
         } else {
             if (broadcast){
                 rc.broadcastMessage(MapInfoCodec.encode(enemyTarget));
+                broadcast = false;
             }
 
             // If unit has been spawned and communication hasn't happened yet
@@ -422,15 +423,11 @@ public class RobotPlayer {
             Robot.lowPaintBehavior(rc);
             return;
         }
-
-        MapInfo[] all = rc.senseNearbyMapInfos();
-
         // Check to see if assigned tile is already filled in with our paint
         // Prevents splasher from painting already painted tiles
         if (removePaint != null && rc.canSenseLocation(removePaint.getMapLocation()) && rc.senseMapInfo(removePaint.getMapLocation()).getPaint().isAlly()){
             removePaint = null;
         }
-
         // splash assigned tile or move towards it
         if (removePaint != null){
             if (rc.canAttack(removePaint.getMapLocation()) && rc.isActionReady()){
