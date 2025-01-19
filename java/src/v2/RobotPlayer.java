@@ -26,8 +26,6 @@ FIXME (General issues we noticed)
 TODO (Specific issues we noticed that currently have a solution)
     - Robots wait for paint around money towers
     - Still get nullPointerException errors when trying to communicate to a robot that is not there
-    - Soldiers still spin around ruins they cannot build (there is enemy paint there) and moppers cannot be created
-        due to many soldiers clogging up the spawn queue (play on the small default map to see this behavior)
     - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
     - Don't use markers when painting
     - Fix splasher functionality where it won't splash on ally paint for a ruin
@@ -99,14 +97,6 @@ public class RobotPlayer {
     static MapLocation closestLocation = null;
     static Direction tracingDir = null;
 
-    // Controls whether the soldier is currently filling in a ruin or not
-    /**
-     * A random number generator.
-     * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
-     * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
-     * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
-     */
-    static final Random rng = new Random(6147);
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -154,7 +144,7 @@ public class RobotPlayer {
                         break;
                     case SPLASHER:
                         runSplasher(rc);
-                        break; // Consider upgrading examplefuncsplayer to use splashers!
+                        break;
                     default:
                         runTower(rc);
                         break;
@@ -277,8 +267,6 @@ public class RobotPlayer {
             Soldier.paintIfPossible(rc, rc.getLocation());
             if (rc.getRoundNum() < 15) {
                 wanderTarget = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
-            } else if (rc.getID() % 2 == 0) {
-                soldierType = SoldierType.DEVELOP;
             }
             return;
         }
@@ -375,37 +363,37 @@ public class RobotPlayer {
                     soldierType = SoldierType.ADVANCE;
                     soldierState = SoldierState.EXPLORING;
                     Soldier.resetVariables();
-                    return;
-                }
-                // Prioritize any towers the attack robot sees
-                for (MapInfo nearbyTile : nearbyTiles) {
-                    // If enemy tower detected, then attack if you can or move towards it
-                    MapLocation nearbyLocation = nearbyTile.getMapLocation();
-                    if (nearbyTile.hasRuin() && rc.canSenseRobotAtLocation(nearbyLocation) && rc.senseRobotAtLocation(nearbyLocation).getTeam().opponent().equals(rc.getTeam())){
-                        if (rc.canAttack(nearbyLocation)) {
-                            rc.attack(nearbyLocation);
-                        }
-                        else {
-                            Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
-                            if (dir != null) {
-                                rc.move(dir);
-                            }
-                        }
-                        return;
-                    }
-                }
-                // If cannot see any towers, then attack robot tries to pathfind to its assigned enemy tower
-                MapLocation enemyTowerLoc = enemyTower.getMapLocation();
-                if (rc.canSenseRobotAtLocation(enemyTowerLoc) && rc.canAttack(enemyTowerLoc)) {
-                    rc.attack(enemyTowerLoc);
                 } else {
-                    Direction dir = Pathfinding.pathfind(rc, enemyTowerLoc);
-                    if (dir != null) {
-                        rc.move(dir);
+                    // Prioritize any towers the attack robot sees
+                    for (MapInfo nearbyTile : nearbyTiles) {
+                        // If enemy tower detected, then attack if you can or move towards it
+                        MapLocation nearbyLocation = nearbyTile.getMapLocation();
+                        if (nearbyTile.hasRuin() && rc.canSenseRobotAtLocation(nearbyLocation) && rc.senseRobotAtLocation(nearbyLocation).getTeam().opponent().equals(rc.getTeam())) {
+                            if (rc.canAttack(nearbyLocation)) {
+                                rc.attack(nearbyLocation);
+                            } else {
+                                Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
+                                if (dir != null) {
+                                    rc.move(dir);
+                                }
+                            }
+                            rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                            return;
+                        }
                     }
-                    // If tower not there anymore when we see it, set enemyTower to null
-                    if (rc.canSenseLocation(enemyTowerLoc) && !rc.canSenseRobotAtLocation(enemyTowerLoc)){
-                        enemyTower = null;
+                    // If cannot see any towers, then attack robot tries to pathfind to its assigned enemy tower
+                    MapLocation enemyTowerLoc = enemyTower.getMapLocation();
+                    if (rc.canSenseRobotAtLocation(enemyTowerLoc) && rc.canAttack(enemyTowerLoc)) {
+                        rc.attack(enemyTowerLoc);
+                    } else {
+                        Direction dir = Pathfinding.pathfind(rc, enemyTowerLoc);
+                        if (dir != null) {
+                            rc.move(dir);
+                        }
+                        // If tower not there anymore when we see it, set enemyTower to null
+                        if (rc.canSenseLocation(enemyTowerLoc) && !rc.canSenseRobotAtLocation(enemyTowerLoc)) {
+                            enemyTower = null;
+                        }
                     }
                 }
                 rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);

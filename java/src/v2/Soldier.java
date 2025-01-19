@@ -111,26 +111,24 @@ public class Soldier extends Robot {
                 storedState = soldierState;
                 soldierState = SoldierState.LOWONPAINT;
             }
-        } else {
-            if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
-                // Update enemy tile as necessary
-                enemyTile = updateEnemyTiles(rc, nearbyTiles);
-                if (enemyTile != null) {
+        } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
+            // Update enemy tile as necessary
+            enemyTile = updateEnemyTiles(rc, nearbyTiles);
+            if (enemyTile != null) {
+                Soldier.resetVariables();
+                storedState = soldierState;
+                soldierState = SoldierState.DELIVERINGMESSAGE;
+            } else {
+                // TODO: soldier currently only checks the closest ruin. however, if this ruin is not buildable,
+                //  we don't check any other ruins
+                //  Issue with checking all ruins: we don't want to bounce between different ruins
+                //  Possible fix: only update ruinToFill if state is not FILLINGTOWER
+                // Check if the robot can fill in paint for the ruin if no enemy tiles found
+                MapInfo closestRuin = Sensing.findClosestRuin(rc, curLocation, nearbyTiles);
+                if (closestRuin != null && Sensing.canBuildTower(rc, closestRuin.getMapLocation())) {
+                    ruinToFill = closestRuin.getMapLocation();
+                    soldierState = SoldierState.FILLINGTOWER;
                     Soldier.resetVariables();
-                    storedState = soldierState;
-                    soldierState = SoldierState.DELIVERINGMESSAGE;
-                } else {
-                    // TODO: soldier currently only checks the closest ruin. however, if this ruin is not buildable,
-                    //  we don't check any other ruins
-                    //  Issue with checking all ruins: we don't want to bounce between different ruins
-                    //  Possible fix: only update ruinToFill if state is not FILLINGTOWER
-                    // Check if the robot can fill in paint for the ruin if no enemy tiles found
-                    MapInfo closestRuin = Sensing.findClosestRuin(rc, curLocation, nearbyTiles);
-                    if (closestRuin != null && Sensing.canBuildTower(rc, closestRuin.getMapLocation())) {
-                        ruinToFill = closestRuin.getMapLocation();
-                        soldierState = SoldierState.FILLINGTOWER;
-                        Soldier.resetVariables();
-                    }
                 }
             }
         }
@@ -183,7 +181,6 @@ public class Soldier extends Robot {
         }
         if (!Sensing.canBuildTower(rc, ruinLocation)) {
             soldierState = SoldierState.EXPLORING;
-            wanderTarget = null;
         }
         // Move towards the ruin
         // NOTE: ORIGINALPATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
