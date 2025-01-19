@@ -234,10 +234,7 @@ public class Pathfinding {
             //  2. robot doesn't move due to movement cooldowns and immediately thinks it rereached closestLocation
             if (rc.getLocation().equals(closestLocation)){
                 // returned to closest location along perimeter of the obstacle
-                isTracing = false;
-                smallestDistance = 10000000;
-                closestLocation = null;
-                tracingDir= null;
+                Soldier.resetVariables();
             } else {
                 // keep tracing
 

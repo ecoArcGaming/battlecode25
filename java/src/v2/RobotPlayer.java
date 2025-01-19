@@ -31,6 +31,7 @@ TODO (Specific issues we noticed that currently have a solution)
     - Can we move all the constants into the Constants class :D (things like thresholds to do certain actions)
     - pathfind doesn't make soldiers stay on allied paint, but paintedPathfind can cause robots to get stuck
     - Handle the 25 tower limit
+    - Instead of advance soldiers pathfinding to a tile, random walk that is weighted towards going to that tile
  */
     
 public class RobotPlayer {
