@@ -351,7 +351,7 @@ public class RobotPlayer {
                             else {
                                 dir = Pathfinding.pathfind(rc, wanderTarget);
                             }
-                            if (dir != null) {
+                            if (dir != null && rc.canMove(dir)) {
                                 rc.move(dir);
                                 Soldier.paintIfPossible(rc, rc.getLocation());
                             }
