@@ -141,5 +141,7 @@ public abstract class Robot {
         smallestDistance = 10000000;
         closestLocation = null;
         tracingDir = null;
+        stuckTurnCount = 0;
+        closestPath = -1;
     }
 }
