@@ -16,7 +16,6 @@ FIXME (General issues we noticed)
     - Could optimize SRPs a bit more
     - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
     - Take better advantage of defense towers
-    - Mopper mop swings
     - Clumped robots is a bit problematic
     - Exploration around walls is ass(?)
     - Differential behavior given map size
@@ -188,7 +187,7 @@ public class RobotPlayer {
 
         roundsWithoutEnemy += 1; //  Update rounds without enemy
         if (roundsWithoutEnemy == 50){
-            roundsWithoutEnemy += Constants.INIT_PROBABILITY_DEVELOP*100;
+            roundsWithoutEnemy += (int) (Constants.INIT_PROBABILITY_DEVELOP*100);
         }
         Tower.readNewMessages(rc);
 
