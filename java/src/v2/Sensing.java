@@ -69,8 +69,8 @@ public class Sensing {
      * Paintable: empty paint or incorrect allied paint
      * If none are found, return null
      */
-    public static MapInfo findPaintableTile(RobotController rc, MapLocation location, int range) throws GameActionException {
-        for (MapInfo patternTile : rc.senseNearbyMapInfos(location, range)){
+    public static MapInfo findPaintableTile(RobotController rc, MapLocation location, int rangeSquared) throws GameActionException {
+        for (MapInfo patternTile : rc.senseNearbyMapInfos(location, rangeSquared)){
             if (rc.canPaint(patternTile.getMapLocation()) &&
                     (patternTile.getPaint() == PaintType.EMPTY ||
                             patternTile.getMark() != patternTile.getPaint() && patternTile.getMark() != PaintType.EMPTY)) {

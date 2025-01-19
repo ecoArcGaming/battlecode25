@@ -19,12 +19,16 @@ FIXME (General issues we noticed)
     - Clumped robots is a bit problematic
     - Exploration around walls is ass(?)
     - Differential behavior given map size
-    - Improve splasher survivability
+    - Splasher improvements
+        - Survivability
+        - Don't paint on our own patterns
+        - Paint underneath them en route to enemy?
+        - Prioritize enemy over our own side?
+    - Improves on SRPs
 TODO (Specific issues we noticed that currently have a solution)
     - Robots wait for paint around money towers
     - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
     - Don't use markers when painting
-    - Fix splasher functionality where it won't splash on ally paint for a ruin
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
     - Low health behavior to improve survivability
@@ -272,9 +276,6 @@ public class RobotPlayer {
         }
 
         switch (soldierType) {
-            case null:
-                rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
-                return;
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
@@ -310,6 +311,10 @@ public class RobotPlayer {
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
                         Soldier.stuckBehavior(rc);
+                        if (Sensing.findPaintableTile(rc, rc.getLocation(), 20) != null) {
+                            soldierState = SoldierState.EXPLORING;
+                            Soldier.resetVariables();
+                        }
                     }
                 }
                 rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
@@ -388,7 +393,6 @@ public class RobotPlayer {
                             rc.move(dir);
                             if (rc.canAttack(enemyTowerLoc)){
                                 rc.attack(enemyTowerLoc);
-                                System.out.println("moew moew moew moew");
                             }
                         }
                         // If tower not there anymore when we see it, set enemyTower to null
@@ -398,7 +402,11 @@ public class RobotPlayer {
                     }
                 }
                 rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                break;
             }
+
+            default:
+                rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
         }
     }
 
