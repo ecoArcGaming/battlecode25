@@ -87,7 +87,7 @@ public abstract class Tower {
             numEnemyVisits = 0;
         } else {
             if (roundsWithoutEnemy > 50){
-                if (Math.random() < (roundsWithoutEnemy-Constants.START_MAKE_DEVELOP)/100){
+                if (Math.random() < (double) (roundsWithoutEnemy - Constants.START_MAKE_DEVELOP) /100){
                     spawnQueue.add(0);
                 }
                 else{
@@ -175,7 +175,7 @@ public abstract class Tower {
         if (rc.canSendMessage(addedDir)){
             rc.sendMessage(addedDir, robotType);
             // If robot is an attack soldier or mopper, send enemy tile location as well
-            if (robotType == 3 || robotType == 2) {
+            if (robotType == 4 || robotType == 3 || robotType == 2) {
                 Communication.sendMapInformation(rc, enemyTarget, addedDir);
             }
             sendTypeMessage = false;
