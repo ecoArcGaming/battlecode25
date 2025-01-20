@@ -236,7 +236,7 @@ public class Sensing {
 
     public static boolean isOpen(RobotController rc) throws GameActionException {
         MapLocation loc = rc.getLocation();
-        if (loc.x < 2 || loc.y < 2 || loc.x > rc.getMapWidth() -2 || loc.y > rc.getMapHeight() -2) {
+        if (loc.x < 2 || loc.y < 2 || loc.x > (rc.getMapWidth() - 3) || loc.y >( rc.getMapHeight() - 3)) {
             return false;
         }
         for (MapInfo map: rc.senseNearbyMapInfos(8)) {

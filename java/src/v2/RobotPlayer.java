@@ -313,6 +313,7 @@ public class RobotPlayer {
                             rc.markResourcePattern(rc.getLocation());
                             soldierState = SoldierState.FILLINGSRP;
                             SRPtoFill = rc.getLocation();
+                            break;
                         }
                         Soldier.stuckBehavior(rc);
                         if (Sensing.findPaintableTile(rc, rc.getLocation(), 20) != null) {
@@ -327,13 +328,22 @@ public class RobotPlayer {
                             rc.completeResourcePattern(SRPtoFill);
                             SRPtoFill = null;
                             soldierState = SoldierState.EXPLORING;
+                            break;
                         } else {
-                            for (MapInfo map: rc.senseNearbyMapInfos(8)) {
-                                if (map.getMark() != map.getPaint() && rc.canPaint(map.getMapLocation())){
+                            if (!rc.getLocation().equals(SRPtoFill)) {
+                                Direction dir = Pathfinding.pathfind(rc, SRPtoFill);
+                                if (dir != null) {
+                                    rc.move(dir);
+                                }
+                                break;
+                            }
+                            for (MapInfo map: rc.senseNearbyMapInfos()) {
+                                if (map.getMark() != map.getPaint() && rc.canPaint(map.getMapLocation()) && rc.canAttack(rc.getLocation())) {
                                     rc.attack(map.getMapLocation(), map.getMark().isSecondary());
                                 }
                             }
                         }
+                        break;
                     }
                 }
                 rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
