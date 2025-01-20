@@ -208,7 +208,13 @@ public class Soldier extends Robot {
      * Stuck behavior method
      */
     public static void stuckBehavior(RobotController rc) throws GameActionException {
-        Direction newDir = Pathfinding.getUnstuck(rc);
+        Direction newDir;
+        if (soldierType == SoldierType.DEVELOP){
+            newDir = Pathfinding.randomWalk(rc);
+        }
+        else{
+            newDir = Pathfinding.getUnstuck(rc);
+        }
         if (newDir != null) {
             rc.move(newDir);
             Soldier.paintIfPossible(rc, rc.getLocation());
