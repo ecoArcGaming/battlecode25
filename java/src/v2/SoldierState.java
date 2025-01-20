@@ -5,5 +5,6 @@ public enum SoldierState {
     DELIVERINGMESSAGE,
     FILLINGTOWER,
     STUCK,
-    EXPLORING
+    EXPLORING,
+    FILLINGSRP
 }
