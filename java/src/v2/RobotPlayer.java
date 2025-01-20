@@ -26,12 +26,9 @@ FIXME (General issues we noticed)
     - Improves on SRPs
 TODO (Specific issues we noticed that currently have a solution)
     - Robots wait for paint around money towers
-    - Soldier attack micro: move in, attack, attack, move out allows soldier to attack
-    - Don't use markers when painting
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
     - Low health behavior to improve survivability
-    - Can we move all the constants into the Constants class :D (things like thresholds to do certain actions)
     - Handle the 25 tower limit
     - TODO Idea: Soldiers get paint whenever they deliver a message
  */
