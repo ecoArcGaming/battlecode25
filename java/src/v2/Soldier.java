@@ -17,6 +17,8 @@ public class Soldier extends Robot {
         if (rc.getPaint() > Constants.lowPaintThreshold) {
             if (soldierState != storedState) {
                 soldierState = storedState;
+            } else if (ruinToFill != null) {
+                soldierState = SoldierState.FILLINGTOWER;
             } else {
                 soldierState = SoldierState.STUCK;
             }
@@ -145,6 +147,8 @@ public class Soldier extends Robot {
             enemyTile = null;
             if (soldierState != storedState) {
                 soldierState = storedState;
+            } else if (ruinToFill != null) {
+                soldierState = SoldierState.FILLINGTOWER;
             } else {
                 soldierState = SoldierState.STUCK;
             }
@@ -163,6 +167,7 @@ public class Soldier extends Robot {
         Robot.completeRuinIfPossible(rc, ruinLocation);
         if (rc.canSenseRobotAtLocation(ruinLocation)) {
             soldierState = SoldierState.EXPLORING;
+            ruinToFill = null;
             wanderTarget = null;
         }
     }
@@ -182,11 +187,16 @@ public class Soldier extends Robot {
         }
         if (!Sensing.canBuildTower(rc, ruinLocation)) {
             soldierState = SoldierState.EXPLORING;
+            ruinToFill = null;
         }
         // Move towards the ruin
         // NOTE: ORIGINALPATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
-        // NOTE2: We should try and make bug1 work with this somehow because bots can get stuck here
-        Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+        Direction moveDir;
+        if (rc.getLocation().distanceSquaredTo(ruinLocation) <= 2){
+            moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+        } else {
+            moveDir = Pathfinding.pathfind(rc, ruinLocation);
+        }
         if (moveDir != null) {
             rc.move(moveDir);
         }

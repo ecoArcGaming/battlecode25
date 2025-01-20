@@ -13,7 +13,6 @@ import java.util.*;
  */
 /*
 FIXME (General issues we noticed)
-    - Could optimize SRPs a bit more
     - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
     - Take better advantage of defense towers
     - Clumped robots is a bit problematic
@@ -33,9 +32,7 @@ TODO (Specific issues we noticed that currently have a solution)
         finish the ruin pattern
     - Low health behavior to improve survivability
     - Can we move all the constants into the Constants class :D (things like thresholds to do certain actions)
-    - pathfind doesn't make soldiers stay on allied paint, but paintedPathfind can cause robots to get stuck
     - Handle the 25 tower limit
-    - Instead of advance soldiers pathfinding to a tile, random walk that is weighted towards going to that tile
  */
     
 public class RobotPlayer {
@@ -418,6 +415,11 @@ public class RobotPlayer {
     }
 
     public static void runSplasher(RobotController rc) throws GameActionException{
+        if (removePaint != null) {
+            rc.setIndicatorString(removePaint.toString());
+        } else {
+            rc.setIndicatorString("null");
+        }
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
         Helper.tryCompleteResourcePattern(rc);
@@ -474,10 +476,13 @@ public class RobotPlayer {
 
     public static void runMopper(RobotController rc) throws GameActionException{
         // When spawning in, check tile to see if it needs to be cleared
-
+        if (removePaint != null) {
+            rc.setIndicatorString(removePaint.toString());
+        } else {
+            rc.setIndicatorString("null");
+        }
         if (botRoundNum == 3 && rc.senseMapInfo(rc.getLocation()).getPaint().isEnemy()){
             rc.attack(rc.getLocation());
-            rc.move(Direction.NORTHEAST);
             return;
         }
         // Read all incoming messages
@@ -513,7 +518,7 @@ public class RobotPlayer {
         } else {
             // attack adjacent tiles if possible
             Direction exploreDir = Pathfinding.getUnstuck(rc);
-            if (exploreDir != null && rc.canMove(exploreDir)) {
+            if (exploreDir != null) {
                 rc.move(exploreDir);
             }
         }

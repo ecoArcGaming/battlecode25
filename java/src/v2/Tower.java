@@ -78,7 +78,7 @@ public abstract class Tower {
     }
 
     /**
-     * Builds a random robot at a random location
+     * Builds an advance/develop soldier, weighted by how long it has been since the tower last saw a robot
      */
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
         double robotType = Constants.rng.nextDouble();
@@ -87,7 +87,9 @@ public abstract class Tower {
             numEnemyVisits = 0;
         } else {
             if (roundsWithoutEnemy > 50){
-                if (Math.random() < (double) (roundsWithoutEnemy - Constants.START_MAKE_DEVELOP) /100){
+                // odds of explore robot increases linearly after 50 rounds of no enemy contact
+                // odds cap at a split of 0.7 explore, 0.3 advance
+                if (Constants.rng.nextDouble() < Math.min((double) (roundsWithoutEnemy - Constants.START_MAKE_DEVELOP) /100, 0.6)){
                     spawnQueue.add(0);
                 }
                 else{
@@ -172,15 +174,15 @@ public abstract class Tower {
      */
     public static void sendTypeMessage(RobotController rc, int robotType) throws GameActionException {
         MapLocation addedDir = rc.getLocation().add(spawnDirection);
-        if (rc.canSendMessage(addedDir)){
+        if (rc.canSenseRobotAtLocation(addedDir) && rc.canSendMessage(addedDir)){
             rc.sendMessage(addedDir, robotType);
             // If robot is an attack soldier or mopper, send enemy tile location as well
             if (robotType == 4 || robotType == 3 || robotType == 2) {
                 Communication.sendMapInformation(rc, enemyTarget, addedDir);
             }
-            sendTypeMessage = false;
-            spawnQueue.removeFirst();
         }
+        sendTypeMessage = false;
+        spawnQueue.removeFirst();
     }
 
     /**
