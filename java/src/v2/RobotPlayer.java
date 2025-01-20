@@ -65,6 +65,7 @@ public class RobotPlayer {
     static MapLocation ruinToFill = null; // location of a ruin that the soldier is filling in
     static MapLocation wanderTarget = null; // target for advance robot to pathfind towards during exploration
     static MapInfo enemyTower = null; // location of enemy tower for attack soldiers to pathfind to
+    static UnitType fillTowerType = null;
 
     // Enemy Info variables
     static MapInfo enemyTarget = null; // location of enemy tower/tile for tower to tell
@@ -445,7 +446,6 @@ public class RobotPlayer {
             if (rc.canAttack(removePaint.getMapLocation()) && rc.isActionReady()){
                 rc.attack(removePaint.getMapLocation());
                 removePaint = null;
-
             }
             else if (!rc.canAttack(removePaint.getMapLocation())){
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
