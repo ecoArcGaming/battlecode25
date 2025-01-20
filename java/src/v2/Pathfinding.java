@@ -195,10 +195,13 @@ public class Pathfinding {
      */
     public static Direction randomWalk(RobotController rc) throws GameActionException {
         Direction[] allDirections = Direction.allDirections();
-        Direction dir = allDirections[(int) (Math.random() * allDirections.length)];
-        if (rc.canMove(dir)) {
-            return dir;
+        for(int i = 0; i < 5; i++){
+            Direction dir = allDirections[(int) (Math.random() * allDirections.length)];
+            if (rc.canMove(dir) && !last8.contains(rc.getLocation().add(dir))) {
+                return dir;
+            }
         }
+
         return null;
     }
 

@@ -67,6 +67,7 @@ public class RobotPlayer {
     static MapLocation wanderTarget = null; // target for advance robot to pathfind towards during exploration
     static MapInfo enemyTower = null; // location of enemy tower for attack soldiers to pathfind to
     static UnitType fillTowerType = null;
+    static MapLocation SRPtoFill = null;
 
     // Enemy Info variables
     static MapInfo enemyTarget = null; // location of enemy tower/tile for tower to tell
@@ -309,10 +310,30 @@ public class RobotPlayer {
                     }
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
+                        if (Sensing.isOpen(rc)){
+                            rc.markResourcePattern(rc.getLocation());
+                            soldierState = SoldierState.FILLINGSRP;
+                            SRPtoFill = rc.getLocation();
+                        }
                         Soldier.stuckBehavior(rc);
                         if (Sensing.findPaintableTile(rc, rc.getLocation(), 20) != null) {
                             soldierState = SoldierState.EXPLORING;
                             Soldier.resetVariables();
+                        }
+                        break;
+                    }
+                    case SoldierState.FILLINGSRP: {
+                        rc.setIndicatorString("FILLINGSRP");
+                        if (rc.canCompleteResourcePattern(SRPtoFill)){
+                            rc.completeResourcePattern(SRPtoFill);
+                            SRPtoFill = null;
+                            soldierState = SoldierState.EXPLORING;
+                        } else {
+                            for (MapInfo map: rc.senseNearbyMapInfos(8)) {
+                                if (map.getMark() != map.getPaint() && rc.canPaint(map.getMapLocation())){
+                                    rc.attack(map.getMapLocation(), map.getMark().isSecondary());
+                                }
+                            }
                         }
                     }
                 }
