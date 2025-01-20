@@ -81,6 +81,25 @@ public class Sensing {
     }
 
     /**
+     * Finds a paintable tile that is within a specific range of tower and returns the MapInfo of that tile
+     * Paintable: tile with paint different than needed
+     * If none are found, return null
+     */
+    public static int[] findPaintableRuinTile(RobotController rc, MapLocation ruinLocation, PaintType[][] ruinPattern) throws GameActionException {
+        // Iterate through the 5x5 area around a ruin
+        for(int i = -2; i < 3; i++){
+            for (int j = -2; j < 3; j++){
+                MapLocation patternTile = ruinLocation.translate(i, j);
+                if (rc.canPaint(patternTile) && ruinPattern[i+2][j+2] != rc.senseMapInfo(patternTile).getPaint()){
+                    return new int[]{i, j};
+                }
+            }
+        }
+        return null;
+    }
+
+
+    /**
      * Finds tiles adjacent to rc that
      *      1. Can be moved to
      *      2. Have no paint on them
@@ -201,7 +220,6 @@ public class Sensing {
     public static MapInfo getNearByEnemiesSortedShuffled(RobotController rc) throws GameActionException {
         ArrayList<MapInfo> nearbyEnemies = new ArrayList<>();
         List<MapInfo> enemies = Arrays.asList(rc.senseNearbyMapInfos());
-//        Collections.shuffle(enemies);
         for (MapInfo enemy: enemies){
             if (enemy.getPaint().isEnemy()){
                 nearbyEnemies.add(enemy);
@@ -213,9 +231,6 @@ public class Sensing {
         if (nearbyEnemies.isEmpty()) {
             return null;
         }
-//        Collections.shuffle(nearbyEnemies);
-//        Collections.sort(nearbyEnemies, new MapInfoDistanceComparator(rc).reversed() );
-//        return nearbyEnemies;
         return Collections.max(nearbyEnemies, new MapInfoDistanceComparator(rc));
     }
 }

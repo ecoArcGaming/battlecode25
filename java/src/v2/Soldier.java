@@ -1,6 +1,7 @@
 package v2;
 
 import battlecode.common.*;
+import scala.Unit;
 
 import static v2.RobotPlayer.*;
 
@@ -174,34 +175,72 @@ public class Soldier extends Robot {
     public static void fillInRuin(RobotController rc, MapLocation ruinLocation) throws GameActionException {
         // Mark the pattern we need to draw to build a tower here if we haven't already.
         // If robot has seen a paint tower, mark random tower
-        if (seenPaintTower){
-            Soldier.markRandomTower(rc, ruinLocation);
-        } else {
-            // Otherwise, mark a paint tower
-            Soldier.markTower(rc, UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation);
-        }
         if (!Sensing.canBuildTower(rc, ruinLocation)) {
             soldierState = SoldierState.EXPLORING;
         }
-        // Move towards the ruin
-        // NOTE: ORIGINALPATHFIND AUTOMATICALLY HANDLES ROTATION AROUND THE RUIN BC OF THE WAY IT WORKS
-        // NOTE2: We should try and make bug1 work with this somehow because bots can get stuck here
-        Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
-        if (moveDir != null) {
-            rc.move(moveDir);
+
+        // Check to see if we know the type of tower to fill in
+        if (fillTowerType != null){
+            // Paint the tile at a location
+            PaintType[][] ruinPattern = (fillTowerType == UnitType.LEVEL_ONE_PAINT_TOWER) ? Constants.paintTowerPattern : Constants.moneyTowerPattern;
+            int[] tileToPaint = Sensing.findPaintableRuinTile(rc, ruinLocation, ruinPattern);
+            if (tileToPaint != null) {
+                MapLocation tile = ruinLocation.translate(tileToPaint[0], tileToPaint[1]);
+                if (rc.canPaint(tile) && rc.canAttack(tile))
+                    rc.attack(tile, ruinPattern[tileToPaint[0]+2][tileToPaint[1]+2] == PaintType.ALLY_SECONDARY);
+            }
+            // Move to the ruin
+            Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+            if (moveDir != null) {
+                rc.move(moveDir);
+            }
+            // Tries to complete the ruin
+            completeRuinIfPossible(rc, ruinLocation);
         }
-        // Fill in any spots in the pattern with the appropriate paint.
-        // Prioritize the tile under our own feet
-        MapLocation newLocation = rc.getLocation();
-        MapInfo currentTile = rc.senseMapInfo(newLocation);
-        paintIfPossible(rc, currentTile);
-        // Paint in another tile around the ruin
-        MapInfo tileToPaint = Sensing.findPaintableTile(rc, ruinLocation,8);
-        if (tileToPaint != null) {
-            paintIfPossible(rc, tileToPaint);
+        else{
+            // Determine the marking of the tower and mark if no marking present
+            MapLocation northTower = ruinLocation.add(Direction.NORTH);
+            if (rc.canSenseLocation(northTower)) {
+                PaintType towerMarking = rc.senseMapInfo(northTower).getMark();
+                // If mark type is 1, then ruin is a paint ruin
+                if(towerMarking == PaintType.ALLY_PRIMARY){
+                    fillTowerType = UnitType.LEVEL_ONE_PAINT_TOWER;
+                }
+                // If no mark, then mark the tower
+                else if (towerMarking == PaintType.EMPTY){
+                    // If can mark tower, then mark it
+                    if (rc.canMark(northTower)) {
+                        if (seenPaintTower){
+                            UnitType towerType = Robot.genRandomTower();
+                            rc.mark(northTower, towerType == UnitType.LEVEL_ONE_MONEY_TOWER);
+                            fillTowerType = towerType;
+                        } else {
+                            // Otherwise, mark a paint tower
+                            rc.mark(northTower, false);
+                            fillTowerType = UnitType.LEVEL_ONE_PAINT_TOWER;
+                        }
+                    }
+                    // Otherwise, pathfind to ruin location
+                    else{
+                        Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                        if (moveDir != null) {
+                            rc.move(moveDir);
+                        }
+                    }
+                }
+                // Otherwise, ruin is a money ruin
+                else{
+                    fillTowerType = UnitType.LEVEL_ONE_MONEY_TOWER;
+                }
+            }
+            // Otherwise, pathfind to the tower
+            else{
+                Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                if (moveDir != null) {
+                    rc.move(moveDir);
+                }
+            }
         }
-        // Tries to complete the ruin
-        completeRuinIfPossible(rc, ruinLocation);
     }
 
     /**
