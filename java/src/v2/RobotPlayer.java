@@ -33,6 +33,7 @@ TODO (Specific issues we noticed that currently have a solution)
     - Low health behavior to improve survivability
     - Can we move all the constants into the Constants class :D (things like thresholds to do certain actions)
     - Handle the 25 tower limit
+    - TODO Idea: Soldiers get paint whenever they deliver a message
  */
     
 public class RobotPlayer {
