@@ -18,6 +18,8 @@ public class Soldier extends Robot {
         if (rc.getPaint() > Constants.lowPaintThreshold) {
             if (soldierState != storedState) {
                 soldierState = storedState;
+            } else if (ruinToFill != null) {
+                soldierState = SoldierState.FILLINGTOWER;
             } else {
                 soldierState = SoldierState.STUCK;
             }
@@ -146,6 +148,8 @@ public class Soldier extends Robot {
             enemyTile = null;
             if (soldierState != storedState) {
                 soldierState = storedState;
+            } else if (ruinToFill != null) {
+                soldierState = SoldierState.FILLINGTOWER;
             } else {
                 soldierState = SoldierState.STUCK;
             }
@@ -164,6 +168,7 @@ public class Soldier extends Robot {
         Robot.completeRuinIfPossible(rc, ruinLocation);
         if (rc.canSenseRobotAtLocation(ruinLocation)) {
             soldierState = SoldierState.EXPLORING;
+            ruinToFill = null;
             wanderTarget = null;
         }
     }
@@ -177,8 +182,8 @@ public class Soldier extends Robot {
         // If robot has seen a paint tower, mark random tower
         if (!Sensing.canBuildTower(rc, ruinLocation)) {
             soldierState = SoldierState.EXPLORING;
+            ruinToFill = null;
         }
-
         // Check to see if we know the type of tower to fill in
         if (fillTowerType != null){
             // Paint the tile at a location

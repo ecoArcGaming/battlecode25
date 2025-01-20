@@ -30,8 +30,6 @@ public class Constants {
     public static final double PERCENT_COIN = 0.5;
     public static final int RESIGN_AFTER = 2500;
     public static final int lowPaintThreshold = 20;
-    public static final double MOPPER_SPLIT = 0.4;
-    public static final int START_MAKE_DEVELOP = 50;
     public static final double INIT_PROBABILITY_DEVELOP = 0.3;
     public static final double RANDOM_STEP_PROBABILITY = 0.5;
 
