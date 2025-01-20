@@ -170,6 +170,7 @@ public class Soldier extends Robot {
             soldierState = SoldierState.EXPLORING;
             ruinToFill = null;
             wanderTarget = null;
+            fillTowerType = null;
         }
     }
 
