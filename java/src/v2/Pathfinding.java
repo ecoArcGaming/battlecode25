@@ -194,7 +194,7 @@ public class Pathfinding {
      * Finds the furthest corner and move towards it
      */
     public static Direction getUnstuck(RobotController rc) throws GameActionException{
-        if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
+        if (Math.random() < Constants.RANDOM_STEP_PROBABILITY || soldierType == SoldierType.DEVELOP){
             Direction[] allDirections = Direction.allDirections();
             Direction dir = allDirections[(int) (Math.random() * allDirections.length)];
             if (rc.canMove(dir)) {
