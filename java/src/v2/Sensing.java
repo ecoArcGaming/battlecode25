@@ -233,4 +233,17 @@ public class Sensing {
         }
         return Collections.max(nearbyEnemies, new MapInfoDistanceComparator(rc));
     }
+
+    public static boolean isOpen(RobotController rc) throws GameActionException {
+        MapLocation loc = rc.getLocation();
+        if (loc.x < 2 || loc.y < 2 || loc.x > rc.getMapWidth() -2 || loc.y > rc.getMapHeight() -2) {
+            return false;
+        }
+        for (MapInfo map: rc.senseNearbyMapInfos(8)) {
+            if ((map.getPaint() != PaintType.ALLY_PRIMARY) || map.getMark().isAlly()) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
