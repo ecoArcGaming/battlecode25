@@ -32,6 +32,7 @@ public class Constants {
     public static final int lowPaintThreshold = 20;
     public static final double INIT_PROBABILITY_DEVELOP = 0.3;
     public static final double RANDOM_STEP_PROBABILITY = 0.5;
+    public static final double DEVELOP_BOT_PROBABILITY_CAP = 0.6;
 
     public static final Set<HashableCoords> primarySRP = Set.of(new HashableCoords(2,0),
             new HashableCoords(1,1),new HashableCoords(2,1),new HashableCoords(3,1),
