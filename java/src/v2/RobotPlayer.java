@@ -56,7 +56,7 @@ public class RobotPlayer {
 
     static MapInfo fillEmpty = null;
     static int soldierMsgCooldown = -1;
-    static boolean waitARound = false;
+    static int numTurnsStuck = 0;
 
     // Key Soldier Location variables
     static MapInfo enemyTile = null; // location of an enemy paint/tower for a develop/advance robot to report
@@ -64,7 +64,6 @@ public class RobotPlayer {
     static MapLocation wanderTarget = null; // target for advance robot to pathfind towards during exploration
     static MapInfo enemyTower = null; // location of enemy tower for attack soldiers to pathfind to
     static UnitType fillTowerType = null;
-    static MapLocation SRPtoFill = null;
 
     // Enemy Info variables
     static MapInfo enemyTarget = null; // location of enemy tower/tile for tower to tell
@@ -276,6 +275,9 @@ public class RobotPlayer {
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
+                if (numTurnsStuck > 100){
+                    soldierType = SoldierType.SRP;
+                }
 
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
@@ -307,39 +309,14 @@ public class RobotPlayer {
                     }
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
-                        if (Sensing.isOpen(rc)){
-                            rc.markResourcePattern(rc.getLocation());
-                            soldierState = SoldierState.FILLINGSRP;
-                            SRPtoFill = rc.getLocation();
-                            break;
-                        }
+
                         Soldier.stuckBehavior(rc);
                         if (Sensing.findPaintableTile(rc, rc.getLocation(), 20) != null) {
                             soldierState = SoldierState.EXPLORING;
                             Soldier.resetVariables();
-                        }
-                        break;
-                    }
-                    case SoldierState.FILLINGSRP: {
-                        rc.setIndicatorString("FILLINGSRP");
-                        if (rc.canCompleteResourcePattern(SRPtoFill)){
-                            rc.completeResourcePattern(SRPtoFill);
-                            SRPtoFill = null;
-                            soldierState = SoldierState.EXPLORING;
-                            break;
+                            numTurnsStuck = 0;
                         } else {
-                            if (!rc.getLocation().equals(SRPtoFill)) {
-                                Direction dir = Pathfinding.pathfind(rc, SRPtoFill);
-                                if (dir != null) {
-                                    rc.move(dir);
-                                }
-                                break;
-                            }
-                            for (MapInfo map: rc.senseNearbyMapInfos()) {
-                                if (map.getMark() != map.getPaint() && rc.canPaint(map.getMapLocation()) && rc.canAttack(rc.getLocation())) {
-                                    rc.attack(map.getMapLocation(), map.getMark().isSecondary());
-                                }
-                            }
+                            numTurnsStuck++;
                         }
                         break;
                     }
@@ -391,6 +368,7 @@ public class RobotPlayer {
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
                         Soldier.stuckBehavior(rc);
+
                     }
                 }
                 rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
@@ -438,6 +416,64 @@ public class RobotPlayer {
                 rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
                 break;
             }
+
+            case SoldierType.SRP: {
+                System.out.println("state  " + soldierState);
+                rc.setIndicatorDot(rc.getLocation(), 255, 0, 255);
+
+                // check for low paint and numTurnStuck
+                Soldier.updateSRPState(rc, initLocation, nearbyTiles);
+                Helper.tryCompleteResourcePattern(rc);
+                // if stuck for too long, become attack bot
+                if (numTurnsStuck > 200){
+                    soldierType = SoldierType.ATTACK;
+                }
+                switch (soldierState) {
+                    case SoldierState.LOWONPAINT: {
+                        rc.setIndicatorString("LOWONPAINT");
+                        Soldier.lowPaintBehavior(rc);
+                        break;
+                    }
+                    case SoldierState.FILLINGSRP: {
+                        // if a nearby allied tile mismatches the SRP grid, paint over it
+                        rc.setIndicatorString("FILLING SRP");
+                        for (MapInfo nearbyTile : rc.senseNearbyMapInfos()) {
+                            MapLocation nearbyLocation = nearbyTile.getMapLocation();
+                            if (nearbyTile.getPaint().isAlly() &&
+                                    !Helper.resourcePatternType(rc, nearbyLocation).equals(nearbyTile.getPaint())) {
+                                if (rc.canAttack(nearbyLocation)) {
+                                    rc.attack(nearbyLocation, !Helper.resourcePatternGrid(rc, nearbyLocation));
+                                    return;
+                                } else if (Pathfinding.pathfind(rc, nearbyLocation) != null) {
+                                    if (rc.canMove(Pathfinding.pathfind(rc, nearbyLocation))) {
+                                        rc.move(Pathfinding.pathfind(rc, nearbyLocation));
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        // stuck if nothing to paint
+                        soldierState = SoldierState.STUCK;
+                        break;
+                    }
+                    case SoldierState.STUCK: {
+                        rc.setIndicatorString("STUCK");
+                        numTurnsStuck++;
+                        Soldier.stuckBehavior(rc);
+                        for (MapInfo map: nearbyTiles) {
+                            if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
+                                Soldier.resetVariables();
+                                soldierState = SoldierState.FILLINGSRP;
+                                System.out.println("exited stuck");
+                                numTurnsStuck = 0;
+                            }
+                        }
+                        break;
+                    }
+                }
+                return;
+                }
+
 
             default:
                 rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);

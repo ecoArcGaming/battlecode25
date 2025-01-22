@@ -1,5 +1,8 @@
 package v2;
 
+/**
+ * a hashable version of MapLoaction
+ */
 public class HashableCoords {
     private final int x;
     private final int y;
