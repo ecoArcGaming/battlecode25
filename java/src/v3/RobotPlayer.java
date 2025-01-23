@@ -36,6 +36,7 @@ TODO (Specific issues we noticed that currently have a solution)
     - Robot lifecycle should be based around map size probably
     - Do we do SRPs too late?
     - Advance robots start stuck and maybe stay too long at home
+    - Idea: somehow figure out symmetry of the map so we can tell robots to go in a certain direction
  */
     
 public class RobotPlayer {
