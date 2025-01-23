@@ -439,10 +439,10 @@ public class RobotPlayer {
                         rc.setIndicatorString("FILLING SRP");
                         for (MapInfo nearbyTile :nearbyTiles) {
                             MapLocation nearbyLocation = nearbyTile.getMapLocation();
-                            Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
                             PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
                             if (nearbyTile.getPaint().isAlly() &&
                                     !paint.equals(nearbyTile.getPaint())) {
+                                Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
                                 if (rc.canAttack(nearbyLocation)) {
                                     rc.attack(nearbyLocation, (paint == PaintType.ALLY_SECONDARY));
                                     break;
@@ -474,10 +474,8 @@ public class RobotPlayer {
                         break;
                     }
                 }
-                return;
-                }
-
-
+                break;
+            }
             default:
                 rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
         }
