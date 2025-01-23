@@ -105,37 +105,16 @@ public abstract class Robot {
     }
 
     /**
-     * Returns a random tower with a Constants.TOWER_SPLIT split
+     * Returns a random tower with a Constants.TOWER_SPLIT split and defense tower only if in range
      */
-    public static UnitType genRandomTower() {
+    public static UnitType genTowerType(RobotController rc, MapLocation ruinLocation) throws GameActionException {
+        if (Sensing.isInDefenseRange(rc, ruinLocation)){
+            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+        }
         double hehe = Constants.rng.nextDouble();
         return ((hehe < Constants.PERCENT_COIN) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
     }
 
-    /**
-     *  Marks a tower with random towerType at the given location if not already marked
-     *  Not already marked == no marking at the spot to the north of the ruin
-     */
-    public static void markRandomTower(RobotController rc, MapLocation targetLoc) throws GameActionException {
-        MapLocation shouldBeMarked = targetLoc.subtract(rc.getLocation().directionTo(targetLoc));
-        if (rc.canSenseLocation(shouldBeMarked) && rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
-                rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
-            UnitType towerType = genRandomTower();
-            rc.markTowerPattern(towerType, targetLoc);
-        }
-    }
-
-    /**
-     *  Marks a tower with towerType at the given location if not already marked
-     *  Not already marked == no marking at the spot to the north of the ruin
-     */
-    public static void markTower(RobotController rc, UnitType towerType, MapLocation targetLoc) throws GameActionException {
-        MapLocation shouldBeMarked = targetLoc.subtract(rc.getLocation().directionTo(targetLoc));
-        if (rc.canSenseLocation(shouldBeMarked) && rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
-                rc.canMarkTowerPattern(towerType, targetLoc)){
-            rc.markTowerPattern(towerType, targetLoc);
-        }
-    }
 
     /**
      * Completes the ruin at the given location if possible
@@ -146,6 +125,9 @@ public abstract class Robot {
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation)) {
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLocation);
+        }
+        if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, ruinLocation)) {
+            rc.completeTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, ruinLocation);
         }
     }
     /**
@@ -159,5 +141,6 @@ public abstract class Robot {
         tracingDir = null;
         stuckTurnCount = 0;
         closestPath = -1;
+        fillTowerType = null;
     }
 }
