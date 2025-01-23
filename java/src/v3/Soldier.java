@@ -61,7 +61,7 @@ public class Soldier extends Robot {
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {
                     case 0:
-                        if (Constants.rng.nextDouble() >= 0.5) {
+                        if (Constants.rng.nextDouble() < Constants.SRP_DEV_BOT_SPLIT) {
                             soldierType = SoldierType.SRP;
                             soldierState = SoldierState.FILLINGSRP;
                         } else {
@@ -231,12 +231,13 @@ public class Soldier extends Robot {
         // If robot has seen a paint tower, mark random tower
         if (!Sensing.canBuildTower(rc, ruinLocation)) {
             soldierState = SoldierState.EXPLORING;
+            fillTowerType = null;
             ruinToFill = null;
         }
         // Check to see if we know the type of tower to fill in
         if (fillTowerType != null){
             // Paint the tile at a location
-            PaintType[][] ruinPattern = (fillTowerType == UnitType.LEVEL_ONE_PAINT_TOWER) ? Constants.paintTowerPattern : Constants.moneyTowerPattern;
+            PaintType[][] ruinPattern = (fillTowerType == UnitType.LEVEL_ONE_PAINT_TOWER) ? Constants.paintTowerPattern : (fillTowerType == UnitType.LEVEL_ONE_MONEY_TOWER) ? Constants.moneyTowerPattern : Constants.defenseTowerPattern;
             int[] tileToPaint = Sensing.findPaintableRuinTile(rc, ruinLocation, ruinPattern);
             if (tileToPaint != null) {
                 MapLocation tile = ruinLocation.translate(tileToPaint[0], tileToPaint[1]);
@@ -256,25 +257,47 @@ public class Soldier extends Robot {
             MapLocation northTower = ruinLocation.add(Direction.NORTH);
             if (rc.canSenseLocation(northTower)) {
                 PaintType towerMarking = rc.senseMapInfo(northTower).getMark();
+                System.out.println(towerMarking);
                 // If mark type is 1, then ruin is a paint ruin
                 if(towerMarking == PaintType.ALLY_PRIMARY){
                     fillTowerType = UnitType.LEVEL_ONE_PAINT_TOWER;
                 }
-                // If no mark, then mark the tower
+                // If no mark, then check to see if there is a marking on east for defense tower
                 else if (towerMarking == PaintType.EMPTY){
-                    // If can mark tower, then mark it
-                    if (rc.canMark(northTower)) {
-                        if (seenPaintTower){
-                            UnitType towerType = Robot.genRandomTower();
-                            rc.mark(northTower, towerType == UnitType.LEVEL_ONE_MONEY_TOWER);
-                            fillTowerType = towerType;
-                        } else {
-                            // Otherwise, mark a paint tower
-                            rc.mark(northTower, false);
-                            fillTowerType = UnitType.LEVEL_ONE_PAINT_TOWER;
+                    MapLocation defenseMarkLoc = northTower.add(Direction.EAST);
+                    if (rc.canSenseLocation(defenseMarkLoc)) {
+                        if (rc.senseMapInfo(defenseMarkLoc).getMark() == PaintType.ALLY_PRIMARY){
+                            fillTowerType = UnitType.LEVEL_ONE_DEFENSE_TOWER;
+                        }
+                        // If can sense location but no mark, then figure out tower type
+                        else{
+                            UnitType towerType = Robot.genTowerType(rc, ruinLocation);
+                            if (towerType == UnitType.LEVEL_ONE_DEFENSE_TOWER && rc.canMark(defenseMarkLoc)){
+                                // Mark defense tower at north east
+                                rc.mark(defenseMarkLoc, false);
+                                fillTowerType = UnitType.LEVEL_ONE_DEFENSE_TOWER;
+                            }
+                            // If can mark tower, then mark it
+                            else if (rc.canMark(northTower) && towerType != UnitType.LEVEL_ONE_DEFENSE_TOWER) {
+                                if (seenPaintTower){
+                                    rc.mark(northTower, towerType == UnitType.LEVEL_ONE_MONEY_TOWER);
+                                    fillTowerType = towerType;
+                                } else {
+                                    // Otherwise, mark a paint tower
+                                    rc.mark(northTower, false);
+                                    fillTowerType = UnitType.LEVEL_ONE_PAINT_TOWER;
+                                }
+                            }
+                            // Otherwise, pathfind towards location until can mark it
+                            else{
+                                Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                                if (moveDir != null) {
+                                    rc.move(moveDir);
+                                }
+                            }
                         }
                     }
-                    // Otherwise, pathfind to ruin location
+                    // Otherwise, pathfind to ruin location since we can't sense the location of the ruin
                     else{
                         Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
                         if (moveDir != null) {

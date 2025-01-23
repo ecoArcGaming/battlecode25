@@ -1,7 +1,6 @@
 package v3;
 
 import battlecode.common.*;
-import battlecode.schema.RobotType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -349,7 +348,7 @@ public class RobotPlayer {
                     }
                     case SoldierState.FILLINGTOWER: {
                         rc.setIndicatorString("FILLINGTOWER");
-                        Soldier.fillInRuin(rc, ruinToFill, false);
+                        Soldier.fillInRuin(rc, ruinToFill);
                         break;
                     }
                     case SoldierState.EXPLORING: {
@@ -371,7 +370,6 @@ public class RobotPlayer {
                         if (Sensing.findPaintableTile(rc, rc.getLocation(), 20) != null) {
                             soldierState = SoldierState.EXPLORING;
                             Soldier.resetVariables();
-                            numTurnsStuck = 0;
                         } else {
                             numTurnsStuck++;
                         }
@@ -398,7 +396,7 @@ public class RobotPlayer {
                     }
                     case SoldierState.FILLINGTOWER: {
                         rc.setIndicatorString("FILLINGTOWER");
-                        Soldier.fillInRuin(rc, ruinToFill, false);
+                        Soldier.fillInRuin(rc, ruinToFill);
                         break;
                     }
                     case SoldierState.EXPLORING: {
@@ -475,12 +473,14 @@ public class RobotPlayer {
             }
 
             case SoldierType.SRP: {
+                System.out.println("state  " + soldierState);
+
                 // check for low paint and numTurnStuck
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
                 // if stuck for too long, become attack bot
-                if (numTurnsStuck > 200){
-                    soldierType = SoldierType.ATTACK;
+                if (numTurnsStuck > Constants.SRP_LIFE_CYCLE_TURNS){
+                    soldierType = SoldierType.ADVANCE;
                 }
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
@@ -525,6 +525,7 @@ public class RobotPlayer {
                             if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                                 Soldier.resetVariables();
                                 soldierState = SoldierState.FILLINGSRP;
+                                System.out.println("exited stuck");
                                 numTurnsStuck = 0;
                                 break;
                             }
