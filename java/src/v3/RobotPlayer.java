@@ -334,7 +334,7 @@ public class RobotPlayer {
                 Helper.tryCompleteResourcePattern(rc);
                 if (numTurnsStuck > 100){
                     soldierType = SoldierType.SRP;
-                    numTurnsStuck = 0;
+                    Soldier.resetVariables();
                 }
 
                 switch (soldierState) {
@@ -483,6 +483,7 @@ public class RobotPlayer {
                 if (numTurnsStuck > Constants.SRP_LIFE_CYCLE_TURNS){
                     soldierType = SoldierType.ADVANCE;
                     soldierState = SoldierState.EXPLORING;
+                    Soldier.resetVariables();
                 }
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
