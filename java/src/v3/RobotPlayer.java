@@ -241,6 +241,13 @@ public class RobotPlayer {
         if (rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER && rc.getMoney() > 10000) {
             rc.upgradeTower(rc.getLocation());
         }
+        if (rc.getType() == UnitType.LEVEL_ONE_DEFENSE_TOWER && rc.getMoney() > 5000) {
+            rc.upgradeTower(rc.getLocation());
+        }
+        if (rc.getType() == UnitType.LEVEL_TWO_DEFENSE_TOWER && rc.getMoney() > 7500) {
+            rc.upgradeTower(rc.getLocation());
+        }
+
         Tower.attackLowestRobot(rc);
         Tower.aoeAttackIfPossible(rc);
     }
