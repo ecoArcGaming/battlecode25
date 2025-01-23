@@ -418,8 +418,6 @@ public class RobotPlayer {
             }
 
             case SoldierType.SRP: {
-                System.out.println("state  " + soldierState);
-
                 // check for low paint and numTurnStuck
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
@@ -470,7 +468,6 @@ public class RobotPlayer {
                             if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                                 Soldier.resetVariables();
                                 soldierState = SoldierState.FILLINGSRP;
-                                System.out.println("exited stuck");
                                 numTurnsStuck = 0;
                                 break;
                             }

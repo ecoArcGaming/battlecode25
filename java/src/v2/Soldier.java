@@ -149,7 +149,6 @@ public class Soldier extends Robot {
                 storedState = soldierState;
                 soldierState = SoldierState.LOWONPAINT;
             } else if (soldierState == SoldierState.STUCK) {
-                System.out.println("check stuck");
                 for (MapInfo map: nearbyTiles) {
                     if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                         Soldier.resetVariables();

@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.HashSet;
 import static java.util.Map.entry;
 
-public class Constants {
+public class    Constants {
     public static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,

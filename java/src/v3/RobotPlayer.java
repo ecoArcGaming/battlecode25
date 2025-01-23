@@ -32,6 +32,10 @@ TODO (Specific issues we noticed that currently have a solution)
     - Initial soldier behavior (ignore allies around towers, go towards the center)
     - Fix exploration not going around walls
     - Improve exploration random walk (weigh it better)
+    - Check out robot distributions on varying map sizes and stuff (idk seems like tower queues are clogged up by splashers/moppers)
+    - Robot lifecycle should be based around map size probably
+    - Do we do SRPs too late?
+    - Advance robots start stuck and maybe stay too long at home
  */
     
 public class RobotPlayer {
@@ -189,16 +193,13 @@ public class RobotPlayer {
         }
 
         roundsWithoutEnemy += 1; //  Update rounds without enemy
-        if (roundsWithoutEnemy == 50){
-            roundsWithoutEnemy += (int) (Constants.INIT_PROBABILITY_DEVELOP*100);
-        }
         Tower.readNewMessages(rc);
 
         // starting condition
         if (rc.getRoundNum() == 1 ) {
             rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection));
         } else if (rc.getRoundNum() == 2) {
-            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
+            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.opposite()));
         } else {
             if (broadcast){
                 rc.broadcastMessage(MapInfoCodec.encode(enemyTarget));
@@ -269,8 +270,9 @@ public class RobotPlayer {
         }
 
         // Hard coded robot type for very first exploration
-        if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2) {
+        if (rc.getRoundNum() <= 3) {
             soldierType = SoldierType.BINLADEN;
+            wanderTarget = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
         }
 
         switch (soldierType) {
@@ -279,7 +281,7 @@ public class RobotPlayer {
                     soldierType = SoldierType.ADVANCE;
                     return;
                 }
-                Soldier.updateStateIgnoreEnemy(rc, initLocation, nearbyTiles);
+                Soldier.updateStateOsama(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
@@ -294,7 +296,7 @@ public class RobotPlayer {
                     }
                     case SoldierState.FILLINGTOWER: {
                         rc.setIndicatorString("FILLINGTOWER");
-                        Soldier.fillInRuin(rc, ruinToFill, true);
+                        Soldier.fillInRuin(rc, ruinToFill);
                         break;
                     }
                     case SoldierState.EXPLORING: {
@@ -321,7 +323,6 @@ public class RobotPlayer {
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
                         Soldier.stuckBehavior(rc);
-
                     }
                 }
                 rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
@@ -333,6 +334,7 @@ public class RobotPlayer {
                 Helper.tryCompleteResourcePattern(rc);
                 if (numTurnsStuck > 100){
                     soldierType = SoldierType.SRP;
+                    numTurnsStuck = 0;
                 }
 
                 switch (soldierState) {
@@ -426,6 +428,7 @@ public class RobotPlayer {
 
                     }
                 }
+                rc.setIndicatorString(soldierState.toString());
                 rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
                 return;
             }
@@ -473,14 +476,13 @@ public class RobotPlayer {
             }
 
             case SoldierType.SRP: {
-                System.out.println("state  " + soldierState);
-
                 // check for low paint and numTurnStuck
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
                 // if stuck for too long, become attack bot
                 if (numTurnsStuck > Constants.SRP_LIFE_CYCLE_TURNS){
                     soldierType = SoldierType.ADVANCE;
+                    soldierState = SoldierState.EXPLORING;
                 }
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
@@ -525,7 +527,6 @@ public class RobotPlayer {
                             if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                                 Soldier.resetVariables();
                                 soldierState = SoldierState.FILLINGSRP;
-                                System.out.println("exited stuck");
                                 numTurnsStuck = 0;
                                 break;
                             }
