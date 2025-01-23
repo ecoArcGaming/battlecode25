@@ -251,10 +251,10 @@ public class Sensing {
      * Checks whether a ruin is in the middle area of the map, in which a defense tower is built
      */
     public static boolean isInDefenseRange(RobotController rc, MapLocation ruinLoc){
-        int xLower = (int) (rc.getMapWidth() * 0.3);
-        int yLower = (int) (rc.getMapHeight() * 0.3);
-        int xHigher = (int) (rc.getMapWidth() * 0.7);
-        int yHigher = (int) (rc.getMapHeight() * 0.7);
+        int xLower = (int) (rc.getMapWidth() * Constants.DEFENSE_RANGE);
+        int yLower = (int) (rc.getMapHeight() * Constants.DEFENSE_RANGE);
+        int xHigher = (int) (rc.getMapWidth() * (1-Constants.DEFENSE_RANGE));
+        int yHigher = (int) (rc.getMapHeight() * (1-Constants.DEFENSE_RANGE));
         int x = ruinLoc.x;
         int y = ruinLoc.y;
         if (x >= xLower && x <= xHigher && y >= yLower && y <= yHigher) {
