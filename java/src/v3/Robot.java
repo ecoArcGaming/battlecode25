@@ -142,5 +142,6 @@ public abstract class Robot {
         stuckTurnCount = 0;
         closestPath = -1;
         fillTowerType = null;
+        numTurnsStuck = 0;
     }
 }

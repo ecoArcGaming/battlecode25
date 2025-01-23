@@ -276,7 +276,7 @@ public class RobotPlayer {
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
-                if (numTurnsStuck > 100){
+                if (numTurnsStuck > Constants.RESIGN_AFTER) {
                     soldierType = SoldierType.SRP;
                 }
 
@@ -315,7 +315,6 @@ public class RobotPlayer {
                         if (Sensing.findPaintableTile(rc, rc.getLocation(), 20) != null) {
                             soldierState = SoldierState.EXPLORING;
                             Soldier.resetVariables();
-                            numTurnsStuck = 0;
                         } else {
                             numTurnsStuck++;
                         }
@@ -425,8 +424,8 @@ public class RobotPlayer {
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
                 // if stuck for too long, become attack bot
-                if (numTurnsStuck > 200){
-                    soldierType = SoldierType.ATTACK;
+                if (numTurnsStuck > Constants.SRP_LIFE_CYCLE_TURNS){
+                    soldierType = SoldierType.ADVANCE;
                 }
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
@@ -472,7 +471,6 @@ public class RobotPlayer {
                                 Soldier.resetVariables();
                                 soldierState = SoldierState.FILLINGSRP;
                                 System.out.println("exited stuck");
-                                numTurnsStuck = 0;
                                 break;
                             }
                         }
