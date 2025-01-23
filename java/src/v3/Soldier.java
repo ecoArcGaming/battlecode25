@@ -222,7 +222,8 @@ public class Soldier extends Robot {
     public static void completeRuinIfPossible(RobotController rc, MapLocation ruinLocation) throws GameActionException {
         Robot.completeRuinIfPossible(rc, ruinLocation);
         if (rc.canSenseRobotAtLocation(ruinLocation)) {
-            soldierState = SoldierState.EXPLORING;
+            soldierState = SoldierState.LOWONPAINT;
+            storedState = SoldierState.EXPLORING;
             ruinToFill = null;
             wanderTarget = null;
             fillTowerType = null;
@@ -238,7 +239,8 @@ public class Soldier extends Robot {
         // Mark the pattern we need to draw to build a tower here if we haven't already.
         // If robot has seen a paint tower, mark random tower
         if (!Sensing.canBuildTower(rc, ruinLocation)) {
-            soldierState = SoldierState.EXPLORING;
+            soldierState = SoldierState.LOWONPAINT;
+            storedState = SoldierState.EXPLORING;
             fillTowerType = null;
             ruinToFill = null;
         }
