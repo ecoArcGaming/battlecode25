@@ -26,7 +26,7 @@ public class Constants {
             entry(PaintType.ENEMY_PRIMARY, -2),
             entry(PaintType.ENEMY_SECONDARY, -2)
     );
-    public static final Random rng = new Random(6147);
+    public static final Random rng = new Random(3407);
     public static final double PERCENT_COIN = 0.5;
     public static final int RESIGN_AFTER = 2500;
     public static final int lowPaintThreshold = 20;

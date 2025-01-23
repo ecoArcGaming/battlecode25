@@ -61,7 +61,12 @@ public class Soldier extends Robot {
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {
                     case 0:
-                        soldierType = SoldierType.DEVELOP;
+                        if (Constants.rng.nextDouble() >= 0.5) {
+                            soldierType = SoldierType.SRP;
+                            soldierState = SoldierState.FILLINGSRP;
+                        } else {
+                            soldierType = SoldierType.DEVELOP;
+                        }
                         break;
                     case 1:
                         soldierType = SoldierType.ADVANCE;
@@ -137,7 +142,24 @@ public class Soldier extends Robot {
             }
         }
     }
-
+    public static void updateSRPState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
+        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
+            if (soldierState != SoldierState.LOWONPAINT) {
+                Soldier.resetVariables();
+                storedState = soldierState;
+                soldierState = SoldierState.LOWONPAINT;
+            } else if (soldierState == SoldierState.STUCK) {
+                System.out.println("check stuck");
+                for (MapInfo map: nearbyTiles) {
+                    if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
+                        Soldier.resetVariables();
+                        soldierState = SoldierState.FILLINGSRP;
+                        numTurnsStuck = 0;
+                    }
+                }
+            }
+        }
+    }
     /**
      * Pathfinds towards the last known paint tower and try to message it
      */
@@ -254,7 +276,7 @@ public class Soldier extends Robot {
      */
     public static void stuckBehavior(RobotController rc) throws GameActionException {
         Direction newDir;
-        if (soldierType == SoldierType.DEVELOP){
+        if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.SRP){
             newDir = Pathfinding.randomWalk(rc);
         }
         else{
