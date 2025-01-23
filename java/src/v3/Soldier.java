@@ -142,6 +142,32 @@ public class Soldier extends Robot {
             }
         }
     }
+    /**
+     * Updates the robot state according to its paint level (LOWONPAINT) or nearby ruins (FILLING TOWER)
+     * Only cares about enemy paint if the round number is larger than the map length + map width
+     */
+    public static void updateStateIgnoreEnemy(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
+        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
+            if (soldierState != SoldierState.LOWONPAINT) {
+                Soldier.resetVariables();
+                storedState = soldierState;
+                soldierState = SoldierState.LOWONPAINT;
+            }
+        } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
+            // TODO: soldier currently only checks the closest ruin. however, if this ruin is not buildable,
+            //  we don't check any other ruins
+            //  Issue with checking all ruins: we don't want to bounce between different ruins
+            //  Possible fix: only update ruinToFill if state is not FILLINGTOWER
+            // Check if the robot can fill in paint for the ruin if no enemy tiles found
+            MapInfo closestRuin = Sensing.findClosestRuin(rc, curLocation, nearbyTiles);
+            if (soldierState != SoldierState.FILLINGTOWER && closestRuin != null
+                    && Sensing.canBuildTower(rc, closestRuin.getMapLocation())) {
+                ruinToFill = closestRuin.getMapLocation();
+                soldierState = SoldierState.FILLINGTOWER;
+                Soldier.resetVariables();
+            }
+        }
+    }
     public static void updateSRPState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
         if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
             if (soldierState != SoldierState.LOWONPAINT) {
@@ -149,7 +175,6 @@ public class Soldier extends Robot {
                 storedState = soldierState;
                 soldierState = SoldierState.LOWONPAINT;
             } else if (soldierState == SoldierState.STUCK) {
-                System.out.println("check stuck");
                 for (MapInfo map: nearbyTiles) {
                     if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                         Soldier.resetVariables();
@@ -199,8 +224,9 @@ public class Soldier extends Robot {
     /**
      * Marks ruins
      * Pathfinds to the ruins and fills in the area around the ruin if we can build a tower there
+     * If ignoreAlly is true, then we ignore the ruin if ally robots are already in proximity
      */
-    public static void fillInRuin(RobotController rc, MapLocation ruinLocation) throws GameActionException {
+    public static void fillInRuin(RobotController rc, MapLocation ruinLocation, boolean ignoreAlly) throws GameActionException {
         // Mark the pattern we need to draw to build a tower here if we haven't already.
         // If robot has seen a paint tower, mark random tower
         if (!Sensing.canBuildTower(rc, ruinLocation)) {

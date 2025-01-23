@@ -1,6 +1,7 @@
 package v3;
 
 import battlecode.common.*;
+import battlecode.schema.RobotType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,15 +24,15 @@ FIXME (General issues we noticed)
         - Paint underneath them en route to enemy?
         - Prioritize enemy over our own side?
     - Improves on SRPs
-    - Balance mopper and splasher spawning
 TODO (Specific issues we noticed that currently have a solution)
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
     - Low health behavior to improve survivability
     - Handle the 25 tower limit
-    - Soldiers get paint whenever they deliver a message
-    - Spawn 4 soldiers at the beginning, one that goes horizontal and one that goes vertical
-    - Ignore enemy paint for a certain number of turns depending on map size
+    - Soldiers get paint whenever they deliver a message/build a tower
+    - Initial soldier behavior (ignore allies around towers, go towards the center)
+    - Fix exploration not going around walls
+    - Improve exploration random walk (weigh it better)
  */
     
 public class RobotPlayer {
@@ -195,10 +196,10 @@ public class RobotPlayer {
         Tower.readNewMessages(rc);
 
         // starting condition
-        if (rc.getRoundNum() == 1) {
-            // spawn a soldier bot
-            Tower.createSoldier(rc);
-            spawnQueue.add(1);
+        if (rc.getRoundNum() == 1 ) {
+            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection));
+        } else if (rc.getRoundNum() == 2) {
+            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
         } else {
             if (broadcast){
                 rc.broadcastMessage(MapInfoCodec.encode(enemyTarget));
@@ -266,13 +267,68 @@ public class RobotPlayer {
         // On round 1, just paint tile it is on
         if (botRoundNum == 1) {
             Soldier.paintIfPossible(rc, rc.getLocation());
-            if (rc.getRoundNum() < 15) {
-                wanderTarget = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
-            }
-            return;
+        }
+
+        // Hard coded robot type for very first exploration
+        if (rc.getRoundNum() == 1 || rc.getRoundNum() == 2) {
+            soldierType = SoldierType.BINLADEN;
         }
 
         switch (soldierType) {
+            case SoldierType.BINLADEN: {
+                if (rc.getRoundNum() >= rc.getMapHeight() + rc.getMapWidth()) {
+                    soldierType = SoldierType.ADVANCE;
+                    return;
+                }
+                Soldier.updateStateIgnoreEnemy(rc, initLocation, nearbyTiles);
+                Helper.tryCompleteResourcePattern(rc);
+                switch (soldierState) {
+                    case SoldierState.LOWONPAINT: {
+                        rc.setIndicatorString("LOWONPAINT");
+                        Soldier.lowPaintBehavior(rc);
+                        break;
+                    }
+                    case SoldierState.DELIVERINGMESSAGE: {
+                        rc.setIndicatorString("DELIVERINGMESSAGE");
+                        Soldier.msgTower(rc);
+                        break;
+                    }
+                    case SoldierState.FILLINGTOWER: {
+                        rc.setIndicatorString("FILLINGTOWER");
+                        Soldier.fillInRuin(rc, ruinToFill, true);
+                        break;
+                    }
+                    case SoldierState.EXPLORING: {
+                        rc.setIndicatorString("EXPLORING");
+                        if (wanderTarget != null) {
+                            Direction dir;
+                            if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
+                                Direction[] allDirections = Direction.allDirections();
+                                dir = allDirections[(int) (Math.random() * allDirections.length)];
+                            }
+                            else {
+                                dir = Pathfinding.pathfind(rc, wanderTarget);
+                            }
+                            if (dir != null && rc.canMove(dir)) {
+                                rc.move(dir);
+                                Soldier.paintIfPossible(rc, rc.getLocation());
+                            }
+                        } else {
+                            soldierState = SoldierState.STUCK;
+                            Soldier.resetVariables();
+                        }
+                        break;
+                    }
+                    case SoldierState.STUCK: {
+                        rc.setIndicatorString("STUCK");
+                        Soldier.stuckBehavior(rc);
+
+                    }
+                }
+                rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
+                break;
+            }
+
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
@@ -293,7 +349,7 @@ public class RobotPlayer {
                     }
                     case SoldierState.FILLINGTOWER: {
                         rc.setIndicatorString("FILLINGTOWER");
-                        Soldier.fillInRuin(rc, ruinToFill);
+                        Soldier.fillInRuin(rc, ruinToFill, false);
                         break;
                     }
                     case SoldierState.EXPLORING: {
@@ -342,7 +398,7 @@ public class RobotPlayer {
                     }
                     case SoldierState.FILLINGTOWER: {
                         rc.setIndicatorString("FILLINGTOWER");
-                        Soldier.fillInRuin(rc, ruinToFill);
+                        Soldier.fillInRuin(rc, ruinToFill, false);
                         break;
                     }
                     case SoldierState.EXPLORING: {
@@ -419,8 +475,6 @@ public class RobotPlayer {
             }
 
             case SoldierType.SRP: {
-                System.out.println("state  " + soldierState);
-
                 // check for low paint and numTurnStuck
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
@@ -471,7 +525,6 @@ public class RobotPlayer {
                             if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                                 Soldier.resetVariables();
                                 soldierState = SoldierState.FILLINGSRP;
-                                System.out.println("exited stuck");
                                 numTurnsStuck = 0;
                                 break;
                             }
@@ -483,7 +536,7 @@ public class RobotPlayer {
                 break;
             }
             default:
-                rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
+                rc.setIndicatorDot(rc.getLocation(), 0, 0, 0);
         }
     }
 

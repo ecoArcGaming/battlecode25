@@ -4,5 +4,6 @@ public enum SoldierType {
     DEVELOP,
     ADVANCE,
     ATTACK,
-    SRP
+    SRP,
+    BINLADEN
 }
