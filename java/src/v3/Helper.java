@@ -18,8 +18,6 @@ public class Helper {
         int y = loc.y % 4;
         HashableCoords coords = new HashableCoords(x, y);
         if (Constants.primarySRP.contains(coords)){
-
-
             return PaintType.ALLY_PRIMARY;
         }
         return PaintType.ALLY_SECONDARY;

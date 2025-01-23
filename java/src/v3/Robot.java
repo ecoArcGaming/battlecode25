@@ -159,5 +159,6 @@ public abstract class Robot {
         tracingDir = null;
         stuckTurnCount = 0;
         closestPath = -1;
+        numTurnsStuck = 0;
     }
 }
