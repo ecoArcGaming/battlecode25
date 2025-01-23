@@ -419,7 +419,6 @@ public class RobotPlayer {
 
             case SoldierType.SRP: {
                 System.out.println("state  " + soldierState);
-                rc.setIndicatorDot(rc.getLocation(), 255, 0, 255);
 
                 // check for low paint and numTurnStuck
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
@@ -436,6 +435,7 @@ public class RobotPlayer {
                     }
                     case SoldierState.FILLINGSRP: {
                         // if a nearby allied tile mismatches the SRP grid, paint over it
+                        boolean hasPainted = false;
                         rc.setIndicatorString("FILLING SRP");
                         for (MapInfo nearbyTile :nearbyTiles) {
                             MapLocation nearbyLocation = nearbyTile.getMapLocation();
@@ -445,17 +445,21 @@ public class RobotPlayer {
                                 Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
                                 if (rc.canAttack(nearbyLocation)) {
                                     rc.attack(nearbyLocation, (paint == PaintType.ALLY_SECONDARY));
+                                    hasPainted = true;
                                     break;
                                 } else if (dir != null) {
                                     if (rc.canMove(dir)) {
                                         rc.move(dir);
+                                        hasPainted = true;
                                         break;
                                     }
                                 }
                             }
                         }
                         // stuck if nothing to paint
-                        soldierState = SoldierState.STUCK;
+                        if (!hasPainted) {
+                            soldierState = SoldierState.STUCK;
+                        }
                         break;
                     }
                     case SoldierState.STUCK: {
@@ -474,6 +478,7 @@ public class RobotPlayer {
                         break;
                     }
                 }
+                rc.setIndicatorDot(rc.getLocation(), 255, 0, 255);
                 break;
             }
             default:
