@@ -61,7 +61,7 @@ public class Soldier extends Robot {
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {
                     case 0:
-                        if (Math.random() >= 0.5) {
+                        if (Constants.rng.nextDouble() >= 0.5) {
                             soldierType = SoldierType.SRP;
                             soldierState = SoldierState.FILLINGSRP;
                         } else {

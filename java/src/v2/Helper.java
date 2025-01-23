@@ -13,10 +13,13 @@ public class Helper {
         return Constants.primarySRP.contains(coords);
     }
     public static PaintType resourcePatternType(RobotController rc, MapLocation loc) {
+
         int x = loc.x % 4;
         int y = loc.y % 4;
         HashableCoords coords = new HashableCoords(x, y);
         if (Constants.primarySRP.contains(coords)){
+
+
             return PaintType.ALLY_PRIMARY;
         }
         return PaintType.ALLY_SECONDARY;

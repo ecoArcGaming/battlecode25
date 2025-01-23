@@ -437,17 +437,19 @@ public class RobotPlayer {
                     case SoldierState.FILLINGSRP: {
                         // if a nearby allied tile mismatches the SRP grid, paint over it
                         rc.setIndicatorString("FILLING SRP");
-                        for (MapInfo nearbyTile : rc.senseNearbyMapInfos()) {
+                        for (MapInfo nearbyTile :nearbyTiles) {
                             MapLocation nearbyLocation = nearbyTile.getMapLocation();
+                            Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
+                            PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
                             if (nearbyTile.getPaint().isAlly() &&
-                                    !Helper.resourcePatternType(rc, nearbyLocation).equals(nearbyTile.getPaint())) {
+                                    !paint.equals(nearbyTile.getPaint())) {
                                 if (rc.canAttack(nearbyLocation)) {
-                                    rc.attack(nearbyLocation, !Helper.resourcePatternGrid(rc, nearbyLocation));
-                                    return;
-                                } else if (Pathfinding.pathfind(rc, nearbyLocation) != null) {
-                                    if (rc.canMove(Pathfinding.pathfind(rc, nearbyLocation))) {
-                                        rc.move(Pathfinding.pathfind(rc, nearbyLocation));
-                                        return;
+                                    rc.attack(nearbyLocation, (paint == PaintType.ALLY_SECONDARY));
+                                    break;
+                                } else if (dir != null) {
+                                    if (rc.canMove(dir)) {
+                                        rc.move(dir);
+                                        break;
                                     }
                                 }
                             }
@@ -466,6 +468,7 @@ public class RobotPlayer {
                                 soldierState = SoldierState.FILLINGSRP;
                                 System.out.println("exited stuck");
                                 numTurnsStuck = 0;
+                                break;
                             }
                         }
                         break;
