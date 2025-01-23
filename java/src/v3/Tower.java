@@ -87,12 +87,9 @@ public abstract class Tower {
             numEnemyVisits = 0;
         } else {
             if (roundsWithoutEnemy > 50){
-                double rand = Constants.rng.nextDouble();
-                double bruh = Math.min((double) (roundsWithoutEnemy) / Constants.DEVELOP_BOT_PROB_SCALING, Constants.DEVELOP_BOT_PROBABILITY_CAP);
-                System.out.println(rand + " " + bruh);
                 // odds of explore robot increases linearly with rounds of no enemy contact, caps at 40-60 advance/develop
                 if (Constants.rng.nextDouble() <
-                        bruh){
+                        Math.min((double) (roundsWithoutEnemy) / Constants.DEVELOP_BOT_PROB_SCALING, Constants.DEVELOP_BOT_PROBABILITY_CAP)){
                     spawnQueue.add(0);
                 }
                 else{
