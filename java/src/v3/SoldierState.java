@@ -1,4 +1,4 @@
-package v2;
+package v3;
 
 public enum SoldierState {
     LOWONPAINT,

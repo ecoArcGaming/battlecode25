@@ -1,10 +1,10 @@
-package v2;
+package v3;
 
 import battlecode.common.*;
 
 import java.nio.file.Path;
 
-import static v2.RobotPlayer.*;
+import static v3.RobotPlayer.*;
 
 public abstract class Robot {
     /**

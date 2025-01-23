@@ -1,6 +1,6 @@
-package v2;
+package v3;
 
-import static v2.RobotPlayer.*;
+import static v3.RobotPlayer.*;
 
 import battlecode.common.*;
 

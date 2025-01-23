@@ -1,8 +1,8 @@
-package v2;
+package v3;
 
 import battlecode.common.*;
 
-import static v2.RobotPlayer.*;
+import static v3.RobotPlayer.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;

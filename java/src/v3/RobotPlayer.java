@@ -1,4 +1,4 @@
-package v2;
+package v3;
 
 import battlecode.common.*;
 import org.slf4j.Logger;

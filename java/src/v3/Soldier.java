@@ -1,9 +1,9 @@
-package v2;
+package v3;
 
 import battlecode.common.*;
 import scala.Unit;
 
-import static v2.RobotPlayer.*;
+import static v3.RobotPlayer.*;
 
 /**
  * Class for all methods that a soldier will do
