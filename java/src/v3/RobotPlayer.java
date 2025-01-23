@@ -13,7 +13,6 @@ import java.util.*;
  */
 /*
 FIXME (General issues we noticed)
-    - If towers get destroyed, robots don't know this and keep trying to get paint from the ruin
     - Take better advantage of defense towers
     - Clumped robots is a bit problematic
     - Exploration around walls is ass(?)
@@ -24,13 +23,15 @@ FIXME (General issues we noticed)
         - Paint underneath them en route to enemy?
         - Prioritize enemy over our own side?
     - Improves on SRPs
+    - Balance mopper and splasher spawning
 TODO (Specific issues we noticed that currently have a solution)
-    - Robots wait for paint around money towers
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
     - Low health behavior to improve survivability
     - Handle the 25 tower limit
-    - TODO Idea: Soldiers get paint whenever they deliver a message
+    - Soldiers get paint whenever they deliver a message
+    - Spawn 4 soldiers at the beginning, one that goes horizontal and one that goes vertical
+    - Ignore enemy paint for a certain number of turns depending on map size
  */
     
 public class RobotPlayer {
