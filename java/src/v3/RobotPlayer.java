@@ -285,7 +285,8 @@ public class RobotPlayer {
 
         switch (soldierType) {
             case SoldierType.BINLADEN: {
-                if (rc.getRoundNum() >= rc.getMapHeight() + rc.getMapWidth()) {
+                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+                if (rc.getRoundNum() >= (rc.getMapHeight() + rc.getMapWidth())/2 || nearbyRobots.length != 0) {
                     soldierType = SoldierType.ADVANCE;
                     return;
                 }
