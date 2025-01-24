@@ -163,14 +163,12 @@ public class RobotPlayer {
                 // world. Remember, uncaught exceptions cause your robot to explode!
                 System.out.println("GameActionException");
                 e.printStackTrace();
-                rc.resign();
 
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
                 System.out.println("Exception");
                 e.printStackTrace();
-                rc.resign();
 
             } finally {
                 // Signify we've done everything we want to do, thereby ending our turn.
