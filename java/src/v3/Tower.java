@@ -43,6 +43,7 @@ public abstract class Tower {
 
                     // Update enemy tile regardless
                     RobotPlayer.enemyTarget = msg;
+                    enemyTower = msg;
                 }
                 // Check if message is enemy paint
                 else if (msg.getPaint().isEnemy()){
@@ -218,6 +219,18 @@ public abstract class Tower {
         }
         alertRobots = false;
         alertAttackSoldiers = false;
+    }
+
+    /**
+     *     message all nearby robots about latest enemyTower
+     */
+    public static void broadcastEnemyTower(RobotController rc) throws GameActionException {
+        for (RobotInfo bot: rc.senseNearbyRobots()){
+            // Only sends messages to moppers and splashers
+            if (rc.canSendMessage(bot.getLocation())){
+                rc.sendMessage(bot.getLocation(), MapInfoCodec.encode(RobotPlayer.enemyTower));
+            }
+        }
     }
 
     public static boolean isAttackType(RobotController rc, RobotInfo bot) throws GameActionException {
