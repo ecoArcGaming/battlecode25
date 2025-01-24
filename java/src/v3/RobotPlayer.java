@@ -392,7 +392,11 @@ public class RobotPlayer {
 
             case SoldierType.ADVANCE: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
-
+                // lifecycle moves to SRP
+                if (numTurnsStuck > Constants.ADV_LIFE_CYCLE_TURNS){
+                    soldierType = SoldierType.SRP;
+                    Soldier.resetVariables();
+                }
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
                         rc.setIndicatorString("LOWONPAINT");
@@ -432,6 +436,7 @@ public class RobotPlayer {
                     }
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
+                        numTurnsStuck++;
                         Soldier.stuckBehavior(rc);
 
                     }

@@ -27,6 +27,11 @@ public abstract class Robot {
         int amtToTransfer = rc.getPaint()-rc.getType().paintCapacity;
         if (rc.canTransferPaint(towerLocation, amtToTransfer)) {
             rc.transferPaint(towerLocation, amtToTransfer);
+        } else {
+            Direction rotate = rc.getLocation().directionTo(lastTower.getMapLocation()).rotateRight();
+            if (rc.canMove(rotate)) {
+                rc.move(rotate);
+            }
         }
     }
     /**
