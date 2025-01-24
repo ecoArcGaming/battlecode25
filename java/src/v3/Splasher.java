@@ -17,9 +17,16 @@ public class Splasher {
                 continue;
             } else {
                 MapInfo message = MapInfoCodec.decode(bytes);
+                // If enemy paint, then store enemy paint
                 if (message.getPaint().isEnemy()) {
                     MapLocation robotLoc = rc.getLocation();
                     if (removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(removePaint.getMapLocation())){
+                        removePaint = message;
+                    }
+                }
+                // If enemy tower, then go to enemy tower location
+                else if (message.hasRuin()) {
+                    if (removePaint == null){
                         removePaint = message;
                     }
                 }

@@ -108,7 +108,7 @@ public abstract class Robot {
      * Returns a random tower with a Constants.TOWER_SPLIT split and defense tower only if in range
      */
     public static UnitType genTowerType(RobotController rc, MapLocation ruinLocation) throws GameActionException {
-        if (Sensing.isInDefenseRange(rc, ruinLocation)){
+        if (Sensing.isInDefenseRange(rc, ruinLocation) && rc.getRoundNum() > rc.getMapHeight()+rc.getMapWidth()){
             return UnitType.LEVEL_ONE_DEFENSE_TOWER;
         }
         double hehe = Constants.rng.nextDouble();

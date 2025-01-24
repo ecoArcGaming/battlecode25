@@ -34,6 +34,7 @@ TODO (Specific issues we noticed that currently have a solution)
     - Idea: somehow figure out symmetry of the map so we can tell robots to go in a certain direction
     - Have a better strategy for attacking the enemy
     - lifecycle idea: stuck && alive for x turns
+    - if a bot is on low paint behavior and it runs out of paint standing next to the tower, if the tower doesnt have enough paint to refill to max, it just gets all the paint remaining in the tower and then leaves
  */
     
 public class RobotPlayer {

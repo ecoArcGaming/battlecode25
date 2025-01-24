@@ -23,6 +23,13 @@ public class Mopper extends Robot{
                         removePaint = message;
                     }
                 }
+                // If enemy tower, then go to enemy tower location
+                else if (message.hasRuin()) {
+                    MapLocation robotLoc = rc.getLocation();
+                    if (removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(removePaint.getMapLocation())){
+                        removePaint = message;
+                    }
+                }
             }
         }
     }

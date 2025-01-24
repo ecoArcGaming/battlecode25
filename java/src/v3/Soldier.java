@@ -243,10 +243,17 @@ public class Soldier extends Robot {
         // Mark the pattern we need to draw to build a tower here if we haven't already.
         // If robot has seen a paint tower, mark random tower
         if (!Sensing.canBuildTower(rc, ruinLocation)) {
-            soldierState = SoldierState.LOWONPAINT;
-            storedState = SoldierState.EXPLORING;
-            fillTowerType = null;
-            ruinToFill = null;
+            if(rc.canSenseRobotAtLocation(ruinLocation) && rc.senseRobotAtLocation(ruinLocation).getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+                soldierState = SoldierState.LOWONPAINT;
+                storedState = SoldierState.EXPLORING;
+                fillTowerType = null;
+                ruinToFill = null;
+            }
+            else{
+                soldierState = SoldierState.EXPLORING;
+                fillTowerType = null;
+                ruinToFill = null;
+            }
         }
         // Check to see if we know the type of tower to fill in
         if (fillTowerType != null){
