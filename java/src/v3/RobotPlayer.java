@@ -229,6 +229,10 @@ public class RobotPlayer {
             Tower.broadcastNearbyBots(rc);
         }
 
+        if (enemyTower != null && rc.getRoundNum() % 50 == 0) {
+            Tower.broadcastEnemyTower(rc);
+        }
+
         if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER && rc.getMoney() > 5000) {
             rc.upgradeTower(rc.getLocation());
         }
