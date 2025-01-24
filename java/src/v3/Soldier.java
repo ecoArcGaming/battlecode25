@@ -2,6 +2,7 @@ package v3;
 
 import battlecode.common.*;
 import scala.Unit;
+import scala.collection.Map;
 
 import static v3.RobotPlayer.*;
 
@@ -128,22 +129,31 @@ public class Soldier extends Robot {
                 Soldier.resetVariables();
                 storedState = soldierState;
                 soldierState = SoldierState.DELIVERINGMESSAGE;
-            } else {
-                // TODO: soldier currently only checks the closest ruin. however, if this ruin is not buildable,
-                //  we don't check any other ruins
-                //  Issue with checking all ruins: we don't want to bounce between different ruins
-                //  Possible fix: only update ruinToFill if state is not FILLINGTOWER
-                // Check if the robot can fill in paint for the ruin if no enemy tiles found
-                MapInfo closestRuin = Sensing.findClosestRuin(rc, curLocation, nearbyTiles);
-                if (soldierState != SoldierState.FILLINGTOWER && closestRuin != null
-                        && Sensing.canBuildTower(rc, closestRuin.getMapLocation())) {
-                    ruinToFill = closestRuin.getMapLocation();
+            // Check for nearby buildable ruins if we are not currently building one
+            } else if (soldierState != SoldierState.FILLINGTOWER) {
+                MapInfo bestRuin = Sensing.findBestRuin(rc, curLocation, nearbyTiles);
+                if (bestRuin != null) {
+                    ruinToFill = bestRuin.getMapLocation();
                     soldierState = SoldierState.FILLINGTOWER;
                     Soldier.resetVariables();
                 }
             }
         }
     }
+    /**
+     * Returns the MapInfo of a nearby tower
+     * Nearby towers only updated at a maximum of once every 30 turns
+     * Returns null if none are sensed.
+     */
+    public static MapInfo updateEnemyTowers(RobotController rc, MapInfo[] nearbyTiles) throws GameActionException {
+        // Check if there are enemy paint or enemy towers sensed
+        RobotInfo closestEnemyTower = Sensing.towerInRange(rc, 20, false);
+        if (closestEnemyTower != null) {
+            return rc.senseMapInfo(closestEnemyTower.getLocation());
+        }
+        return null;
+    }
+
     /**
      * Updates the robot state according to its paint level (LOWONPAINT) or nearby ruins (FILLING TOWER)
      * Only cares about enemy paint if the round number is larger than the map length + map width
@@ -157,25 +167,31 @@ public class Soldier extends Robot {
                 soldierState = SoldierState.LOWONPAINT;
             }
         } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
-            // Update enemy tile as necessary
-            enemyTile = updateEnemyTiles(rc, nearbyTiles);
-            if (enemyTile != null) {
-                RobotInfo possibleTower = rc.senseRobotAtLocation(enemyTile.getMapLocation());
-                if (possibleTower != null && possibleTower.getType().isTowerType()) {
-                    intermediateTarget = null;
-                    Soldier.resetVariables();
-                    storedState = soldierState;
-                    soldierState = SoldierState.DELIVERINGMESSAGE;
+            // Update enemy towers as necessary
+            enemyTower = updateEnemyTowers(rc, nearbyTiles);
+            if (enemyTower != null) {
+                intermediateTarget = null;
+                Soldier.resetVariables();
+                storedState = soldierState;
+                soldierState = SoldierState.DELIVERINGMESSAGE;
+                return;
+            }
+            if (soldierState != SoldierState.FILLINGTOWER) {
+                MapInfo bestRuin = Sensing.findBestRuin(rc, curLocation, nearbyTiles);
+                if (bestRuin != null) {
+                    if (!Sensing.canBuildTower(rc, bestRuin.getMapLocation())) {
+                        soldierType = SoldierType.ADVANCE;
+                        Soldier.resetVariables();
+                    } else {
+                        ruinToFill = bestRuin.getMapLocation();
+                        soldierState = SoldierState.FILLINGTOWER;
+                        Soldier.resetVariables();
+                    }
                 }
-            } else {
-                // Check if the robot can fill in paint for the ruin if no enemy tiles found
-                MapInfo closestRuin = Sensing.findClosestRuin(rc, curLocation, nearbyTiles);
-                if (soldierState != SoldierState.FILLINGTOWER && closestRuin != null
-                        && Sensing.canBuildTower(rc, closestRuin.getMapLocation())
-                        && rc.senseNearbyRobots(closestRuin.getMapLocation(), 8, rc.getTeam()).length < 1) {
-                    intermediateTarget = null;
-                    ruinToFill = closestRuin.getMapLocation();
-                    soldierState = SoldierState.FILLINGTOWER;
+            // Turn into an advance bot if they see an enemy paint that prevents tower building
+            } else if (soldierState == SoldierState.FILLINGTOWER) {
+                if (!Sensing.canBuildTower(rc, ruinToFill)) {
+                    soldierType = SoldierType.ADVANCE;
                     Soldier.resetVariables();
                 }
             }

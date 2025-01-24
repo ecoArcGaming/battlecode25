@@ -201,6 +201,8 @@ public class Pathfinding {
      * For each block, check the 3x3 area centered at that block
      * +1 for each unpainted tile (including ruins)
      * -4 for each tile with an ally robot (including towers)
+     *
+     * TODO: fine-tune parameters, perhaps introduce one for walls/impassible tiles/off the map
      */
     public static Direction betterExplore(RobotController rc, MapLocation curLocation, MapLocation target) throws GameActionException {
         // Only update intermediate target locations when we have reached one already or if we don't have one at all);

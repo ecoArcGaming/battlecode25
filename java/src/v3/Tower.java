@@ -88,9 +88,10 @@ public abstract class Tower {
             numEnemyVisits = 0;
         } else {
             if (roundsWithoutEnemy > 50){
-                // odds of explore robot increases linearly with rounds of no enemy contact, caps at 40-60 advance/develop
+                // odds of explore robot increases linearly from 30-70 to 60-40
                 if (Constants.rng.nextDouble() <
-                        Math.min((double) (roundsWithoutEnemy) / Constants.DEVELOP_BOT_PROB_SCALING, Constants.DEVELOP_BOT_PROBABILITY_CAP)){
+                        Math.min((roundsWithoutEnemy+Constants.INIT_PROBABILITY_DEVELOP) / Constants.DEVELOP_BOT_PROB_SCALING,
+                                Constants.DEVELOP_BOT_PROBABILITY_CAP)){
                     spawnQueue.add(0);
                 }
                 else{

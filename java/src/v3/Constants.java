@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.HashSet;
 import static java.util.Map.entry;
 
-public class    Constants {
+public class Constants {
     public static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -27,10 +27,10 @@ public class    Constants {
             entry(PaintType.ENEMY_SECONDARY, -2)
     );
     public static final Random rng = new Random(3407);
-    public static final double PERCENT_COIN = 0.5;
-    public static final int RESIGN_AFTER = 2500;
+    public static final double PERCENT_COIN = 0.35;
+    public static final int RESIGN_AFTER = 2005;
     public static final int lowPaintThreshold = 20;
-    public static final double INIT_PROBABILITY_DEVELOP = 0.3;
+    public static final double INIT_PROBABILITY_DEVELOP = 60;
     public static final double RANDOM_STEP_PROBABILITY = 0.5;
     public static final double DEVELOP_BOT_PROBABILITY_CAP = 0.6;
     public static final double DEVELOP_BOT_PROB_SCALING = 200;

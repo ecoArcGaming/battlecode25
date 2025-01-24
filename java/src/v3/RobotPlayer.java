@@ -199,7 +199,12 @@ public class RobotPlayer {
         if (rc.getRoundNum() == 1 ) {
             rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection));
         } else if (rc.getRoundNum() == 2) {
-            rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.opposite()));
+            MapLocation center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+            if (!rc.getLocation().isWithinDistanceSquared(center, 150)) {
+                rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
+            } else {
+                rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(spawnDirection.rotateRight()));
+            }
         } else {
             if (broadcast){
                 rc.broadcastMessage(MapInfoCodec.encode(enemyTarget));
@@ -307,7 +312,7 @@ public class RobotPlayer {
                         break;
                     }
                     case SoldierState.FILLINGTOWER: {
-                        rc.setIndicatorString("FILLINGTOWER");
+                        rc.setIndicatorString("FILLINGTOWER" + ruinToFill);
                         Soldier.fillInRuin(rc, ruinToFill);
                         break;
                     }
@@ -325,7 +330,7 @@ public class RobotPlayer {
                             Soldier.resetVariables();
                         }
                         if (intermediateTarget != null) {
-                            rc.setIndicatorString(intermediateTarget.toString());
+                            rc.setIndicatorString("EXPLORING " + intermediateTarget);
                         }
                         break;
                     }
@@ -410,7 +415,7 @@ public class RobotPlayer {
                         break;
                     }
                     case SoldierState.FILLINGTOWER: {
-                        rc.setIndicatorString("FILLINGTOWER");
+                        rc.setIndicatorString("FILLINGTOWER" + ruinToFill);
                         Soldier.fillInRuin(rc, ruinToFill);
                         break;
                     }
@@ -428,7 +433,7 @@ public class RobotPlayer {
                             Soldier.resetVariables();
                         }
                         if (intermediateTarget != null) {
-                            rc.setIndicatorString(intermediateTarget.toString());
+                            rc.setIndicatorString("EXPLORING " + intermediateTarget);
                         }
                         break;
                     }

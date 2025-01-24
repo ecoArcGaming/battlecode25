@@ -42,16 +42,19 @@ public class Sensing {
     }
 
     /**
-     * Finds the closest ruin without a tower and returns a MapLocation corresponding to that ruin
-     * Returns null if no unoccupied ruins are found
+     * Finds the closest ruin that fits the following criteria
+     * 1. No enemy paint around the tower
+     * 2. No tower at the ruin
+     * 3. No ally robots directly adjacent to the ruin
      */
-    public static MapInfo findClosestRuin(RobotController rc, MapLocation robotLocation, MapInfo[] nearbyTiles) throws GameActionException {
+    public static MapInfo findBestRuin(RobotController rc, MapLocation robotLocation, MapInfo[] nearbyTiles) throws GameActionException {
         MapInfo curRuin = null;
         int minDis = -1;
         for (MapInfo tile : nearbyTiles) {
             if (tile.hasRuin()) {
                 MapLocation tileLocation = tile.getMapLocation();
-                if (!rc.canSenseRobotAtLocation(tileLocation)) {
+                if (!rc.canSenseRobotAtLocation(tileLocation) && Sensing.canBuildTower(rc, tileLocation)
+                && rc.senseNearbyRobots(tileLocation, 2, rc.getTeam()).length < 1) {
                     // Check distance among ruins that need filling
                     int ruinDistance = robotLocation.distanceSquaredTo(tileLocation);
                     if (minDis == -1 || minDis > ruinDistance) {
