@@ -13,7 +13,6 @@ import java.util.*;
  */
 /*
 FIXME (General issues we noticed)
-    - Take better advantage of defense towers
     - Clumped robots is a bit problematic
     - Exploration around walls is ass(?)
     - Differential behavior given map size
@@ -22,21 +21,19 @@ FIXME (General issues we noticed)
         - Don't paint on our own patterns
         - Paint underneath them en route to enemy?
         - Prioritize enemy over our own side?
-    - Improves on SRPs
+    - Strategy kinda sucks for smaller maps
 TODO (Specific issues we noticed that currently have a solution)
     - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
         finish the ruin pattern
     - Low health behavior to improve survivability
     - Handle the 25 tower limit
-    - Soldiers get paint whenever they deliver a message/build a tower
-    - Initial soldier behavior (ignore allies around towers, go towards the center)
-    - Fix exploration not going around walls
-    - Improve exploration random walk (weigh it better)
+    - Bug1 shenanigans (maybe we should try bug0 and take the L if bots do get stuck)
     - Check out robot distributions on varying map sizes and stuff (idk seems like tower queues are clogged up by splashers/moppers)
     - Robot lifecycle should be based around map size probably
     - Do we do SRPs too late?
-    - Advance robots start stuck and maybe stay too long at home
     - Idea: somehow figure out symmetry of the map so we can tell robots to go in a certain direction
+    - Have a better strategy for attacking the enemy
+    - lifecycle idea: stuck && alive for x turns
  */
     
 public class RobotPlayer {
@@ -70,6 +67,7 @@ public class RobotPlayer {
     static MapLocation wanderTarget = null; // target for advance robot to pathfind towards during exploration
     static MapInfo enemyTower = null; // location of enemy tower for attack soldiers to pathfind to
     static UnitType fillTowerType = null;
+    static MapLocation intermediateTarget = null; // used to record short-term robot targets
 
     // Enemy Info variables
     static MapInfo enemyTarget = null; // location of enemy tower/tile for tower to tell
@@ -165,12 +163,14 @@ public class RobotPlayer {
                 // world. Remember, uncaught exceptions cause your robot to explode!
                 System.out.println("GameActionException");
                 e.printStackTrace();
+                rc.resign();
 
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
                 System.out.println("Exception");
                 e.printStackTrace();
+                rc.resign();
 
             } finally {
                 // Signify we've done everything we want to do, thereby ending our turn.
@@ -279,6 +279,7 @@ public class RobotPlayer {
         // On round 1, just paint tile it is on
         if (botRoundNum == 1) {
             Soldier.paintIfPossible(rc, rc.getLocation());
+            wanderTarget = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
         }
 
         // Hard coded robot type for very first exploration
@@ -295,7 +296,6 @@ public class RobotPlayer {
                     return;
                 }
                 Soldier.updateStateOsama(rc, initLocation, nearbyTiles);
-                Helper.tryCompleteResourcePattern(rc);
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
                         rc.setIndicatorString("LOWONPAINT");
@@ -315,21 +315,18 @@ public class RobotPlayer {
                     case SoldierState.EXPLORING: {
                         rc.setIndicatorString("EXPLORING");
                         if (wanderTarget != null) {
-                            Direction dir;
-                            if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
-                                Direction[] allDirections = Direction.allDirections();
-                                dir = allDirections[(int) (Math.random() * allDirections.length)];
-                            }
-                            else {
-                                dir = Pathfinding.pathfind(rc, wanderTarget);
-                            }
-                            if (dir != null && rc.canMove(dir)) {
+                            Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget);
+                            if (dir != null) {
                                 rc.move(dir);
                                 Soldier.paintIfPossible(rc, rc.getLocation());
                             }
                         } else {
+                            intermediateTarget = null;
                             soldierState = SoldierState.STUCK;
                             Soldier.resetVariables();
+                        }
+                        if (intermediateTarget != null) {
+                            rc.setIndicatorString(intermediateTarget.toString());
                         }
                         break;
                     }
@@ -421,21 +418,18 @@ public class RobotPlayer {
                     case SoldierState.EXPLORING: {
                         rc.setIndicatorString("EXPLORING");
                         if (wanderTarget != null) {
-                            Direction dir;
-                            if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
-                                Direction[] allDirections = Direction.allDirections();
-                                dir = allDirections[(int) (Math.random() * allDirections.length)];
-                            }
-                            else {
-                                dir = Pathfinding.pathfind(rc, wanderTarget);
-                            }
-                            if (dir != null && rc.canMove(dir)) {
+                            Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget);
+                            if (dir != null) {
                                 rc.move(dir);
                                 Soldier.paintIfPossible(rc, rc.getLocation());
                             }
                         } else {
+                            intermediateTarget = null;
                             soldierState = SoldierState.STUCK;
                             Soldier.resetVariables();
+                        }
+                        if (intermediateTarget != null) {
+                            rc.setIndicatorString(intermediateTarget.toString());
                         }
                         break;
                     }
@@ -446,7 +440,6 @@ public class RobotPlayer {
 
                     }
                 }
-                rc.setIndicatorString(soldierState.toString());
                 rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
                 return;
             }

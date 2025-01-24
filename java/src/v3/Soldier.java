@@ -115,6 +115,7 @@ public class Soldier extends Robot {
     public static void updateState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
         if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
             if (soldierState != SoldierState.LOWONPAINT) {
+                intermediateTarget = null;
                 Soldier.resetVariables();
                 storedState = soldierState;
                 soldierState = SoldierState.LOWONPAINT;
@@ -123,6 +124,7 @@ public class Soldier extends Robot {
             // Update enemy tile as necessary
             enemyTile = updateEnemyTiles(rc, nearbyTiles);
             if (enemyTile != null) {
+                intermediateTarget = null;
                 Soldier.resetVariables();
                 storedState = soldierState;
                 soldierState = SoldierState.DELIVERINGMESSAGE;
@@ -149,6 +151,7 @@ public class Soldier extends Robot {
     public static void updateStateOsama(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
         if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
             if (soldierState != SoldierState.LOWONPAINT) {
+                intermediateTarget = null;
                 Soldier.resetVariables();
                 storedState = soldierState;
                 soldierState = SoldierState.LOWONPAINT;
@@ -159,6 +162,7 @@ public class Soldier extends Robot {
             if (enemyTile != null) {
                 RobotInfo possibleTower = rc.senseRobotAtLocation(enemyTile.getMapLocation());
                 if (possibleTower != null && possibleTower.getType().isTowerType()) {
+                    intermediateTarget = null;
                     Soldier.resetVariables();
                     storedState = soldierState;
                     soldierState = SoldierState.DELIVERINGMESSAGE;
@@ -169,6 +173,7 @@ public class Soldier extends Robot {
                 if (soldierState != SoldierState.FILLINGTOWER && closestRuin != null
                         && Sensing.canBuildTower(rc, closestRuin.getMapLocation())
                         && rc.senseNearbyRobots(closestRuin.getMapLocation(), 8, rc.getTeam()).length < 1) {
+                    intermediateTarget = null;
                     ruinToFill = closestRuin.getMapLocation();
                     soldierState = SoldierState.FILLINGTOWER;
                     Soldier.resetVariables();
@@ -225,7 +230,6 @@ public class Soldier extends Robot {
             soldierState = SoldierState.LOWONPAINT;
             storedState = SoldierState.EXPLORING;
             ruinToFill = null;
-            wanderTarget = null;
             fillTowerType = null;
         }
     }

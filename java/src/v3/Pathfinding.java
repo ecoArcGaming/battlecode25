@@ -5,6 +5,7 @@ import battlecode.common.*;
 import static v3.RobotPlayer.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import java.util.List;
  * All methods in this class should return a direction that a robot can move it (check sanity before returning)
  */
 public class Pathfinding {
+        // I think using stuff from other classes costs a ton of bytecode so im declaring this here
+    public static int[][] directions = {{-2, -2}, {-2, 0}, {-2, 2}, {0, -2}, {0, 2}, {2, -2}, {2, 0}, {2, 2}};
     /**
      * Returns a Direction that brings rc closer to target
      * Prioritizes distance first, then type of paint (ally tiles, then neutral tiles, then enemy tiles)
@@ -184,6 +187,77 @@ public class Pathfinding {
             return null;
         }
         Direction moveDir = Pathfinding.pathfind(rc, bestLocation);
+        if (moveDir != null) {
+            return moveDir;
+        }
+        return null;
+    }
+
+    /**
+     * How we choose exploration weights:
+     * Check each of the 8 blocks around the robot
+     * +2 if block is closer to target than starting point
+     * +1 if block is equidistant to target than starting point
+     * For each block, check the 3x3 area centered at that block
+     * +1 for each unpainted tile (including ruins)
+     * -4 for each tile with an ally robot (including towers)
+     */
+    public static Direction betterExplore(RobotController rc, MapLocation curLocation, MapLocation target) throws GameActionException {
+        // Only update intermediate target locations when we have reached one already or if we don't have one at all);
+        if (intermediateTarget == null || curLocation.equals(intermediateTarget) ||
+                (curLocation.isWithinDistanceSquared(intermediateTarget, 2))
+                        && !rc.senseMapInfo(intermediateTarget).isPassable()) {
+            int cumSum = 0;
+            // Calculate a score for each target
+            int minScore = -1;
+            int[] weightedAdjacent = new int[8];
+            int curDistance = curLocation.distanceSquaredTo(target);
+            //too lazy to loop unroll but entirely possible
+            for (int i = 0; i < 8; i++) {
+                int score = 0;
+                MapLocation possibleTarget = curLocation.translate(directions[i][0], directions[i][1]);
+                if (rc.onTheMap(possibleTarget)) {
+                    score = Sensing.scoreTile(rc, possibleTarget);
+                    int newDistance = possibleTarget.distanceSquaredTo(target);
+                    if (curDistance > newDistance) {
+                        score += 2;
+                    } else if (curDistance == newDistance) {
+                        score += 1;
+                    }
+                }
+                if (minScore == -1 || score < minScore) {
+                    minScore = score;
+                }
+                cumSum += score;
+                weightedAdjacent[i] = cumSum;
+            }
+
+            // Normalize by subtracting each score by the same amount so that one score is equal to 1
+            // I love loop unrolling
+            if (minScore != 0) minScore--;
+            weightedAdjacent[0] -= minScore * 1;
+            weightedAdjacent[1] -= minScore * 2;
+            weightedAdjacent[2] -= minScore * 3;
+            weightedAdjacent[3] -= minScore * 4;
+            weightedAdjacent[4] -= minScore * 5;
+            weightedAdjacent[5] -= minScore * 6;
+            weightedAdjacent[6] -= minScore * 7;
+            weightedAdjacent[7] -= minScore * 8;
+
+            if (cumSum != 0) {
+                int randomValue = Constants.rng.nextInt(weightedAdjacent[7]);
+                for (int i = 0; i < 8; i++) {
+                    if (randomValue < weightedAdjacent[i]) {
+                        intermediateTarget = curLocation.translate(directions[i][0], directions[i][1]);
+                        break;
+                    }
+                }
+            }
+        }
+        if (intermediateTarget == null) {
+            return null;
+        }
+        Direction moveDir = Pathfinding.pathfind(rc, intermediateTarget);
         if (moveDir != null) {
             return moveDir;
         }
