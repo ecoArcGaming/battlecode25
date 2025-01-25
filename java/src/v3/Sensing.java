@@ -237,17 +237,107 @@ public class Sensing {
         return Collections.max(nearbyEnemies, new MapInfoDistanceComparator(rc));
     }
 
-    public static boolean isOpen(RobotController rc) throws GameActionException {
-        MapLocation loc = rc.getLocation();
-        if (loc.x < 2 || loc.y < 2 || loc.x > (rc.getMapWidth() - 3) || loc.y >( rc.getMapHeight() - 3)) {
-            return false;
-        }
-        for (MapInfo map: rc.senseNearbyMapInfos(8)) {
-            if ((map.getPaint() != PaintType.ALLY_PRIMARY) || map.getMark().isAlly()) {
-                return false;
+    // scores tiles that decides where a splasher should go
+    public static MapInfo scoreSplasherTiles(RobotController rc) throws GameActionException {
+
+        MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
+        HashMap<HashableCoords, Integer> nearbyMaps = new HashMap<>();
+        // hash the tiles
+        for (MapInfo tile: nearbyTiles) {
+            MapLocation loc = tile.getMapLocation();
+            PaintType paint = tile.getPaint();
+            if (paint == null){
+                continue;
+            }
+            if (paint == PaintType.EMPTY) {
+                currGrid[loc.x][loc.y] = 1;
+            } else if (paint.isEnemy()){
+                currGrid[loc.x][loc.y] = 2;
+            } else if (paint.isAlly()){
+                currGrid[loc.x][loc.y] = -1;
+            } else {
+                currGrid[loc.x][loc.y] = 0;
             }
         }
-        return true;
+        MapInfo best = null;
+        int bestScore = Integer.MIN_VALUE;
+        for (MapInfo tile: nearbyTiles) {
+            if (rc.canSenseRobotAtLocation(tile.getMapLocation())) {
+                int score = ScoreSplash(rc, tile, nearbyMaps);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
+
+        }
+        if (bestScore <= 2){
+            return null;
+        }
+        return best;
+    }
+
+    // scores based on paintTypes of tiles within splasher radius
+    public static int ScoreSplash(RobotController rc,  MapInfo tile, HashMap<HashableCoords, Integer> map) throws GameActionException {
+        int out = 0;
+        MapLocation loc = tile.getMapLocation();
+        int x = loc.x;
+        int y = loc.y;
+        int up = rc.getMapHeight();
+        int right = rc.getMapWidth();
+        if (1 < y ) {
+            out += currGrid[x][y-2];
+        }
+        if (0 < x && 0 < y){
+            out += currGrid[x-1][y-1];
+        }
+        if (0 < y){
+            out += currGrid[x][y-1];
+        }
+        if (x < right - 1 && y > 0) {
+            out += currGrid[x+1][y-1];
+        }
+        if (1 < x ){
+            out += currGrid[x-2][y];
+        }
+        if (0 < x){
+            out += currGrid[x-1][y];
+        }
+        out += currGrid[x][y];
+        if (x < right -1 ){
+            out += currGrid[x+1][y];
+        }
+        if (x < right - 2){
+            out += currGrid[x+2][y];
+        }
+        if (x > 0 && y < up -1){
+            out += currGrid[x-1][y+1];
+        }
+        if (y < up -1){
+            out += currGrid[x][y+1];
+        }
+        if (x < right -1 && y < up -1){
+            out += currGrid[x+1][y+1];
+        }
+        if (y < up - 2){
+            out += currGrid[x][y+2];
+        }
+
+//        out += map.getOrDefault(new HashableCoords(x, y-1), 0);
+//        out += map.getOrDefault(new HashableCoords(x-1, y-1), 0);
+//        out += map.getOrDefault(new HashableCoords(x, y-1), 0);
+//        out += map.getOrDefault(new HashableCoords(x+1, y-1), 0);
+//        out += map.getOrDefault(new HashableCoords(x-2, y), 0);
+//        out += map.getOrDefault(new HashableCoords(x-1, y), 0);
+//        out += map.getOrDefault(new HashableCoords(x, y), 0);
+//        out += map.getOrDefault(new HashableCoords(x+1, y), 0);
+//        out += map.getOrDefault(new HashableCoords(x+2, y), 0);
+//        out += map.getOrDefault(new HashableCoords(x-1, y+1), 0);
+//        out += map.getOrDefault(new HashableCoords(x, y+1), 0);
+//        out += map.getOrDefault(new HashableCoords(x+1, y+1), 0);
+//        out += map.getOrDefault(new HashableCoords(x, y+2), 0);
+
+        return out;
     }
 
     /**
