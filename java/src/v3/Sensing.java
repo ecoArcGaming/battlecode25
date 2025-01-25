@@ -362,12 +362,12 @@ public class Sensing {
         int count = 50;
         for (MapInfo surroundingTile: surroundingTiles) {
             if (surroundingTile.getPaint() == PaintType.EMPTY && surroundingTile.isPassable()) {
-                count++;
+                count += 3;
             }
             MapLocation surroundingLocation = surroundingTile.getMapLocation();
             if (rc.canSenseRobotAtLocation(surroundingLocation)) {
                 if (rc.senseRobotAtLocation(surroundingLocation).getTeam() == rc.getTeam()) {
-                    count -= 4;
+                    count -= 3;
                 }
             }
         }

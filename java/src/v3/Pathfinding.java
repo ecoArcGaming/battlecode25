@@ -146,7 +146,7 @@ public class Pathfinding {
         int[] weightedAdjacent = new int[numTiles];
         for (int i = 0; i < numTiles; i++){
             MapLocation adjLocation = validAdjacent.get(i).getMapLocation();
-            cumSum += Sensing.countEmptyAround(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
+            cumSum += 3*Sensing.countEmptyAround(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
             weightedAdjacent[i] = cumSum;
         }
         if (cumSum == 0) {
@@ -196,11 +196,11 @@ public class Pathfinding {
     /**
      * How we choose exploration weights:
      * Check each of the 8 blocks around the robot
-     * +5 if block is closer to target than starting point
-     * +3 if block is equidistant to target than starting point
+     * +20 if block is closer to target than starting point
+     * +10 if block is equidistant to target than starting point
      * For each block, check the 3x3 area centered at that block
-     * +1 for each unpainted tile (including ruins)
-     * -4 for each tile with an ally robot (including towers)
+     * +3 for each unpainted tile (including ruins)
+     * -3 for each tile with an ally robot (including towers)
      *
      * TODO: fine-tune parameters, perhaps introduce one for walls/impassible tiles/off the map
      */
@@ -222,9 +222,9 @@ public class Pathfinding {
                     score = Sensing.scoreTile(rc, possibleTarget);
                     int newDistance = possibleTarget.distanceSquaredTo(target);
                     if (curDistance > newDistance) {
-                        score += 5;
+                        score += 20;
                     } else if (curDistance == newDistance) {
-                        score += 3;
+                        score += 10;
                     }
                 }
                 if (minScore == -1 || score < minScore) {

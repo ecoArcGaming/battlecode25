@@ -11,15 +11,15 @@ public abstract class Robot {
      * Method for robot behavior when they are low on paint
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
-        Direction dir = Pathfinding.returnToTower(rc);
-        if (dir != null){
-            rc.move(dir);
-        }
         // If last tower is null, then just random walk on paint
         if (lastTower == null){
             Direction moveTo = Pathfinding.randomPaintedWalk(rc);
             rc.move(moveTo);
             return;
+        }
+        Direction dir = Pathfinding.returnToTower(rc);
+        if (dir != null){
+            rc.move(dir);
         }
         // Otherwise, pathfind to the tower
         MapLocation towerLocation = lastTower.getMapLocation();
