@@ -32,4 +32,18 @@ public class Helper {
             }
         }
     }
+    /**
+     * Check if a MapLocation m is in the rectangle with c1 and c2 as its corners
+     */
+    public static boolean isBetween(MapLocation m, MapLocation c1, MapLocation c2) {
+        // Determine the min and max bounds for x and y coordinates
+        int minX = Math.min(c1.x, c2.x);
+        int maxX = Math.max(c1.x, c2.x);
+        int minY = Math.min(c1.y, c2.y);
+        int maxY = Math.max(c1.y, c2.y);
+
+        // Check if m is within these bounds
+        return m.x >= minX && m.x <= maxX && m.y >= minY && m.y <= maxY;
+    }
+
 }

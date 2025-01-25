@@ -131,7 +131,7 @@ public abstract class Robot {
         }
     }
     /**
-     * Resets bug1 variables
+     * Resets pathfinding variables
      * Meant to be called when the robot has found else to do
      */
     public static void resetVariables() {
@@ -143,5 +143,7 @@ public abstract class Robot {
         closestPath = -1;
         fillTowerType = null;
         numTurnsStuck = 0;
+        stoppedLocation = null;
+        tracingTurns = 0;
     }
 }

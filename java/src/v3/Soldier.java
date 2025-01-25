@@ -230,6 +230,7 @@ public class Soldier extends Robot {
                 soldierState = SoldierState.STUCK;
             }
             Soldier.resetVariables();
+            return;
         }
         Direction dir = Pathfinding.returnToTower(rc);
         if (dir != null){
@@ -282,7 +283,7 @@ public class Soldier extends Robot {
                     rc.attack(tile, ruinPattern[tileToPaint[0]+2][tileToPaint[1]+2] == PaintType.ALLY_SECONDARY);
             }
             // Move to the ruin
-            Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+            Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
             if (moveDir != null) {
                 rc.move(moveDir);
             }
@@ -326,7 +327,7 @@ public class Soldier extends Robot {
                             }
                             // Otherwise, pathfind towards location until can mark it
                             else{
-                                Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                                Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
                                 if (moveDir != null) {
                                     rc.move(moveDir);
                                 }
@@ -335,7 +336,7 @@ public class Soldier extends Robot {
                     }
                     // Otherwise, pathfind to ruin location since we can't sense the location of the ruin
                     else{
-                        Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                        Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
                         if (moveDir != null) {
                             rc.move(moveDir);
                         }
@@ -348,7 +349,7 @@ public class Soldier extends Robot {
             }
             // Otherwise, pathfind to the tower
             else{
-                Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
                 if (moveDir != null) {
                     rc.move(moveDir);
                 }

@@ -22,12 +22,14 @@ public class Splasher {
                     MapLocation robotLoc = rc.getLocation();
                     if (removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(removePaint.getMapLocation())){
                         removePaint = message;
+                        Robot.resetVariables();
                     }
                 }
                 // If enemy tower, then go to enemy tower location
                 else if (message.hasRuin()) {
                     if (removePaint == null){
                         removePaint = message;
+                        Robot.resetVariables();
                     }
                 }
             }

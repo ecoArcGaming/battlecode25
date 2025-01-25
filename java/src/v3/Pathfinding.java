@@ -309,6 +309,63 @@ public class Pathfinding {
             return pathfind(rc, oppositeCorner);
         }
     }
+    /**
+     * bug(?) pathfinding algorithm
+     */
+    public static Direction bugidk(RobotController rc, MapLocation target) throws GameActionException {
+        if (!isTracing){
+            //proceed as normal
+            Direction dir = rc.getLocation().directionTo(target);
+            if(rc.canMove(dir)){
+                return dir;
+            } else {
+                isTracing = true;
+                tracingDir = dir;
+                stoppedLocation = rc.getLocation();
+                tracingTurns = 0;
+            }
+        } else {
+            if ((Helper.isBetween(rc.getLocation(), stoppedLocation, target) && !rc.getLocation().equals(stoppedLocation))
+                || tracingTurns > 2*(rc.getMapWidth() + rc.getMapHeight())) {
+                // returned to closest location along perimeter of the obstacle
+                Soldier.resetVariables();
+            } else {
+                // keep tracing
+
+                // update closestLocation and smallestDistance
+                int distToTarget = rc.getLocation().distanceSquaredTo(target);
+                if(distToTarget < smallestDistance){
+                    smallestDistance = distToTarget;
+                    closestLocation = rc.getLocation();
+                }
+
+                // go along perimeter of obstacle
+                if(rc.canMove(tracingDir)){
+                    //move forward and try to turn right
+                    Direction returnDir = tracingDir;
+                    tracingDir = tracingDir.rotateRight();
+                    tracingDir = tracingDir.rotateRight();
+                    tracingTurns++;
+                    return returnDir;
+                }
+                else{
+                    // turn left because we cannot proceed forward
+                    // keep turning left until we can move again
+                    for (int i=0; i<8; i++){
+                        tracingDir = tracingDir.rotateLeft();
+                        if(rc.canMove(tracingDir)){
+                            Direction returnDir = tracingDir;
+                            tracingDir = tracingDir.rotateRight();
+                            tracingDir = tracingDir.rotateRight();
+                            tracingTurns++;
+                            return returnDir;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * bug1 pathfinding algorithm
@@ -369,6 +426,7 @@ public class Pathfinding {
     }
 
     public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException{
+        /*
         MapLocation curLocation = rc.getLocation();
         int dist = curLocation.distanceSquaredTo(target);
         if (dist == 0){
@@ -387,6 +445,8 @@ public class Pathfinding {
         } else {
             return bug1(rc, target);
         }
+        */
+        return bugidk(rc, target);
     }
 
     public static Direction randomPaintedWalk(RobotController rc) throws GameActionException{

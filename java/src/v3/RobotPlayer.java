@@ -3,6 +3,7 @@ package v3;
 import battlecode.common.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.collection.Map;
 
 import java.util.*;
 
@@ -91,11 +92,13 @@ public class RobotPlayer {
     static boolean alertRobots = false;
     static boolean alertAttackSoldiers = false;
 
-    // Bug 1 Variables
+    // BugNav Variables
     static boolean isTracing = false;
     static int smallestDistance = 10000000;
     static MapLocation closestLocation = null;
     static Direction tracingDir = null;
+    static MapLocation stoppedLocation = null;
+    static int tracingTurns = 0;
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -294,8 +297,7 @@ public class RobotPlayer {
 
         switch (soldierType) {
             case SoldierType.BINLADEN: {
-                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-                if (rc.getRoundNum() >= (rc.getMapHeight() + rc.getMapWidth())/2 || nearbyRobots.length != 0) {
+                if (rc.getRoundNum() >= (rc.getMapHeight() + rc.getMapWidth())/2) {
                     soldierType = SoldierType.ADVANCE;
                     return;
                 }
