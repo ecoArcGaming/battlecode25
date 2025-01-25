@@ -30,7 +30,7 @@ public class Constants {
     public static final double PERCENT_COIN = 0.45;
     public static final int RESIGN_AFTER = 2005;
     public static final int lowPaintThreshold = 20;
-    public static final double INIT_PROBABILITY_DEVELOP = 60;
+    public static final double INIT_PROBABILITY_DEVELOP = 100;
     public static final double RANDOM_STEP_PROBABILITY = 0.5;
     public static final double DEVELOP_BOT_PROBABILITY_CAP = 0.6;
     public static final double DEVELOP_BOT_PROB_SCALING = 200;
