@@ -221,15 +221,19 @@ public class RobotPlayer {
             }
 
             // Otherwise, if the spawn queue isn't empty, spawn the required unit
-            else if (!spawnQueue.isEmpty() && rc.getMoney() > 400 && rc.getPaint() > 300){
-                switch (spawnQueue.getFirst()){
-                    case 0, 1, 2: Tower.createSoldier(rc); break;
-                    case 3: Tower.createMopper(rc); break;
-                    case 4: Tower.createSplasher(rc); break;
+            else if (!spawnQueue.isEmpty() && rc.getMoney() > 400 && rc.getPaint() > 300) {
+                switch (spawnQueue.getFirst()) {
+                    case 0, 1, 2:
+                        Tower.createSoldier(rc);
+                        break;
+                    case 3:
+                        Tower.createMopper(rc);
+                        break;
+                    case 4:
+                        Tower.createSplasher(rc);
+                        break;
                 }
-            }
-
-            else if (rc.getMoney() > 1200 && rc.getPaint() > 400 && spawnQueue.size() < 3) {
+            } else if (rc.getMoney() > 1200 && rc.getPaint() > 200 && spawnQueue.size() < 3) {
                 Tower.buildCompletelyRandom(rc);
             }
         }

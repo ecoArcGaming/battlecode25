@@ -20,7 +20,6 @@ public abstract class Tower {
             int bytes = message.getBytes();
             if (Communication.isRobotInfo(bytes)){
                 RobotInfo msg = RobotInfoCodec.decode(bytes);
-                continue;
             }
             else{
                 MapInfo msg = MapInfoCodec.decode(bytes);
@@ -32,8 +31,11 @@ public abstract class Tower {
                     if (Sensing.isRobot(rc, message.getSenderID())){
                         RobotPlayer.broadcast = true;
                         RobotPlayer.alertAttackSoldiers = true;
-                        RobotPlayer.spawnQueue.add(4); //  Spawns a splasher
-                        RobotPlayer.spawnQueue.add(3); //  Spawns a mopper
+                        if (Constants.rng.nextDouble() <= 0.5) {
+                            spawnQueue.add(4); //  Spawns a splasher
+                        } else {
+                            spawnQueue.add(3); //  Spawns a mopper
+                        }
                         RobotPlayer.numEnemyVisits += 1; //   Increases probability of spawning a splasher
                     }
 
@@ -55,7 +57,6 @@ public abstract class Tower {
                         if (Constants.rng.nextDouble() <= 0.5) {
                             spawnQueue.add(4); //  Spawns a splasher
                         } else {
-
                             spawnQueue.add(3); //  Spawns a mopper
                         }
                         numEnemyVisits += 1; //   Increases probability of spawning a splasher
@@ -91,18 +92,13 @@ public abstract class Tower {
             spawnQueue.add(4);
             numEnemyVisits = 0;
         } else {
-            if (roundsWithoutEnemy > 50){
-                // odds of explore robot increases linearly from 30-70 to 60-40
-                if (Constants.rng.nextDouble() <
-                        Math.min((roundsWithoutEnemy+Constants.INIT_PROBABILITY_DEVELOP) / Constants.DEVELOP_BOT_PROB_SCALING,
-                                Constants.DEVELOP_BOT_PROBABILITY_CAP)){
-                    spawnQueue.add(0);
-                }
-                else{
-                    spawnQueue.add(1);
-                }
+            // odds of explore robot increases linearly from 30-70 to 60-40
+            if (Constants.rng.nextDouble() <
+                    Math.min((roundsWithoutEnemy+Constants.INIT_PROBABILITY_DEVELOP) / Constants.DEVELOP_BOT_PROB_SCALING,
+                            Constants.DEVELOP_BOT_PROBABILITY_CAP)){
+                spawnQueue.add(0);
             }
-            else {
+            else{
                 spawnQueue.add(1);
             }
         }
