@@ -39,6 +39,7 @@ public class Constants {
     public static final int DEV_LIFE_CYCLE_TURNS = 100;
     public static final int SRP_LIFE_CYCLE_TURNS = 100;
     public static final int ADV_LIFE_CYCLE_TURNS = 50;
+    public static final int MIN_PAINT_GIVE = 50;
 
     public static final Set<HashableCoords> primarySRP = Set.of(new HashableCoords(2,0),
             new HashableCoords(1,1),new HashableCoords(2,1),new HashableCoords(3,1),
