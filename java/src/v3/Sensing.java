@@ -248,12 +248,12 @@ public class Sensing {
             if (paint == null){
                 continue;
             }
-            if (!rc.senseRobotAtLocation(loc).getTeam().isPlayer()) {
-                currGrid[loc.x][loc.y] = -10;
+            if (rc.senseRobotAtLocation(loc) != null && !rc.senseRobotAtLocation(loc).getTeam().isPlayer()) {
+                currGrid[loc.x][loc.y] = -30;
             } else if (paint == PaintType.EMPTY) {
-                currGrid[loc.x][loc.y] = 1;
+                currGrid[loc.x][loc.y] = 0;
             } else if (paint.isEnemy()){
-                currGrid[loc.x][loc.y] = 2;
+                currGrid[loc.x][loc.y] = 1;
             } else if (paint.isAlly()){
                 currGrid[loc.x][loc.y] = -1;
             } else {
@@ -263,7 +263,7 @@ public class Sensing {
         MapInfo best = null;
         int bestScore = Integer.MIN_VALUE;
         for (MapInfo tile: nearbyTiles) {
-            if (rc.canSenseRobotAtLocation(tile.getMapLocation())) {
+            if (tile.isPassable() && rc.canAttack(tile.getMapLocation())) {
                 int score = ScoreSplash(rc, tile);
                 if (score > bestScore) {
                     bestScore = score;
@@ -272,7 +272,7 @@ public class Sensing {
             }
 
         }
-        if (bestScore <= 2){
+        if (bestScore <= 4){
             return null;
         }
         return best;

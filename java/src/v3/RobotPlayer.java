@@ -587,34 +587,29 @@ public class RobotPlayer {
             removePaint = null;
         }
         // splash assigned tile or move towards it
-        if (removePaint != null){
-            if (rc.canAttack(removePaint.getMapLocation()) && rc.isActionReady()){
-                rc.attack(removePaint.getMapLocation());
-                removePaint = null;
-            }  else if (enemies != null && rc.canAttack(enemies.getMapLocation())){
+
+            if (enemies != null && rc.canAttack(enemies.getMapLocation())){
                 rc.attack(enemies.getMapLocation());
+                return;
+
             }
-            else if (!rc.canAttack(removePaint.getMapLocation())){
+            else if (enemies != null){
+                return;
+            }
+            else if (removePaint != null) {
+                if (rc.canAttack(removePaint.getMapLocation())) {
+                    rc.attack(removePaint.getMapLocation());
+                    return;
+                }
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
-                if (dir != null){
+                if (rc.getActionCooldownTurns()  < 10 && dir != null){
                     rc.move(dir);
                 }
-            }
-            else{
                 return;
             }
             oppositeCorner = null;
-            return;
-        } else { //splash other tiles it sees but avoid overlap
-//            MapInfo enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
-//            System.out.println("BEFORE SORT " + Clock.getBytecodeNum());
-//            System.out.println("AFTER SORT " + Clock.getBytecodeNum());
-            if (enemies != null){
-                removePaint = enemies;
-                oppositeCorner = null;
-                return;
-            }
-        }
+            ;
+
 //        System.out.println("BEFORE PATH " + Clock.getBytecodeNum());
         Direction dir = Pathfinding.getUnstuck(rc);
 //        System.out.println("AFTER PATH " + Clock.getBytecodeNum());
