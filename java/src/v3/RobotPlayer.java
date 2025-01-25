@@ -46,7 +46,7 @@ public class RobotPlayer {
      */
     // Initialization Variables
     static int turnCount = 0;
-    static MapInfo[][] currGrid;
+    static int[][] currGrid;
     static ArrayList<MapLocation> last8 = new ArrayList<MapLocation>(); // Acts as queue
     static MapInfo lastTower = null;
     static SoldierType soldierType = SoldierType.ADVANCE;
@@ -112,7 +112,7 @@ public class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         // You can also use indicators to save debug notes in replays.
-        currGrid = new MapInfo[rc.getMapHeight()][rc.getMapWidth()];
+        currGrid = new int[rc.getMapWidth()][rc.getMapHeight()];
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
@@ -130,9 +130,9 @@ public class RobotPlayer {
                 // this into a different control structure!
 
                 // Updates the grid each robot can see
-                for (MapInfo mi : rc.senseNearbyMapInfos()) {
-                    currGrid[mi.getMapLocation().y][mi.getMapLocation().x] = mi;
-                }
+//                for (MapInfo mi : rc.senseNearbyMapInfos()) {
+//                    currGrid[mi.getMapLocation().y][mi.getMapLocation().x] = mi;
+//                }
 
                 botRoundNum += 1;
                 if (soldierMsgCooldown != -1) {
@@ -349,9 +349,11 @@ public class RobotPlayer {
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
+
                 if (numTurnsAlive > Constants.DEV_LIFE_CYCLE_TURNS && soldierState == SoldierState.STUCK) {
                     numTurnsAlive = 0;
                     soldierState = SoldierState.FILLINGSRP;
+
                     soldierType = SoldierType.SRP;
                     Soldier.resetVariables();
                 }
@@ -563,7 +565,7 @@ public class RobotPlayer {
         }
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
-        Helper.tryCompleteResourcePattern(rc);
+
         // Update last paint tower location
         if (lastTower == null) {
             Soldier.updateLastTower(rc);
@@ -576,6 +578,9 @@ public class RobotPlayer {
             Robot.lowPaintBehavior(rc);
             return;
         }
+
+        MapInfo enemies = Sensing.scoreSplasherTiles(rc);
+
         // Check to see if assigned tile is already filled in with our paint
         // Prevents splasher from painting already painted tiles
         if (removePaint != null && rc.canSenseLocation(removePaint.getMapLocation()) && rc.senseMapInfo(removePaint.getMapLocation()).getPaint().isAlly()){
@@ -586,6 +591,8 @@ public class RobotPlayer {
             if (rc.canAttack(removePaint.getMapLocation()) && rc.isActionReady()){
                 rc.attack(removePaint.getMapLocation());
                 removePaint = null;
+            }  else if (enemies != null && rc.canAttack(enemies.getMapLocation())){
+                rc.attack(enemies.getMapLocation());
             }
             else if (!rc.canAttack(removePaint.getMapLocation())){
                 Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
@@ -599,16 +606,18 @@ public class RobotPlayer {
             oppositeCorner = null;
             return;
         } else { //splash other tiles it sees but avoid overlap
-            MapInfo enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
+//            MapInfo enemies = Sensing.getNearByEnemiesSortedShuffled(rc);
+//            System.out.println("BEFORE SORT " + Clock.getBytecodeNum());
+//            System.out.println("AFTER SORT " + Clock.getBytecodeNum());
             if (enemies != null){
                 removePaint = enemies;
                 oppositeCorner = null;
                 return;
-            } else {
-                removePaint = fillEmpty;
             }
         }
+//        System.out.println("BEFORE PATH " + Clock.getBytecodeNum());
         Direction dir = Pathfinding.getUnstuck(rc);
+//        System.out.println("AFTER PATH " + Clock.getBytecodeNum());
         if (dir != null && rc.canMove(dir)){
             rc.move(dir);
         }
