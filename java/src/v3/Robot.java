@@ -25,6 +25,12 @@ public abstract class Robot {
         MapLocation towerLocation = lastTower.getMapLocation();
         Robot.completeRuinIfPossible(rc, towerLocation);
         int amtToTransfer = rc.getPaint()-rc.getType().paintCapacity;
+        if (rc.canSenseRobotAtLocation(towerLocation)){
+            int towerPaint = rc.senseRobotAtLocation(towerLocation).paintAmount;
+            if (rc.getPaint() < 5 && rc.canTransferPaint(towerLocation, -towerPaint) && towerPaint > Constants.MIN_PAINT_GIVE){
+                rc.transferPaint(towerLocation, -towerPaint);
+            }
+        }
         if (rc.canTransferPaint(towerLocation, amtToTransfer)) {
             rc.transferPaint(towerLocation, amtToTransfer);
         }
@@ -131,7 +137,7 @@ public abstract class Robot {
         }
     }
     /**
-     * Resets bug1 variables
+     * Resets pathfinding variables
      * Meant to be called when the robot has found else to do
      */
     public static void resetVariables() {
@@ -142,6 +148,7 @@ public abstract class Robot {
         stuckTurnCount = 0;
         closestPath = -1;
         fillTowerType = null;
-        numTurnsStuck = 0;
+        stoppedLocation = null;
+        tracingTurns = 0;
     }
 }

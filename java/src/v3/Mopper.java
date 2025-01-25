@@ -14,13 +14,13 @@ public class Mopper extends Robot{
             }
             if (Communication.isRobotInfo(bytes)) {
                 RobotInfo message = RobotInfoCodec.decode(bytes);
-                continue;
             } else {
                 MapInfo message = MapInfoCodec.decode(bytes);
                 if (message.getPaint().isEnemy()) {
                     MapLocation robotLoc = rc.getLocation();
                     if (RobotPlayer.removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(removePaint.getMapLocation())){
                         removePaint = message;
+                        Robot.resetVariables();
                     }
                 }
                 // If enemy tower, then go to enemy tower location
@@ -28,6 +28,7 @@ public class Mopper extends Robot{
                     MapLocation robotLoc = rc.getLocation();
                     if (removePaint == null || robotLoc.distanceSquaredTo(message.getMapLocation()) < robotLoc.distanceSquaredTo(removePaint.getMapLocation())){
                         removePaint = message;
+                        Robot.resetVariables();
                     }
                 }
             }
@@ -39,6 +40,7 @@ public class Mopper extends Robot{
         if (rc.canAttack(enemyLoc) && enemyPaint.getPaint().isEnemy()){
             rc.attack(enemyLoc);
             removePaint = null;
+            Robot.resetVariables();
         }
         else {
             Direction moveDir = Pathfinding.pathfind(rc, enemyLoc);

@@ -52,8 +52,12 @@ public abstract class Tower {
                     // towers. Additionally, spawn a splasher and a mopper
                     if (Sensing.isRobot(rc, message.getSenderID())){
                         broadcast = true;
-                        spawnQueue.add(4); //  Spawns a splasher
-                        spawnQueue.add(3); //  Spawns a mopper
+                        if (Constants.rng.nextDouble() <= 0.5) {
+                            spawnQueue.add(4); //  Spawns a splasher
+                        } else {
+
+                            spawnQueue.add(3); //  Spawns a mopper
+                        }
                         numEnemyVisits += 1; //   Increases probability of spawning a splasher
                     }
 

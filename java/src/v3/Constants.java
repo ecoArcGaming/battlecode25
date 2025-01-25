@@ -27,7 +27,7 @@ public class Constants {
             entry(PaintType.ENEMY_SECONDARY, -2)
     );
     public static final Random rng = new Random(3407);
-    public static final double PERCENT_COIN = 0.35;
+    public static final double PERCENT_COIN = 0.45;
     public static final int RESIGN_AFTER = 2005;
     public static final int lowPaintThreshold = 20;
     public static final double INIT_PROBABILITY_DEVELOP = 60;
@@ -36,9 +36,11 @@ public class Constants {
     public static final double DEVELOP_BOT_PROB_SCALING = 200;
     public static final double DEFENSE_RANGE = 0.3;
     public static final double SRP_DEV_BOT_SPLIT = 0.25;
-    public static final int DEV_LIFE_CYCLE_TURNS = 150;
-    public static final int SRP_LIFE_CYCLE_TURNS = 100;
-    public static final int ADV_LIFE_CYCLE_TURNS = 50;
+
+    public static final int DEV_LIFE_CYCLE_TURNS = 30;
+    public static final int SRP_LIFE_CYCLE_TURNS = 50;
+    public static final int MIN_PAINT_GIVE = 50;
+
 
     public static final Set<HashableCoords> primarySRP = Set.of(new HashableCoords(2,0),
             new HashableCoords(1,1),new HashableCoords(2,1),new HashableCoords(3,1),

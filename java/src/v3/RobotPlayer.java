@@ -3,6 +3,7 @@ package v3;
 import battlecode.common.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.collection.Map;
 
 import java.util.*;
 
@@ -60,7 +61,7 @@ public class RobotPlayer {
 
     static MapInfo fillEmpty = null;
     static int soldierMsgCooldown = -1;
-    static int numTurnsStuck = 0;
+    static int numTurnsAlive = 0; // Variable keeping track of how many turns alive for the soldier lifecycle
 
     // Key Soldier Location variables
     static MapInfo enemyTile = null; // location of an enemy paint/tower for a develop/advance robot to report
@@ -91,11 +92,13 @@ public class RobotPlayer {
     static boolean alertRobots = false;
     static boolean alertAttackSoldiers = false;
 
-    // Bug 1 Variables
+    // BugNav Variables
     static boolean isTracing = false;
     static int smallestDistance = 10000000;
     static MapLocation closestLocation = null;
     static Direction tracingDir = null;
+    static MapLocation stoppedLocation = null;
+    static int tracingTurns = 0;
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -115,6 +118,7 @@ public class RobotPlayer {
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
             // loop, we call Clock.yield(), signifying that we've done everything we want to do.
             turnCount += 1;  // We have now been alive for one more turn!
+            numTurnsAlive++;
             if (turnCount == Constants.RESIGN_AFTER) {
                 rc.resign();
             }
@@ -225,7 +229,7 @@ public class RobotPlayer {
                 }
             }
 
-            else if (rc.getMoney() > 1200 && rc.getPaint() > 400) {
+            else if (rc.getMoney() > 1200 && rc.getPaint() > 400 && spawnQueue.size() < 3) {
                 Tower.buildCompletelyRandom(rc);
             }
         }
@@ -294,8 +298,7 @@ public class RobotPlayer {
 
         switch (soldierType) {
             case SoldierType.BINLADEN: {
-                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-                if (rc.getRoundNum() >= (rc.getMapHeight() + rc.getMapWidth())/2 || nearbyRobots.length != 0) {
+                if (rc.getRoundNum() >= (rc.getMapHeight() + rc.getMapWidth())/2) {
                     soldierType = SoldierType.ADVANCE;
                     return;
                 }
@@ -346,8 +349,11 @@ public class RobotPlayer {
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
-                // after being alive for long enough, cycles into SRP bot if stuck
-                if (turnCount > Constants.DEV_LIFE_CYCLE_TURNS && SoldierState.STUCK == soldierState) {
+
+                if (numTurnsAlive > Constants.DEV_LIFE_CYCLE_TURNS && soldierState == SoldierState.STUCK) {
+                    numTurnsAlive = 0;
+                    soldierState = SoldierState.FILLINGSRP;
+
                     soldierType = SoldierType.SRP;
                     Soldier.resetVariables();
                 }
@@ -387,8 +393,6 @@ public class RobotPlayer {
                         if (Sensing.findPaintableTile(rc, rc.getLocation(), 20) != null) {
                             soldierState = SoldierState.EXPLORING;
                             Soldier.resetVariables();
-                        } else {
-                            numTurnsStuck++;
                         }
                         break;
                     }
@@ -399,11 +403,6 @@ public class RobotPlayer {
 
             case SoldierType.ADVANCE: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
-                // lifecycle moves to SRP
-                if (numTurnsStuck > Constants.ADV_LIFE_CYCLE_TURNS){
-                    soldierType = SoldierType.SRP;
-                    Soldier.resetVariables();
-                }
                 switch (soldierState) {
                     case SoldierState.LOWONPAINT: {
                         rc.setIndicatorString("LOWONPAINT");
@@ -440,7 +439,6 @@ public class RobotPlayer {
                     }
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
-                        numTurnsStuck++;
                         Soldier.stuckBehavior(rc);
 
                     }
@@ -496,9 +494,10 @@ public class RobotPlayer {
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
                 // if stuck for too long, become attack bot
-                if (numTurnsStuck > Constants.SRP_LIFE_CYCLE_TURNS){
+                if (numTurnsAlive > Constants.SRP_LIFE_CYCLE_TURNS && soldierState == SoldierState.STUCK){
                     soldierType = SoldierType.ADVANCE;
                     soldierState = SoldierState.EXPLORING;
+                    numTurnsAlive = 0;
                     Soldier.resetVariables();
                 }
                 switch (soldierState) {
@@ -538,13 +537,12 @@ public class RobotPlayer {
                     }
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
-                        numTurnsStuck++;
                         Soldier.stuckBehavior(rc);
                         for (MapInfo map: nearbyTiles) {
                             if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                                 Soldier.resetVariables();
                                 soldierState = SoldierState.FILLINGSRP;
-                                numTurnsStuck = 0;
+                                numTurnsAlive = 0;
                                 break;
                             }
                         }

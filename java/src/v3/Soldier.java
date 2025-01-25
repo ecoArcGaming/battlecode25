@@ -82,10 +82,8 @@ public class Soldier extends Robot {
                     enemyTower = tile;
                     soldierType = SoldierType.ATTACK;
                     Soldier.resetVariables();
-                } else {
-                    wanderTarget = tile.getMapLocation();
                 }
-
+                wanderTarget = tile.getMapLocation();
             }
         }
     }
@@ -168,13 +166,10 @@ public class Soldier extends Robot {
             }
         } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
             // Update enemy towers as necessary
-            enemyTower = updateEnemyTowers(rc, nearbyTiles);
-            if (enemyTower != null) {
-                intermediateTarget = null;
+            enemyTile = updateEnemyTowers(rc, nearbyTiles);
+            if (enemyTile != null) {
+                soldierType = SoldierType.ADVANCE;
                 Soldier.resetVariables();
-                storedState = soldierState;
-                soldierState = SoldierState.DELIVERINGMESSAGE;
-                return;
             }
             if (soldierState != SoldierState.FILLINGTOWER) {
                 MapInfo bestRuin = Sensing.findBestRuin(rc, curLocation, nearbyTiles);
@@ -208,7 +203,6 @@ public class Soldier extends Robot {
                     if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                         Soldier.resetVariables();
                         soldierState = SoldierState.FILLINGSRP;
-                        numTurnsStuck = 0;
                     }
                 }
             }
@@ -230,6 +224,7 @@ public class Soldier extends Robot {
                 soldierState = SoldierState.STUCK;
             }
             Soldier.resetVariables();
+            return;
         }
         Direction dir = Pathfinding.returnToTower(rc);
         if (dir != null){
@@ -282,7 +277,7 @@ public class Soldier extends Robot {
                     rc.attack(tile, ruinPattern[tileToPaint[0]+2][tileToPaint[1]+2] == PaintType.ALLY_SECONDARY);
             }
             // Move to the ruin
-            Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+            Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
             if (moveDir != null) {
                 rc.move(moveDir);
             }
@@ -326,7 +321,7 @@ public class Soldier extends Robot {
                             }
                             // Otherwise, pathfind towards location until can mark it
                             else{
-                                Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                                Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
                                 if (moveDir != null) {
                                     rc.move(moveDir);
                                 }
@@ -335,7 +330,7 @@ public class Soldier extends Robot {
                     }
                     // Otherwise, pathfind to ruin location since we can't sense the location of the ruin
                     else{
-                        Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                        Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
                         if (moveDir != null) {
                             rc.move(moveDir);
                         }
@@ -348,7 +343,7 @@ public class Soldier extends Robot {
             }
             // Otherwise, pathfind to the tower
             else{
-                Direction moveDir = Pathfinding.originalPathfind(rc, ruinLocation);
+                Direction moveDir = Pathfinding.pathfind(rc, ruinLocation);
                 if (moveDir != null) {
                     rc.move(moveDir);
                 }
