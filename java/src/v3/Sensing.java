@@ -241,7 +241,6 @@ public class Sensing {
     public static MapInfo scoreSplasherTiles(RobotController rc) throws GameActionException {
 
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-        HashMap<HashableCoords, Integer> nearbyMaps = new HashMap<>();
         // hash the tiles
         for (MapInfo tile: nearbyTiles) {
             MapLocation loc = tile.getMapLocation();
@@ -249,7 +248,9 @@ public class Sensing {
             if (paint == null){
                 continue;
             }
-            if (paint == PaintType.EMPTY) {
+            if (!rc.senseRobotAtLocation(loc).getTeam().isPlayer()) {
+                currGrid[loc.x][loc.y] = -10;
+            } else if (paint == PaintType.EMPTY) {
                 currGrid[loc.x][loc.y] = 1;
             } else if (paint.isEnemy()){
                 currGrid[loc.x][loc.y] = 2;
@@ -263,7 +264,7 @@ public class Sensing {
         int bestScore = Integer.MIN_VALUE;
         for (MapInfo tile: nearbyTiles) {
             if (rc.canSenseRobotAtLocation(tile.getMapLocation())) {
-                int score = ScoreSplash(rc, tile, nearbyMaps);
+                int score = ScoreSplash(rc, tile);
                 if (score > bestScore) {
                     bestScore = score;
                     best = tile;
@@ -278,7 +279,7 @@ public class Sensing {
     }
 
     // scores based on paintTypes of tiles within splasher radius
-    public static int ScoreSplash(RobotController rc,  MapInfo tile, HashMap<HashableCoords, Integer> map) throws GameActionException {
+    public static int ScoreSplash(RobotController rc,  MapInfo tile) throws GameActionException {
         int out = 0;
         MapLocation loc = tile.getMapLocation();
         int x = loc.x;
