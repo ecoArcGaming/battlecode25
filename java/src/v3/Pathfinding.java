@@ -196,8 +196,8 @@ public class Pathfinding {
     /**
      * How we choose exploration weights:
      * Check each of the 8 blocks around the robot
-     * +2 if block is closer to target than starting point
-     * +1 if block is equidistant to target than starting point
+     * +5 if block is closer to target than starting point
+     * +3 if block is equidistant to target than starting point
      * For each block, check the 3x3 area centered at that block
      * +1 for each unpainted tile (including ruins)
      * -4 for each tile with an ally robot (including towers)
@@ -222,9 +222,9 @@ public class Pathfinding {
                     score = Sensing.scoreTile(rc, possibleTarget);
                     int newDistance = possibleTarget.distanceSquaredTo(target);
                     if (curDistance > newDistance) {
-                        score += 2;
+                        score += 5;
                     } else if (curDistance == newDistance) {
-                        score += 1;
+                        score += 3;
                     }
                 }
                 if (minScore == -1 || score < minScore) {
@@ -319,26 +319,22 @@ public class Pathfinding {
             if(rc.canMove(dir)){
                 return dir;
             } else {
+                if (rc.canSenseRobotAtLocation(rc.getLocation().add(dir))) {
+                    if (Constants.rng.nextDouble() >= 0.8) {
+                        //treat robot as passable 20% of the time
+                        return null;
+                    }
+                }
                 isTracing = true;
                 tracingDir = dir;
                 stoppedLocation = rc.getLocation();
                 tracingTurns = 0;
             }
         } else {
-            if ((Helper.isBetween(rc.getLocation(), stoppedLocation, target) && !rc.getLocation().equals(stoppedLocation))
+            if ((Helper.isBetween(rc.getLocation(), stoppedLocation, target) && tracingTurns != 0)
                 || tracingTurns > 2*(rc.getMapWidth() + rc.getMapHeight())) {
-                // returned to closest location along perimeter of the obstacle
                 Soldier.resetVariables();
             } else {
-                // keep tracing
-
-                // update closestLocation and smallestDistance
-                int distToTarget = rc.getLocation().distanceSquaredTo(target);
-                if(distToTarget < smallestDistance){
-                    smallestDistance = distToTarget;
-                    closestLocation = rc.getLocation();
-                }
-
                 // go along perimeter of obstacle
                 if(rc.canMove(tracingDir)){
                     //move forward and try to turn right
@@ -426,7 +422,7 @@ public class Pathfinding {
     }
 
     public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException{
-        /*
+
         MapLocation curLocation = rc.getLocation();
         int dist = curLocation.distanceSquaredTo(target);
         if (dist == 0){
@@ -445,8 +441,8 @@ public class Pathfinding {
         } else {
             return bug1(rc, target);
         }
-        */
-        return bugidk(rc, target);
+
+        //return bugidk(rc, target);
     }
 
     public static Direction randomPaintedWalk(RobotController rc) throws GameActionException{

@@ -82,10 +82,8 @@ public class Soldier extends Robot {
                     enemyTower = tile;
                     soldierType = SoldierType.ATTACK;
                     Soldier.resetVariables();
-                } else {
-                    wanderTarget = tile.getMapLocation();
                 }
-
+                wanderTarget = tile.getMapLocation();
             }
         }
     }
@@ -168,13 +166,10 @@ public class Soldier extends Robot {
             }
         } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
             // Update enemy towers as necessary
-            enemyTower = updateEnemyTowers(rc, nearbyTiles);
-            if (enemyTower != null) {
-                intermediateTarget = null;
+            enemyTile = updateEnemyTowers(rc, nearbyTiles);
+            if (enemyTile != null) {
+                soldierType = SoldierType.ADVANCE;
                 Soldier.resetVariables();
-                storedState = soldierState;
-                soldierState = SoldierState.DELIVERINGMESSAGE;
-                return;
             }
             if (soldierState != SoldierState.FILLINGTOWER) {
                 MapInfo bestRuin = Sensing.findBestRuin(rc, curLocation, nearbyTiles);
@@ -208,7 +203,6 @@ public class Soldier extends Robot {
                     if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
                         Soldier.resetVariables();
                         soldierState = SoldierState.FILLINGSRP;
-                        numTurnsStuck = 0;
                     }
                 }
             }
