@@ -571,6 +571,12 @@ public class RobotPlayer {
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
 
+        if (lastTower != null && rc.canSenseLocation(lastTower.getMapLocation())){
+            if (!rc.canSenseRobotAtLocation(lastTower.getMapLocation())) {
+                lastTower = null;
+            }
+        }
+
         // Update last paint tower location
         if (lastTower == null) {
             Soldier.updateLastTower(rc);
@@ -688,11 +694,16 @@ public class RobotPlayer {
 //        }
 
         MapInfo[] all = rc.senseNearbyMapInfos();
-        // avoid enemy towers with highest priority
+        // avoid enemy towers with the highest priority
         for (MapInfo nearbyTile : all) {
             RobotInfo bot = rc.senseRobotAtLocation(nearbyTile.getMapLocation());
             if (bot != null && bot.getType().isTowerType() && !bot.getTeam().equals(rc.getTeam())){
-                Direction dir = rc.getLocation().directionTo(nearbyTile.getMapLocation()).opposite();
+                if (removePaint != null && removePaint.getMapLocation().distanceSquaredTo(bot.getLocation()) <= 9){
+                    removePaint = null; // ignore target in tower range
+                }
+
+                // move around the tower
+                Direction dir = rc.getLocation().directionTo(nearbyTile.getMapLocation()).rotateRight().rotateRight();
                 if (rc.canMove(dir)){
                     rc.move(dir);
                     return;
@@ -706,7 +717,7 @@ public class RobotPlayer {
         for (MapInfo tile: rc.senseNearbyMapInfos(2)) {
             RobotInfo bot = rc.senseRobotAtLocation(tile.getMapLocation());
             if (bot != null){
-                if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam())){
+                if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam()) && bot.getPaintAmount() > 0){
                     if (tile.getPaint().isEnemy() && rc.canAttack(tile.getMapLocation())){
                         System.out.println("ATTACKED TILE");
                         rc.attack(tile.getMapLocation());
