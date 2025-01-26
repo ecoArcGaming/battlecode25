@@ -155,5 +155,6 @@ public abstract class Robot {
         fillTowerType = null;
         stoppedLocation = null;
         tracingTurns = 0;
+        bug1Turns = 0;
     }
 }

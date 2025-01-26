@@ -99,6 +99,7 @@ public class RobotPlayer {
     static Direction tracingDir = null;
     static MapLocation stoppedLocation = null;
     static int tracingTurns = 0;
+    static int bug1Turns = 0;
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -326,7 +327,7 @@ public class RobotPlayer {
                     case SoldierState.EXPLORING: {
                         rc.setIndicatorString("EXPLORING");
                         if (wanderTarget != null) {
-                            Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget);
+                            Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget, false);
                             if (dir != null) {
                                 rc.move(dir);
                                 Soldier.paintIfPossible(rc, rc.getLocation());
@@ -426,7 +427,7 @@ public class RobotPlayer {
                     case SoldierState.EXPLORING: {
                         rc.setIndicatorString("EXPLORING");
                         if (wanderTarget != null) {
-                            Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget);
+                            Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget, false);
                             if (dir != null) {
                                 rc.move(dir);
                                 Soldier.paintIfPossible(rc, rc.getLocation());
@@ -618,7 +619,7 @@ public class RobotPlayer {
             ;
 
 //        System.out.println("BEFORE PATH " + Clock.getBytecodeNum());
-        Direction dir = Pathfinding.getUnstuck(rc);
+        Direction dir = Pathfinding.betterUnstuck(rc);
 //        System.out.println("AFTER PATH " + Clock.getBytecodeNum());
         if (dir != null && rc.canMove(dir)){
             rc.move(dir);

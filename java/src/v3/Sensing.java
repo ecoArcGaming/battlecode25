@@ -359,10 +359,13 @@ public class Sensing {
         return false;
     }
 
-    public static int scoreTile(RobotController rc, MapLocation tile) throws GameActionException {
+    public static int scoreTile(RobotController rc, MapLocation tile, boolean careAboutEnemy) throws GameActionException {
         MapInfo[] surroundingTiles = rc.senseNearbyMapInfos(tile, 2);
         int count = 30;
         for (MapInfo surroundingTile: surroundingTiles) {
+            if (surroundingTile.getPaint().isEnemy() && careAboutEnemy) {
+                count += 5;
+            }
             if (surroundingTile.getPaint() == PaintType.EMPTY && surroundingTile.isPassable()) {
                 count += 3;
             }

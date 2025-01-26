@@ -202,9 +202,11 @@ public class Pathfinding {
      * +3 for each paintable tile (including ruins)
      * -3 for each tile with an ally robot (including towers)
      *
+     * if careAboutEnemy = true, +5 for enemy paint
+     *
      * TODO: fine-tune parameters, perhaps introduce one for walls/impassible tiles/off the map
      */
-    public static Direction betterExplore(RobotController rc, MapLocation curLocation, MapLocation target) throws GameActionException {
+    public static Direction betterExplore(RobotController rc, MapLocation curLocation, MapLocation target, boolean careAboutEnemy) throws GameActionException {
         // Only update intermediate target locations when we have reached one already or if we don't have one at all);
         if (intermediateTarget == null || curLocation.equals(intermediateTarget) ||
                 (curLocation.isWithinDistanceSquared(intermediateTarget, 2))
@@ -219,7 +221,7 @@ public class Pathfinding {
                 int score = 0;
                 MapLocation possibleTarget = curLocation.translate(directions[i][0], directions[i][1]);
                 if (rc.onTheMap(possibleTarget)) {
-                    score = Sensing.scoreTile(rc, possibleTarget);
+                    score = Sensing.scoreTile(rc, possibleTarget, careAboutEnemy);
                     int newDistance = possibleTarget.distanceSquaredTo(target);
                     if (curDistance > newDistance) {
                         score += 20;
@@ -309,6 +311,25 @@ public class Pathfinding {
             return pathfind(rc, oppositeCorner);
         }
     }
+    public static Direction betterUnstuck(RobotController rc) throws GameActionException {
+        if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
+            int x = rc.getLocation().x;
+            int y = rc.getLocation().y;
+            int target_x, target_y;
+            if (x < rc.getMapWidth() / 2) {
+                target_x = rc.getMapWidth();
+            } else {
+                target_x = 0;
+            }
+            if (y < rc.getMapHeight() / 2) {
+                target_y = rc.getMapHeight();
+            } else {
+                target_y = 0;
+            }
+            oppositeCorner = new MapLocation(target_x, target_y);
+        }
+        return betterExplore(rc, rc.getLocation(), oppositeCorner, true);
+    }
     /**
      * bug(?) pathfinding algorithm
      */
@@ -375,6 +396,7 @@ public class Pathfinding {
             } else {
                 isTracing = true;
                 tracingDir = dir;
+                bug1Turns = 0;
             }
         } else{
             // tracing mode
@@ -382,7 +404,8 @@ public class Pathfinding {
             // need a stopping condition - this will be when we see the closestLocation again
             // TODO: 2 potential issues: 1. robot forces us to never get to closestLocation again
             //  2. robot doesn't move due to movement cooldowns and immediately thinks it rereached closestLocation
-            if (rc.getLocation().equals(closestLocation)){
+            if (rc.getLocation().equals(closestLocation) && bug1Turns != 0
+                    || bug1Turns > 2*(rc.getMapWidth() + rc.getMapHeight())){
                 // returned to closest location along perimeter of the obstacle
                 Soldier.resetVariables();
             } else {
@@ -401,6 +424,7 @@ public class Pathfinding {
                     Direction returnDir = tracingDir;
                     tracingDir = tracingDir.rotateRight();
                     tracingDir = tracingDir.rotateRight();
+                    bug1Turns++;
                     return returnDir;
                 }
                 else{
@@ -412,6 +436,7 @@ public class Pathfinding {
                             Direction returnDir = tracingDir;
                             tracingDir = tracingDir.rotateRight();
                             tracingDir = tracingDir.rotateRight();
+                            bug1Turns++;
                             return returnDir;
                         }
                     }
