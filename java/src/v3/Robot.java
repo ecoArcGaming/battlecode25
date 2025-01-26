@@ -116,6 +116,9 @@ public abstract class Robot {
      * Returns a random tower with a Constants.TOWER_SPLIT split and defense tower only if in range
      */
     public static UnitType genTowerType(RobotController rc, MapLocation ruinLocation) throws GameActionException {
+        if (rc.getNumberTowers() <= 3){
+            return UnitType.LEVEL_ONE_MONEY_TOWER;
+        }
         double probDefense = Math.min(1, (double)(rc.getNumberTowers())/(rc.getMapHeight()+rc.getMapWidth())*7);
         double probFromCenter = 1-2.5*(Math.abs(rc.getMapWidth() / 2 - ruinLocation.x) + Math.abs(rc.getMapHeight() / 2 - ruinLocation.y))/(rc.getMapHeight()+rc.getMapWidth());
         double haha = Constants.rng.nextDouble();
