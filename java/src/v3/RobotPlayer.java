@@ -570,6 +570,12 @@ public class RobotPlayer {
         // Read input messages for information on enemy tile location
         Splasher.receiveLastMessage(rc);
 
+        if (lastTower != null && rc.canSenseLocation(lastTower.getMapLocation())){
+            if (!rc.canSenseRobotAtLocation(lastTower.getMapLocation())) {
+                lastTower = null;
+            }
+        }
+
         // Update last paint tower location
         if (lastTower == null) {
             Soldier.updateLastTower(rc);
