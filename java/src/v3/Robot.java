@@ -14,7 +14,9 @@ public abstract class Robot {
         // If last tower is null, then just random walk on paint
         if (lastTower == null){
             Direction moveTo = Pathfinding.randomPaintedWalk(rc);
-            rc.move(moveTo);
+            if (moveTo != null && rc.canMove(moveTo)){
+                rc.move(moveTo);
+            }
             return;
         }
         Direction dir = Pathfinding.returnToTower(rc);
