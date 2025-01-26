@@ -15,6 +15,7 @@ public class Soldier extends Robot {
      * Method for soldier to do when low on paint
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
+
         Robot.lowPaintBehavior(rc);
         if (rc.getPaint() > Constants.lowPaintThreshold) {
             if (soldierState != storedState) {
@@ -27,7 +28,6 @@ public class Soldier extends Robot {
             Soldier.resetVariables();
         }
     }
-
     /**
      * Methods for soldiers painting, given a MapInfo and/or MapLocation
      * Paints when there is no paint or if allied paint is incorrect
