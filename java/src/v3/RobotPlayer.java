@@ -598,8 +598,10 @@ public class RobotPlayer {
 
             }
             else if (enemies != null){
+                removePaint = enemies;
                 return;
             }
+
             else if (removePaint != null) {
                 if (rc.canAttack(removePaint.getMapLocation())) {
                     rc.attack(removePaint.getMapLocation());
