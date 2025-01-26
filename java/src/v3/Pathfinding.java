@@ -199,7 +199,7 @@ public class Pathfinding {
      * +20 if block is closer to target than starting point
      * +10 if block is equidistant to target than starting point
      * For each block, check the 3x3 area centered at that block
-     * +3 for each unpainted tile (including ruins)
+     * +3 for each paintable tile (including ruins)
      * -3 for each tile with an ally robot (including towers)
      *
      * TODO: fine-tune parameters, perhaps introduce one for walls/impassible tiles/off the map
