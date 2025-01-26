@@ -598,7 +598,9 @@ public class RobotPlayer {
 
             }
             else if (enemies != null){
-                removePaint = enemies;
+                if (removePaint == null){
+                    removePaint = enemies;
+                }
                 return;
             }
 
