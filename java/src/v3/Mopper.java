@@ -50,6 +50,30 @@ public class Mopper extends Robot{
         }
     }
 
+    public static MapLocation MopperScoring(RobotController rc) throws GameActionException {
+        MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
+        MapLocation best = null;
+        int bestScore = Integer.MIN_VALUE;
+        for (MapInfo map: nearbyTiles) {
+            int curr = 0;
+            RobotInfo bot = rc.senseRobotAtLocation(map.getMapLocation());
+            if (bot != null){
+                if (!bot.getTeam().isPlayer()){
+                    if (bot.type.isRobotType()){
+                        curr += 100;
+                    }
+                    if (bot.type.isTowerType()){
+                        curr -= 100;
+                    }
+                }
+            }
+            if (curr > bestScore){
+                best = map.getMapLocation();
+                bestScore = curr;
+            }
+        }
+        return best;
+    }
     /**
     swing if there is enemy bots nearby, do nothing otherwise
      **/

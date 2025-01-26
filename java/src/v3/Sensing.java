@@ -248,16 +248,18 @@ public class Sensing {
             if (paint == null){
                 continue;
             }
-            if (rc.senseRobotAtLocation(loc) != null && !rc.senseRobotAtLocation(loc).getTeam().isPlayer()) {
+
+            if (rc.senseRobotAtLocation(loc) != null && !rc.senseRobotAtLocation(loc).getTeam().isPlayer() && rc.senseRobotAtLocation(loc).getType().isTowerType()) {
                 currGrid[loc.x][loc.y] = -30;
-            } else if (paint == PaintType.EMPTY) {
+            }
+            else if (paint == PaintType.EMPTY && tile.isPassable()) {
                 currGrid[loc.x][loc.y] = 0;
             } else if (paint.isEnemy()){
                 currGrid[loc.x][loc.y] = 1;
             } else if (paint.isAlly()){
                 currGrid[loc.x][loc.y] = -1;
             } else {
-                currGrid[loc.x][loc.y] = 0;
+                currGrid[loc.x][loc.y] = -1;
             }
         }
         MapInfo best = null;
@@ -272,7 +274,7 @@ public class Sensing {
             }
 
         }
-        if (bestScore <= 4){
+        if (bestScore < 0){
             return null;
         }
         return best;
