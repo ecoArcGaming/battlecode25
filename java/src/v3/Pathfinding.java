@@ -312,6 +312,7 @@ public class Pathfinding {
         }
     }
     public static Direction betterUnstuck(RobotController rc) throws GameActionException {
+        rc.setIndicatorString("GETTING UNSTUCK");
         if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
             int x = rc.getLocation().x;
             int y = rc.getLocation().y;
