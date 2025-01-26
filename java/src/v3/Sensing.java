@@ -274,7 +274,7 @@ public class Sensing {
             }
 
         }
-        if (bestScore < 0){
+        if (bestScore < -2){
             return null;
         }
         return best;
