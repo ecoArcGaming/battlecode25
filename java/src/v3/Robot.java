@@ -12,6 +12,14 @@ public abstract class Robot {
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
         // If last tower is null, then just random walk on paint
+        for (RobotInfo enemyRobot : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
+            if (enemyRobot.getType().isTowerType()) {
+                if (rc.canAttack(enemyRobot.getLocation())) {
+                    rc.attack(enemyRobot.getLocation());
+                    break;
+                }
+            }
+        }
         if (lastTower == null){
             Direction moveTo = Pathfinding.randomPaintedWalk(rc);
             if (moveTo != null && rc.canMove(moveTo)){

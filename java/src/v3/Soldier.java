@@ -208,6 +208,14 @@ public class Soldier extends Robot {
      * Pathfinds towards the last known paint tower and try to message it
      */
     public static void msgTower(RobotController rc) throws GameActionException {
+        for (RobotInfo enemyRobot : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
+            if (enemyRobot.getType().isTowerType()) {
+                if (rc.canAttack(enemyRobot.getLocation())) {
+                    rc.attack(enemyRobot.getLocation());
+                    break;
+                }
+            }
+        }
         MapLocation towerLocation = lastTower.getMapLocation();
         if (rc.canSenseRobotAtLocation(towerLocation) && rc.canSendMessage(towerLocation)) {
             Communication.sendMapInformation(rc, enemyTile, towerLocation);

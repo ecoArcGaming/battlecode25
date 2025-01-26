@@ -84,7 +84,7 @@ public abstract class Tower {
      * Builds an advance/develop soldier, weighted by how long it has been since the tower last saw a robot
      */
     public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
-        if (Constants.rng.nextDouble() < numEnemyVisits*0.2 || Constants.rng.nextDouble() < roundsWithoutEnemy/Constants.SPLASHER_SPAWN_CUTOFF) {
+        if (Constants.rng.nextDouble() < numEnemyVisits*0.2) {
             spawnQueue.add(4);
             numEnemyVisits = 0;
         } else {

@@ -719,7 +719,6 @@ public class RobotPlayer {
             if (bot != null){
                 if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam()) && bot.getPaintAmount() > 0){
                     if (tile.getPaint().isEnemy() && rc.canAttack(tile.getMapLocation())){
-                        System.out.println("ATTACKED TILE");
                         rc.attack(tile.getMapLocation());
 
                     }
@@ -727,14 +726,12 @@ public class RobotPlayer {
                     switch (dir){
                         case Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST:
                             if (rc.canMopSwing(dir)){
-                                System.out.println("SWUNG TILE");
                                 rc.mopSwing(dir);
                                 oppositeCorner = null;
 
                             }
                         default:
                             if (rc.canMopSwing(dir.rotateRight())){
-                                System.out.println("SWUNG TILE");
                                 rc.mopSwing(dir.rotateRight());
                                 oppositeCorner = null;
                             }
@@ -758,7 +755,6 @@ public class RobotPlayer {
                 if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam())){
                     Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
                     if (dir != null){
-                        System.out.println("MOVED TO BOT");
                         oppositeCorner = null;
                         rc.move(dir);
                     }
@@ -776,7 +772,6 @@ public class RobotPlayer {
         if (currPaint != null ){
             if (rc.canAttack(currPaint)){
                 oppositeCorner = null;
-                System.out.println("ATTACK PAINT");
                 rc.attack(currPaint);
             } else if (rc.isActionReady()){
                 Direction dir = Pathfinding.pathfind(rc, currPaint);
