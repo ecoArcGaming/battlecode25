@@ -17,6 +17,9 @@ public class Communication {
      * Send Map information to targetLoc
      */
     public static void sendMapInformation(RobotController rc, MapInfo mapInfo, MapLocation targetLoc) throws GameActionException {
+        if (mapInfo == null) {
+            return;
+        }
         int encodedInfo = MapInfoCodec.encode(mapInfo);
         if (rc.canSendMessage(targetLoc, encodedInfo)) {
             rc.sendMessage(targetLoc, encodedInfo);
