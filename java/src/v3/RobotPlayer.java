@@ -207,7 +207,9 @@ public class RobotPlayer {
             if (!rc.getLocation().isWithinDistanceSquared(center, 150)) {
                 rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
             } else {
-                rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(spawnDirection.rotateRight()));
+                rc.buildRobot(UnitType.MOPPER, rc.getLocation().add(spawnDirection.rotateRight()));
+                if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER || rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER)
+                    spawnQueue.add(3);
             }
         } else {
             if (broadcast){
@@ -221,7 +223,7 @@ public class RobotPlayer {
             }
 
             // Otherwise, if the spawn queue isn't empty, spawn the required unit
-            else if (!spawnQueue.isEmpty() && rc.getMoney() > 400 && rc.getPaint() > 300) {
+            else if (!spawnQueue.isEmpty() && (rc.getMoney() > 400 || (rc.getType() != UnitType.LEVEL_ONE_PAINT_TOWER && rc.getType() != UnitType.LEVEL_TWO_PAINT_TOWER && rc.getType() != UnitType.LEVEL_THREE_PAINT_TOWER))) {
                 switch (spawnQueue.getFirst()) {
                     case 0, 1, 2:
                         Tower.createSoldier(rc);
@@ -718,22 +720,18 @@ public class RobotPlayer {
             if (bot != null){
                 if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam()) && bot.getPaintAmount() > 0){
                     if (tile.getPaint().isEnemy() && rc.canAttack(tile.getMapLocation())){
-                        System.out.println("ATTACKED TILE");
                         rc.attack(tile.getMapLocation());
-
                     }
                     Direction dir = rc.getLocation().directionTo(bot.location);
                     switch (dir){
                         case Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST:
                             if (rc.canMopSwing(dir)){
-                                System.out.println("SWUNG TILE");
                                 rc.mopSwing(dir);
                                 oppositeCorner = null;
 
                             }
                         default:
                             if (rc.canMopSwing(dir.rotateRight())){
-                                System.out.println("SWUNG TILE");
                                 rc.mopSwing(dir.rotateRight());
                                 oppositeCorner = null;
                             }
@@ -757,7 +755,6 @@ public class RobotPlayer {
                 if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam())){
                     Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
                     if (dir != null){
-                        System.out.println("MOVED TO BOT");
                         oppositeCorner = null;
                         rc.move(dir);
                     }
@@ -775,8 +772,8 @@ public class RobotPlayer {
         if (currPaint != null ){
             if (rc.canAttack(currPaint)){
                 oppositeCorner = null;
-                System.out.println("ATTACK PAINT");
                 rc.attack(currPaint);
+                return;
             } else if (rc.isActionReady()){
                 Direction dir = Pathfinding.pathfind(rc, currPaint);
                 if (dir != null){
@@ -784,6 +781,7 @@ public class RobotPlayer {
                     rc.move(dir);
                 }
             }
+            return;
         }
         // Path to opposite corner if we can't find enemy paint, lowest priority
         if (removePaint != null){

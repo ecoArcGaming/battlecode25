@@ -31,8 +31,8 @@ public abstract class Tower {
                     if (Sensing.isRobot(rc, message.getSenderID())){
                         RobotPlayer.broadcast = true;
                         RobotPlayer.alertAttackSoldiers = true;
-                        spawnQueue.add(4); //  Spawns a splasher
                         spawnQueue.add(3); //  Spawns a mopper
+                        spawnQueue.add(4); //  Spawns a splasher
                         RobotPlayer.numEnemyVisits += 1; //   Increases probability of spawning a splasher
                     }
 

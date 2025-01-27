@@ -447,6 +447,9 @@ public class Pathfinding {
 
     public static Direction randomPaintedWalk(RobotController rc) throws GameActionException{
         List<MapInfo> allDirections = Sensing.getMovablePaintedTiles(rc);
+        if (allDirections.isEmpty()){
+            return null;
+        }
         Direction dir = rc.getLocation().directionTo(allDirections.get((int) (Math.random() * allDirections.size())).getMapLocation());
         if (rc.canMove(dir)) {
             return dir;
