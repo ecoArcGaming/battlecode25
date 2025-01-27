@@ -83,11 +83,13 @@ public abstract class Tower {
     /**
      * Builds an advance/develop soldier, weighted by how long it has been since the tower last saw a robot
      */
-    public static void buildCompletelyRandom(RobotController rc) throws GameActionException {
-        if (Constants.rng.nextDouble() < numEnemyVisits*0.2) {
+    public static void addRandomToQueue(RobotController rc) throws GameActionException {
+        if (Constants.rng.nextDouble() < numEnemyVisits*0.2
+                || (numSoldiersSpawned > Constants.SPLASHER_CUTOFF && Constants.rng.nextDouble() < 0.8)) {
             spawnQueue.add(4);
             numEnemyVisits = 0;
         } else {
+            numSoldiersSpawned++;
             // odds of explore robot increases linearly from 30-70 to 60-40
             if (Constants.rng.nextDouble() <
                     Math.min((roundsWithoutEnemy+Constants.INIT_PROBABILITY_DEVELOP) / Constants.DEVELOP_BOT_PROB_SCALING,

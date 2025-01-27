@@ -81,6 +81,7 @@ public class RobotPlayer {
     static Direction spawnDirection = null;
     static int numEnemyVisits = 0;
     static int roundsWithoutEnemy = 0;
+    static int numSoldiersSpawned = 0;
 
     // Navigation Variables
     static MapLocation oppositeCorner = null;
@@ -235,7 +236,7 @@ public class RobotPlayer {
                         break;
                 }
             } else if (rc.getMoney() > 1200 && rc.getPaint() > 200 && spawnQueue.size() < 3) {
-                Tower.buildCompletelyRandom(rc);
+                Tower.addRandomToQueue(rc);
             }
         }
         if (enemyTarget != null && alertRobots) {

@@ -36,6 +36,7 @@ public class Constants {
     public static final double DEVELOP_BOT_PROB_SCALING = 200;
     public static final double DEFENSE_RANGE = 0.3;
     public static final double SRP_DEV_BOT_SPLIT = 0.25;
+    public static final int SPLASHER_CUTOFF = 8; // num soldiers spawned before splashers come online
 
     public static final int DEV_LIFE_CYCLE_TURNS = 30;
     public static final int SRP_LIFE_CYCLE_TURNS = 50;
