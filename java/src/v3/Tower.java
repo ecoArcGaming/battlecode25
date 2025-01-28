@@ -235,4 +235,16 @@ public abstract class Tower {
     public static boolean isAttackType(RobotController rc, RobotInfo bot) throws GameActionException {
         return bot.getType() == UnitType.MOPPER || bot.getType() == UnitType.SPLASHER || (bot.getType() == UnitType.SOLDIER && alertAttackSoldiers);
     }
+
+
+    public static int countEnemyPaint(RobotController rc) throws GameActionException {
+        int out = 0;
+        for (MapInfo map: rc.senseNearbyMapInfos()){
+            if (map.getPaint().isEnemy()){
+                out ++;
+            }
+
+        }
+        return out;
+    }
 }
