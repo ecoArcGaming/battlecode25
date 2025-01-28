@@ -64,8 +64,12 @@ public class Soldier extends Robot {
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {
                     case 0:
-                        if (Constants.rng.nextDouble() <= Constants.DEV_SRP_BOT_SPLIT) {
+                        if (Constants.rng.nextDouble() <= Constants.DEV_SRP_BOT_SPLIT ||
+                                (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT)) {
                             soldierType = SoldierType.DEVELOP;
+                        } else {
+                            soldierType = SoldierType.SRP;
+                            soldierState = SoldierState.FILLINGSRP;
                         }
                         break;
                     case 1:
@@ -254,6 +258,9 @@ public class Soldier extends Robot {
             boolean srpComplete = true;
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
+                    if (!rc.onTheMap(rc.getLocation().translate(i - 2, j - 2))) {
+                        continue;
+                    }
                     MapInfo srpLoc = rc.senseMapInfo(rc.getLocation().translate(i - 2, j - 2));
                     boolean isPrimary = Constants.primarySRP.contains(new HashableCoords(i, j));
                     if ((srpLoc.getPaint() == PaintType.ALLY_PRIMARY && isPrimary) || (srpLoc.getPaint() == PaintType.ALLY_SECONDARY && !isPrimary)){

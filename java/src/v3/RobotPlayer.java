@@ -173,7 +173,6 @@ public class RobotPlayer {
                 }
                 if (roundNum != rc.getRoundNum()) {
                     System.out.println("I WENT OVER BYTECODE LIMIT BRUH");
-                    //rc.resign();
                 }
                 // Update the last eight locations list
                 if (last8.size() < 16) {
@@ -553,12 +552,12 @@ public class RobotPlayer {
                         break;
                     }
                     case SoldierState.FILLINGSRP: {
+                        rc.setIndicatorString("FILLING SRP");
                         if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT) {
                             Soldier.fillSRP(rc);
                         } else {
                             // if a nearby allied tile mismatches the SRP grid, paint over it
                             boolean hasPainted = false;
-                            rc.setIndicatorString("FILLING SRP");
                             if (rc.getActionCooldownTurns() < 10) {
                                 for (MapInfo attackableTile : rc.senseNearbyMapInfos(20)) {
                                     MapLocation nearbyLocation = attackableTile.getMapLocation();
@@ -624,7 +623,13 @@ public class RobotPlayer {
                             boolean turnToSRP = true;
                             boolean allSame = true;
                             for (int i = 0; i < 5; i++) {
+                                boolean tempBreak = false;
                                 for (int j = 0; j < 5; j++) {
+                                    if (!rc.onTheMap(rc.getLocation().translate(i - 2, j - 2))) {
+                                        tempBreak = true;
+                                        turnToSRP = false;
+                                        break;
+                                    }
                                     MapInfo srpLoc = rc.senseMapInfo(rc.getLocation().translate(i - 2, j - 2));
                                     if (srpLoc.hasRuin() || srpLoc.getPaint().isEnemy()) {
                                         turnToSRP = false;
@@ -634,6 +639,9 @@ public class RobotPlayer {
                                     if ((srpLoc.getPaint() == PaintType.ALLY_PRIMARY && isPrimary) || (srpLoc.getPaint() == PaintType.ALLY_SECONDARY && !isPrimary)) {
                                         allSame = false;
                                     }
+                                }
+                                if (tempBreak) {
+                                    break;
                                 }
                             }
                             if (turnToSRP && !allSame){
