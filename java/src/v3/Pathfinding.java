@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import static v3.RobotPlayer.*;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -267,6 +268,9 @@ public class Pathfinding {
         if (intermediateTarget == null) {
             return null;
         }
+        if(prevIntermediate != null && prevIntermediate != intermediateTarget) {
+            stuckTurnCount = 0;
+        }
         Direction moveDir = Pathfinding.pathfind(rc, intermediateTarget);
         if (moveDir != null) {
             return moveDir;
@@ -319,10 +323,10 @@ public class Pathfinding {
     }
     public static Direction betterUnstuck(RobotController rc) throws GameActionException {
         rc.setIndicatorString("GETTING UNSTUCK " + oppositeCorner);
+        prevIntermediate = intermediateTarget;
         intermediateTarget = null;
         if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
             double corner = Constants.rng.nextDouble();
-            System.out.println(corner);
             int x = rc.getLocation().x;
             int y = rc.getLocation().y;
             int target_x = 0, target_y = 0;
@@ -344,8 +348,9 @@ public class Pathfinding {
             }
             oppositeCorner = new MapLocation(target_x, target_y);
         }
-        return betterExplore(rc, rc.getLocation(), oppositeCorner, true);
+        return pathfind(rc, oppositeCorner);
     }
+
     /**
      * bug(?) pathfinding algorithm
      */
@@ -482,9 +487,11 @@ public class Pathfinding {
             // If robot has made it across the wall to the other side
             // Then, just pathfind to the place we are going to
             if (rc.getLocation().distanceSquaredTo(acrossWall) == 0){
-                acrossWall = null;
-                inBugNav = false;
-                closestPath = -1;
+                Soldier.resetVariables();
+//                acrossWall = null;
+//                inBugNav = false;
+//                closestPath = -1;
+//                tracingDir = null;
                 return null;
             }
             // Otherwise, just call bugnav
