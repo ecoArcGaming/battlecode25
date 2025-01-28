@@ -664,7 +664,7 @@ public class RobotPlayer {
         // move perpendicular to enemy towers if any exists in range
         for (RobotInfo bot: rc.senseNearbyRobots()){
             if (bot.getType().isTowerType() && !bot.getTeam().equals(rc.getTeam())){
-                Direction dir = rc.getLocation().directionTo(bot.getLocation()).rotateRight().rotateLeft();
+                Direction dir = rc.getLocation().directionTo(bot.getLocation()).rotateRight().rotateRight().rotateRight();
                 if (rc.canMove(dir)) {
                     rc.move(dir);
                 }
@@ -812,13 +812,13 @@ public class RobotPlayer {
                     if (enemyDir != null){
                         oppositeCorner = null;
                         rc.move(enemyDir);
-                        return;
+                        break;
                     }
                 }
             }
         }
         // attack nearest paint if exists with lower priority
-        if (currPaint != null ){
+        if (currPaint != null){
             if (rc.canAttack(currPaint)){
                 oppositeCorner = null;
                 rc.attack(currPaint);
@@ -828,6 +828,9 @@ public class RobotPlayer {
                 if (dir != null){
                     oppositeCorner = null;
                     rc.move(dir);
+                    if (rc.canAttack(currPaint)){
+                        rc.attack(currPaint);
+                    }
                 }
             }
             return;
