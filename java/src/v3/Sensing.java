@@ -263,7 +263,7 @@ public class Sensing {
             }
         }
         MapInfo best = null;
-        int bestScore = Integer.MIN_VALUE;
+        int bestScore = -3;
         for (MapInfo tile: nearbyTiles) {
             if (tile.isPassable() && rc.canAttack(tile.getMapLocation())) {
                 int score = ScoreSplash(rc, tile);
@@ -274,9 +274,47 @@ public class Sensing {
             }
 
         }
-        if (bestScore < -2){
-            return null;
+        if (best == null) {
+
+            int x = rc.getLocation().x;
+            int y = rc.getLocation().y;
+            if (y + 4 < rc.getMapHeight()) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(0,4));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
+            if (x + 4 < rc.getMapWidth()) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(4,0));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
+            if (y - 4 > -1) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(0,-4));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
+            if (x - 4 > -1) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(-4,0));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
         }
+//        if (bestScore < -2){
+//
+//            return null;
+//        }
         return best;
     }
 

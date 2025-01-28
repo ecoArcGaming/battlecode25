@@ -639,6 +639,11 @@ public class RobotPlayer {
                 if (removePaint == null){
                     removePaint = enemies;
                 }
+
+                Direction dir = Pathfinding.pathfind(rc, enemies.getMapLocation());
+                if (dir != null){
+                    rc.move(dir);
+                }
                 return;
             }
 
