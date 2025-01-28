@@ -64,7 +64,9 @@ public class Soldier extends Robot {
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {
                     case 0:
-                        soldierType = SoldierType.DEVELOP;
+                        if (Constants.rng.nextDouble() <= Constants.DEV_SRP_BOT_SPLIT) {
+                            soldierType = SoldierType.DEVELOP;
+                        }
                         break;
                     case 1:
                         soldierType = SoldierType.ADVANCE;
@@ -196,7 +198,13 @@ public class Soldier extends Robot {
         }
     }
     public static void updateSRPState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
+        if (rc.getLocation().equals(SRPLocation)) {
+            SRPLocation = null;
+        }
         if (soldierState != SoldierState.LOWONPAINT && Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
+            if (soldierState != SoldierState.STUCK) {
+                SRPLocation = rc.getLocation();
+            }
             Soldier.resetVariables();
             storedState = soldierState;
             soldierState = SoldierState.LOWONPAINT;
@@ -450,7 +458,7 @@ public class Soldier extends Robot {
     public static void stuckBehavior(RobotController rc) throws GameActionException {
         Direction newDir;
         if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.SRP){
-            newDir = Pathfinding.randomWalk(rc);
+            newDir = Pathfinding.findOwnCorner(rc);
         }
         else{
             newDir = Pathfinding.getUnstuck(rc);

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.collection.Map;
 
+import java.awt.*;
 import java.util.*;
 
 /**
@@ -74,6 +75,7 @@ public class RobotPlayer {
     static UnitType fillTowerType = null;
     static MapLocation intermediateTarget = null; // used to record short-term robot targets
     static MapLocation prevIntermediate = null; //Copy of intermediate target
+    static MapLocation SRPLocation = null; // location of SRP robot before it went to get more paint
 
     // Enemy Info variables
     static MapInfo enemyTarget = null; // location of enemy tower/tile for tower to tell
@@ -109,6 +111,9 @@ public class RobotPlayer {
     // Splasher State Variables
     static boolean isLowPaint = false;
     static MapInfo prevLocInfo = null;
+
+    // Bytecode Tracker
+    static int roundNum = 0;
 
     // Filling SRP State
     static MapLocation srpCenter = null;
@@ -146,7 +151,7 @@ public class RobotPlayer {
 //                for (MapInfo mi : rc.senseNearbyMapInfos()) {
 //                    currGrid[mi.getMapLocation().y][mi.getMapLocation().x] = mi;
 //                }
-
+                roundNum = rc.getRoundNum();
                 botRoundNum += 1;
                 if (soldierMsgCooldown != -1) {
                     soldierMsgCooldown--;
@@ -166,7 +171,10 @@ public class RobotPlayer {
                         runTower(rc);
                         break;
                 }
-
+                if (roundNum != rc.getRoundNum()) {
+                    System.out.println("I WENT OVER BYTECODE LIMIT BRUH");
+                    //rc.resign();
+                }
                 // Update the last eight locations list
                 if (last8.size() < 16) {
                     last8.add(rc.getLocation());
@@ -547,43 +555,65 @@ public class RobotPlayer {
                     case SoldierState.FILLINGSRP: {
                         if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT){
                             Soldier.fillSRP(rc);
-                        }
-                        else {
+                        } else {
                             // if a nearby allied tile mismatches the SRP grid, paint over it
                             boolean hasPainted = false;
                             rc.setIndicatorString("FILLING SRP");
-                            for (MapInfo nearbyTile : nearbyTiles) {
-                                MapLocation nearbyLocation = nearbyTile.getMapLocation();
-                                PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
-                                if (nearbyTile.getPaint().isAlly() &&
-                                        !paint.equals(nearbyTile.getPaint())) {
-                                    Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
-                                    if (rc.canAttack(nearbyLocation)) {
-                                        rc.attack(nearbyLocation, (paint == PaintType.ALLY_SECONDARY));
-                                        hasPainted = true;
-                                        break;
-                                    } else if (dir != null) {
-                                        if (rc.canMove(dir)) {
-                                            rc.move(dir);
+                            if (rc.getActionCooldownTurns() < 10) {
+                                for (MapInfo attackableTile : rc.senseNearbyMapInfos(20)) {
+                                    MapLocation nearbyLocation = attackableTile.getMapLocation();
+                                    PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
+                                    if (attackableTile.getPaint() == PaintType.EMPTY && attackableTile.isPassable() ||
+                                            attackableTile.getPaint().isAlly() && !paint.equals(attackableTile.getPaint())) {
+                                        if (rc.canAttack(nearbyLocation)) {
+                                            rc.attack(nearbyLocation, (paint == PaintType.ALLY_SECONDARY));
                                             hasPainted = true;
                                             break;
                                         }
                                     }
                                 }
                             }
-                            // stuck if nothing to paint
                             if (!hasPainted) {
-                                soldierState = SoldierState.STUCK;
+                                MapLocation curLocation = rc.getLocation();
+                                for (MapInfo nearbyTile : nearbyTiles) {
+                                    if (curLocation.isWithinDistanceSquared(nearbyTile.getMapLocation(), 20)) {
+                                        continue;
+                                    }
+                                    MapLocation nearbyLocation = nearbyTile.getMapLocation();
+                                    PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
+                                    if (nearbyTile.getPaint() == PaintType.EMPTY && nearbyTile.isPassable()||
+                                            nearbyTile.getPaint().isAlly() && !paint.equals(nearbyTile.getPaint())) {
+                                        Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
+                                        if (dir != null && rc.canMove(dir)) {
+                                            rc.move(dir);
+                                            hasPainted = true;
+                                        }
+                                        break;
+                                    }
+                                }
                             }
+                            if (SRPLocation != null) {
+                                Direction dir = Pathfinding.pathfind(rc, SRPLocation);
+                                if (dir != null && rc.canMove(dir)) {
+                                    rc.move(dir);
+                                }
+                            } else {
+                                // stuck if nothing to do
+                                if (!hasPainted) {
+                                    soldierState = SoldierState.STUCK;
+                                }
+                            }
+                            break;
                         }
-                        break;
                     }
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
                         Soldier.stuckBehavior(rc);
                         if (!(rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT)) {
-                            for (MapInfo map : nearbyTiles) {
-                                if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))) {
+                            for (MapInfo nearbyTile: nearbyTiles) {
+                                PaintType paint = Helper.resourcePatternType(rc, nearbyTile.getMapLocation());
+                                if (nearbyTile.getPaint() == PaintType.EMPTY && nearbyTile.isPassable()||
+                                        nearbyTile.getPaint().isAlly() && !paint.equals(nearbyTile.getPaint())) {
                                     Soldier.resetVariables();
                                     soldierState = SoldierState.FILLINGSRP;
                                     numTurnsAlive = 0;
