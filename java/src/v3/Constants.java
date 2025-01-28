@@ -38,7 +38,7 @@ public class Constants {
     public static final int SPLASHER_CUTOFF = 8; // num soldiers spawned before splashers spawn with below variable chance
     public static final double SPLASHER_SOLDIER_SPLIT = 0.5;
     public static final int LOW_PAINT_MONEY_THRESHOLD = 5000;
-    public static final double DEV_SRP_BOT_SPLIT = 0.5;
+    public static final double DEV_SRP_BOT_SPLIT = 0.8;
 
     public static final int DEV_LIFE_CYCLE_TURNS = 30;
     public static final int SRP_LIFE_CYCLE_TURNS = 30;
