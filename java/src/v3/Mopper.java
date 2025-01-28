@@ -4,6 +4,8 @@ import static v3.RobotPlayer.*;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
+
 public class Mopper extends Robot{
     public static void receiveLastMessage(RobotController rc) throws GameActionException {
         for(Message msg: rc.readMessages(-1)) {
@@ -140,5 +142,22 @@ public class Mopper extends Robot{
                 rc.mopSwing(Direction.WEST);
             }
         }
+    }
+
+    public static Direction mopperWalk(RobotController rc) throws GameActionException {
+        ArrayList<MapInfo> safe = new ArrayList<MapInfo>();
+
+        for (MapInfo map: rc.senseNearbyMapInfos(2)) {
+            if (map.getPaint().isAlly()){
+                safe.add(map);
+            }
+        }
+        if (safe.isEmpty()){
+            return null;
+        }
+        int index = (int) (Math.random()* safe.size());
+        MapInfo map = safe.get(index);
+        return rc.getLocation().directionTo(map.getMapLocation());
+
     }
 }

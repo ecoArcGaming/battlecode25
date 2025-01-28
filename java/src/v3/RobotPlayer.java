@@ -668,6 +668,9 @@ public class RobotPlayer {
                 if (rc.canMove(dir)) {
                     rc.move(dir);
                 }
+                if (removePaint != null && removePaint.getMapLocation().distanceSquaredTo(bot.getLocation()) <= 9){
+                    removePaint = null; // ignore target in tower range
+                }
             }
         }
         MapInfo enemies = Sensing.scoreSplasherTiles(rc);
@@ -732,52 +735,6 @@ public class RobotPlayer {
         // Read all incoming messages
         Mopper.receiveLastMessage(rc);
         Helper.tryCompleteResourcePattern(rc);
-//
-//        int myX = rc.getLocation().x;
-//        int myY = rc.getLocation().y;
-//        for (RobotInfo bot: rc.senseNearbyRobots()){
-//            if (bot.type.isRobotType() && !bot.team.isPlayer()){
-//                if (!rc.senseMapInfo(bot.getLocation()).getPaint().isAlly()){
-//                    if (rc.canAttack(bot.getLocation())){
-//                        System.out.println("ATTACKED TILE");
-//                        rc.attack(bot.getLocation());
-//                        oppositeCorner = null;
-//                        return;
-//                    }
-//                }
-//               int dx = Math.abs(myX - bot.getLocation().x);
-//               int dy = Math.abs(myY - bot.getLocation().y);
-//
-//               if (dx <  4 && dy <  4){
-//                   Direction dir = rc.getLocation().directionTo(bot.location);
-//                   switch (dir){
-//                       case Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST:
-//                           if (rc.canMopSwing(dir)){
-//                               System.out.println("SWUNG TILE");
-//                               rc.mopSwing(dir);
-//                               oppositeCorner = null;
-//                               return;
-//                           }
-//                       default:
-//                           if (rc.canMopSwing(dir.rotateRight())){
-//                               System.out.println("SWUNG TILE");
-//                               rc.mopSwing(dir.rotateRight());
-//                               oppositeCorner = null;
-//                               return;
-//                           }
-//                   }
-//
-//               }
-//               Direction dir = Pathfinding.pathfind(rc, bot.getLocation());
-//               if (dir != null){
-//                   System.out.println("MOVED");
-//                   rc.move(dir);
-//                   oppositeCorner = null;
-//                   return;
-//               }
-//               return;
-//            }
-//        }
 
         MapInfo[] all = rc.senseNearbyMapInfos();
         // avoid enemy towers with the highest priority
@@ -788,15 +745,21 @@ public class RobotPlayer {
                     removePaint = null; // ignore target in tower range
                 }
 
-                // move around the tower
-                Direction dir = rc.getLocation().directionTo(nearbyTile.getMapLocation()).rotateRight().rotateRight();
+                // move around the tower by rotating 135 degrees
+                Direction dir = rc.getLocation().directionTo(nearbyTile.getMapLocation()).rotateRight().rotateRight().rotateRight();
                 if (rc.canMove(dir)){
                     rc.move(dir);
-                    return;
+                    break;
                 }
             }
         }
-
+        // stay safe, stay on ally paint if possible
+        if (!rc.senseMapInfo(rc.getLocation()).getPaint().isAlly()){
+            Direction dir = Mopper.mopperWalk(rc);
+            if (dir != null && rc.canMove(dir)){
+                rc.move(dir);
+            }
+        }
 
         MapLocation currPaint = null;
         // check around the Mopper's attack radius for bots
@@ -834,8 +797,8 @@ public class RobotPlayer {
         }
 
         // move towards opponent bot in vision range
-        for (MapInfo tile: all){
-            // First check for enemy tile
+        for (MapInfo tile: rc.senseNearbyMapInfos()){
+            // First check for enemy tile, store it
             if (tile.getPaint().isEnemy()){
                 oppositeCorner = null;
                 if (currPaint == null){
@@ -843,8 +806,8 @@ public class RobotPlayer {
                 }
             }
             RobotInfo bot = rc.senseRobotAtLocation(tile.getMapLocation());
-            if (bot != null && (currPaint != null || tile.getMapLocation().distanceSquaredTo(rc.getLocation()) < 6)){
-                if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam())){
+            if (bot != null ){
+                if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam()) && !tile.getPaint().isEnemy()){
                     Direction enemyDir = Pathfinding.pathfind(rc, tile.getMapLocation());
                     if (enemyDir != null){
                         oppositeCorner = null;
