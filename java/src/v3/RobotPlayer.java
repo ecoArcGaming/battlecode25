@@ -553,7 +553,7 @@ public class RobotPlayer {
                         break;
                     }
                     case SoldierState.FILLINGSRP: {
-                        if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT){
+                        if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT) {
                             Soldier.fillSRP(rc);
                         } else {
                             // if a nearby allied tile mismatches the SRP grid, paint over it
@@ -581,7 +581,7 @@ public class RobotPlayer {
                                     }
                                     MapLocation nearbyLocation = nearbyTile.getMapLocation();
                                     PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
-                                    if (nearbyTile.getPaint() == PaintType.EMPTY && nearbyTile.isPassable()||
+                                    if (nearbyTile.getPaint() == PaintType.EMPTY && nearbyTile.isPassable() ||
                                             nearbyTile.getPaint().isAlly() && !paint.equals(nearbyTile.getPaint())) {
                                         Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
                                         if (dir != null && rc.canMove(dir)) {
