@@ -40,6 +40,30 @@ public class Sensing {
         }
         return true;
     }
+    /**
+     * Finds the closest ruin that fits the following criteria
+     * 1. No tower at the ruin
+     * 2. No ally robots directly adjacent to the ruin
+     */
+    public static MapInfo findAnyRuin(RobotController rc, MapLocation robotLocation, MapInfo[] nearbyTiles) throws GameActionException {
+        MapInfo curRuin = null;
+        int minDis = -1;
+        for (MapInfo tile : nearbyTiles) {
+            if (tile.hasRuin()) {
+                MapLocation tileLocation = tile.getMapLocation();
+                if (!rc.canSenseRobotAtLocation(tileLocation)
+                        && rc.senseNearbyRobots(tileLocation, 2, rc.getTeam()).length < 1) {
+                    // Check distance among ruins that need filling
+                    int ruinDistance = robotLocation.distanceSquaredTo(tileLocation);
+                    if (minDis == -1 || minDis > ruinDistance) {
+                        curRuin = tile;
+                        minDis = ruinDistance;
+                    }
+                }
+            }
+        }
+        return curRuin;
+    }
 
     /**
      * Finds the closest ruin that fits the following criteria

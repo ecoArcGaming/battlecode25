@@ -169,7 +169,7 @@ public class Soldier extends Robot {
                 Soldier.resetVariables();
             }
             if (soldierState != SoldierState.FILLINGTOWER) {
-                MapInfo bestRuin = Sensing.findBestRuin(rc, curLocation, nearbyTiles);
+                MapInfo bestRuin = Sensing.findAnyRuin(rc, curLocation, nearbyTiles);
                 if (bestRuin != null) {
                     if (!Sensing.canBuildTower(rc, bestRuin.getMapLocation())) {
                         soldierType = SoldierType.ADVANCE;
