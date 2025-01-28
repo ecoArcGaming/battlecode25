@@ -287,7 +287,7 @@ public class Sensing {
             }
         }
         MapInfo best = null;
-        int bestScore = -3;
+        int bestScore = -5;
         for (MapInfo tile: nearbyTiles) {
             if (tile.isPassable() && rc.canAttack(tile.getMapLocation())) {
                 int score = ScoreSplash(rc, tile);
@@ -442,5 +442,29 @@ public class Sensing {
             }
         }
         return count;
+    }
+
+    public static boolean conflictsSRP(RobotController rc) throws GameActionException {
+        MapInfo[] allTiles = rc.senseNearbyMapInfos();
+        for (MapInfo surroundingTile: allTiles) {
+            if (surroundingTile.getMark().isAlly()) {
+                MapLocation south = surroundingTile.getMapLocation().add(Direction.SOUTH);
+                MapLocation southwest = south.add(Direction.WEST);
+                if (rc.canSenseLocation(south)){
+                    if (!rc.senseMapInfo(south).hasRuin()) {
+                        if (rc.canSenseLocation(southwest)) {
+                            if (!rc.senseMapInfo(southwest).hasRuin()) {
+                                return true;
+                            }
+                        }
+                        else
+                            return true;
+                    }
+                }
+                else
+                    return true;
+            }
+        }
+        return false;
     }
 }

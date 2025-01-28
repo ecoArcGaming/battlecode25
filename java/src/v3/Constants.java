@@ -37,18 +37,21 @@ public class Constants {
     public static final double DEFENSE_RANGE = 0.3;
     public static final int SPLASHER_CUTOFF = 8; // num soldiers spawned before splashers spawn with below variable chance
     public static final double SPLASHER_SOLDIER_SPLIT = 0.5;
-    public static final int LOW_PAINT_MONEY_THRESHOLD = 10000;
+    public static final int LOW_PAINT_MONEY_THRESHOLD = 3000;
 
     public static final int DEV_LIFE_CYCLE_TURNS = 30;
     public static final int SRP_LIFE_CYCLE_TURNS = 30;
     public static final int MIN_PAINT_GIVE = 50;
 
+    public static final int SRP_MAP_WIDTH = 35;
+    public static final int SRP_MAP_HEIGHT = 35;
+
 
     public static final Set<HashableCoords> primarySRP = Set.of(new HashableCoords(2,0),
             new HashableCoords(1,1),new HashableCoords(2,1),new HashableCoords(3,1),
             new HashableCoords(0,2),new HashableCoords(1,2),new HashableCoords(3,2),
-            new HashableCoords(1,3),new HashableCoords(2,3), new HashableCoords(3,3)
-
+            new HashableCoords(1,3),new HashableCoords(2,3), new HashableCoords(3,3),
+            new HashableCoords(2,4), new HashableCoords(4,2)
     );
 
 
