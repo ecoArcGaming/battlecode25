@@ -58,12 +58,7 @@ public class Soldier extends Robot {
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {
                     case 0:
-                        if (Constants.rng.nextDouble() < Constants.SRP_DEV_BOT_SPLIT) {
-                            soldierType = SoldierType.SRP;
-                            soldierState = SoldierState.FILLINGSRP;
-                        } else {
-                            soldierType = SoldierType.DEVELOP;
-                        }
+                        soldierType = SoldierType.DEVELOP;
                         break;
                     case 1:
                         soldierType = SoldierType.ADVANCE;
@@ -108,7 +103,7 @@ public class Soldier extends Robot {
      * nearby enemy paint (DELIVERINGMESSAGE), or nearby ruins (FILLING TOWER)
      */
     public static void updateState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
-        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
+        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold) && rc.getMoney() > Constants.LOW_PAINT_MONEY_THRESHOLD) {
             if (soldierState != SoldierState.LOWONPAINT) {
                 intermediateTarget = null;
                 Soldier.resetVariables();

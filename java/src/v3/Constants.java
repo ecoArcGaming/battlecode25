@@ -26,7 +26,7 @@ public class Constants {
             entry(PaintType.ENEMY_PRIMARY, -2),
             entry(PaintType.ENEMY_SECONDARY, -2)
     );
-    public static final Random rng = new Random(3407);
+    public static final Random rng = new Random();
     public static final double PERCENT_PAINT = 0.7;
     public static final int RESIGN_AFTER = 2005;
     public static final int lowPaintThreshold = 20;
@@ -35,8 +35,8 @@ public class Constants {
     public static final double DEVELOP_BOT_PROBABILITY_CAP = 0.6;
     public static final double DEVELOP_BOT_PROB_SCALING = 200;
     public static final double DEFENSE_RANGE = 0.3;
-    public static final double SRP_DEV_BOT_SPLIT = 0.25;
-    public static final int SPLASHER_CUTOFF = 8; // num soldiers spawned before splashers come online
+    public static final int SPLASHER_CUTOFF = 8; // num soldiers spawned before splashers spawn with 70% chance
+    public static final int LOW_PAINT_MONEY_THRESHOLD = 2000;
 
     public static final int DEV_LIFE_CYCLE_TURNS = 30;
     public static final int SRP_LIFE_CYCLE_TURNS = 50;

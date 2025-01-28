@@ -85,7 +85,7 @@ public abstract class Tower {
      */
     public static void addRandomToQueue(RobotController rc) throws GameActionException {
         if (Constants.rng.nextDouble() < numEnemyVisits*0.2
-                || (numSoldiersSpawned > Constants.SPLASHER_CUTOFF && Constants.rng.nextDouble() < 0.8)) {
+                || (numSoldiersSpawned > Constants.SPLASHER_CUTOFF && Constants.rng.nextDouble() < 0.7)) {
             spawnQueue.add(4);
             numEnemyVisits = 0;
         } else {
