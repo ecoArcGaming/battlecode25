@@ -217,8 +217,9 @@ public class RobotPlayer {
             if (!rc.getLocation().isWithinDistanceSquared(center, 150)) {
                 rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
             } else {
-                MapInfo enemyTile = Sensing.findEnemyPaint(rc, rc.senseNearbyMapInfos());
-                if (enemyTile == null){
+//                MapInfo enemyTile = Sensing.findEnemyPaint(rc, rc.senseNearbyMapInfos());
+                int enemyTiles = Tower.countEnemyPaint(rc);
+                if (enemyTiles == 0 || enemyTiles > 20){
                     rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(spawnDirection.rotateRight()));
                 }
                 else{
