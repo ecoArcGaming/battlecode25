@@ -318,21 +318,29 @@ public class Pathfinding {
         }
     }
     public static Direction betterUnstuck(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("GETTING UNSTUCK");
+        rc.setIndicatorString("GETTING UNSTUCK " + oppositeCorner);
         intermediateTarget = null;
         if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
+            double corner = Constants.rng.nextDouble();
+            System.out.println(corner);
             int x = rc.getLocation().x;
             int y = rc.getLocation().y;
-            int target_x, target_y;
-            if (x < rc.getMapWidth() / 2) {
-                target_x = rc.getMapWidth();
-            } else {
-                target_x = 0;
+            int target_x = 0, target_y = 0;
+            if (corner <= 0.666) {
+                if (x < rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y > rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
             }
-            if (y < rc.getMapHeight() / 2) {
-                target_y = rc.getMapHeight();
-            } else {
-                target_y = 0;
+            if (corner >= 0.333) {
+                if (x > rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y < rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
             }
             oppositeCorner = new MapLocation(target_x, target_y);
         }

@@ -84,6 +84,7 @@ public class RobotPlayer {
     static Direction spawnDirection = null;
     static int numEnemyVisits = 0;
     static int roundsWithoutEnemy = 0;
+    static int numSoldiersSpawned = 0;
 
     // Navigation Variables
     static MapLocation oppositeCorner = null;
@@ -250,7 +251,7 @@ public class RobotPlayer {
                         break;
                 }
             } else if (rc.getMoney() > 1200 && rc.getPaint() > 200 && spawnQueue.size() < 3) {
-                Tower.buildCompletelyRandom(rc);
+                Tower.addRandomToQueue(rc);
             }
         }
         if (enemyTarget != null && alertRobots) {
@@ -600,7 +601,7 @@ public class RobotPlayer {
         }
 
         // If paint is low, go back to refill
-        if (Robot.hasLowPaint(rc, 75)) {
+        if (Robot.hasLowPaint(rc, 75) && rc.getMoney() < Constants.LOW_PAINT_MONEY_THRESHOLD) {
             if (!isLowPaint){
                 inBugNav = false;
                 acrossWall = null;
@@ -653,12 +654,13 @@ public class RobotPlayer {
                 return;
             }
             ;
-
-//        System.out.println("BEFORE PATH " + Clock.getBytecodeNum());
-        Direction dir = Pathfinding.betterUnstuck(rc);
-//        System.out.println("AFTER PATH " + Clock.getBytecodeNum());
-        if (dir != null && rc.canMove(dir)){
-            rc.move(dir);
+        if (botRoundNum > 1) {
+            //        System.out.println("BEFORE PATH " + Clock.getBytecodeNum());
+            Direction dir = Pathfinding.betterUnstuck(rc);
+            //        System.out.println("AFTER PATH " + Clock.getBytecodeNum());
+            if (dir != null && rc.canMove(dir)) {
+                rc.move(dir);
+            }
         }
     }
 
@@ -819,7 +821,7 @@ public class RobotPlayer {
             Mopper.removePaint(rc, removePaint);
         } else {
             // attack adjacent tiles if possible
-            Direction exploreDir = Pathfinding.getUnstuck(rc);
+            Direction exploreDir = Pathfinding. getUnstuck(rc);
             if (exploreDir != null) {
                 rc.move(exploreDir);
             }
