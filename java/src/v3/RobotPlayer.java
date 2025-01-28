@@ -165,7 +165,7 @@ public class RobotPlayer {
                 }
 
                 // Update the last eight locations list
-                if (last8.size() < 8) {
+                if (last8.size() < 16) {
                     last8.add(rc.getLocation());
                 } else {
                     last8.removeFirst();
@@ -623,6 +623,15 @@ public class RobotPlayer {
             isLowPaint = false;
         }
 
+        // move perpendicular to enemy towers if any exists in range
+        for (RobotInfo bot: rc.senseNearbyRobots()){
+            if (bot.getType().isTowerType() && !bot.getTeam().equals(rc.getTeam())){
+                Direction dir = rc.getLocation().directionTo(bot.getLocation()).rotateRight().rotateLeft();
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }
+            }
+        }
         MapInfo enemies = Sensing.scoreSplasherTiles(rc);
 
         // Check to see if assigned tile is already filled in with our paint
