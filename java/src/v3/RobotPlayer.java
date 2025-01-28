@@ -199,7 +199,14 @@ public class RobotPlayer {
         }
 
         roundsWithoutEnemy += 1; //  Update rounds without enemy
-        Tower.readNewMessages(rc);
+        if (rc.getType().getBaseType() == UnitType.LEVEL_ONE_MONEY_TOWER) {
+            MoneyTower.readNewMessages(rc);
+            if (rc.getPaint() == 500) {
+                spawnQueue.add(0);
+            }
+        } else {
+            Tower.readNewMessages(rc);
+        }
 
         // starting condition
         if (rc.getRoundNum() == 1 ) {

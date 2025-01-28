@@ -146,7 +146,7 @@ public class Pathfinding {
         int[] weightedAdjacent = new int[numTiles];
         for (int i = 0; i < numTiles; i++){
             MapLocation adjLocation = validAdjacent.get(i).getMapLocation();
-            cumSum += 3*Sensing.countEmptyAround(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
+            cumSum += 5*Sensing.countEmptyAround(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
             weightedAdjacent[i] = cumSum;
         }
         if (cumSum == 0) {

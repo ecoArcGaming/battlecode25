@@ -40,7 +40,7 @@ public class Constants {
     public static final int LOW_PAINT_MONEY_THRESHOLD = 2000;
 
     public static final int DEV_LIFE_CYCLE_TURNS = 30;
-    public static final int SRP_LIFE_CYCLE_TURNS = 50;
+    public static final int SRP_LIFE_CYCLE_TURNS = 30;
     public static final int MIN_PAINT_GIVE = 50;
 
 
