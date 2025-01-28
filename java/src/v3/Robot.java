@@ -11,6 +11,7 @@ public abstract class Robot {
      * Method for robot behavior when they are low on paint
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
+        isLowPaint = true;
         // If last tower is null, then just random walk on paint
         for (RobotInfo enemyRobot : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
             if (enemyRobot.getType().isTowerType()) {

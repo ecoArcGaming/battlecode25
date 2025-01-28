@@ -73,6 +73,7 @@ public class RobotPlayer {
     static MapInfo enemyTower = null; // location of enemy tower for attack soldiers to pathfind to
     static UnitType fillTowerType = null;
     static MapLocation intermediateTarget = null; // used to record short-term robot targets
+    static MapLocation prevIntermediate = null; //Copy of intermediate target
 
     // Enemy Info variables
     static MapInfo enemyTarget = null; // location of enemy tower/tile for tower to tell
@@ -635,37 +636,37 @@ public class RobotPlayer {
         if (removePaint != null && rc.canSenseLocation(removePaint.getMapLocation()) && rc.senseMapInfo(removePaint.getMapLocation()).getPaint().isAlly()){
             removePaint = null;
         }
+
         // splash assigned tile or move towards it
 
-            if (enemies != null && rc.canAttack(enemies.getMapLocation())){
-                rc.attack(enemies.getMapLocation());
-                return;
-
-            }
-            else if (enemies != null){
-                if (removePaint == null){
-                    removePaint = enemies;
-                }
-
-                Direction dir = Pathfinding.pathfind(rc, enemies.getMapLocation());
-                if (dir != null){
-                    rc.move(dir);
-                }
-                return;
+        if (enemies != null && rc.canAttack(enemies.getMapLocation())){
+            rc.attack(enemies.getMapLocation());
+            return;
+        }
+        else if (enemies != null){
+            if (removePaint == null){
+                removePaint = enemies;
             }
 
-            else if (removePaint != null) {
-                if (rc.canAttack(removePaint.getMapLocation())) {
-                    rc.attack(removePaint.getMapLocation());
-                    return;
-                }
-                Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
-                if (rc.getActionCooldownTurns()  < 10 && dir != null){
-                    rc.move(dir);
-                }
+            Direction dir = Pathfinding.pathfind(rc, enemies.getMapLocation());
+            if (dir != null){
+                rc.move(dir);
+            }
+            return;
+        }
+
+        else if (removePaint != null) {
+            if (rc.canAttack(removePaint.getMapLocation())) {
+                rc.attack(removePaint.getMapLocation());
                 return;
             }
-            ;
+            Direction dir = Pathfinding.pathfind(rc, removePaint.getMapLocation());
+            if (rc.getActionCooldownTurns()  < 10 && dir != null){
+                rc.move(dir);
+            }
+            return;
+        }
+
         if (botRoundNum > 1) {
             //        System.out.println("BEFORE PATH " + Clock.getBytecodeNum());
             Direction dir = Pathfinding.betterUnstuck(rc);
