@@ -110,6 +110,9 @@ public class RobotPlayer {
     static boolean isLowPaint = false;
     static MapInfo prevLocInfo = null;
 
+    // Filling SRP State
+    static MapLocation srpCenter = null;
+
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -374,10 +377,15 @@ public class RobotPlayer {
 
                 if (numTurnsAlive > Constants.DEV_LIFE_CYCLE_TURNS && soldierState == SoldierState.STUCK) {
                     numTurnsAlive = 0;
-                    soldierState = SoldierState.FILLINGSRP;
+                    if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT){
+                        soldierState = SoldierState.STUCK;
+                    }
+                    else
+                        soldierState = SoldierState.FILLINGSRP;
 
                     soldierType = SoldierType.SRP;
                     Soldier.resetVariables();
+                    return;
                 }
 
                 switch (soldierState) {
@@ -529,43 +537,73 @@ public class RobotPlayer {
                         break;
                     }
                     case SoldierState.FILLINGSRP: {
-                        // if a nearby allied tile mismatches the SRP grid, paint over it
-                        boolean hasPainted = false;
-                        rc.setIndicatorString("FILLING SRP");
-                        for (MapInfo nearbyTile :nearbyTiles) {
-                            MapLocation nearbyLocation = nearbyTile.getMapLocation();
-                            PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
-                            if (nearbyTile.getPaint().isAlly() &&
-                                    !paint.equals(nearbyTile.getPaint())) {
-                                Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
-                                if (rc.canAttack(nearbyLocation)) {
-                                    rc.attack(nearbyLocation, (paint == PaintType.ALLY_SECONDARY));
-                                    hasPainted = true;
-                                    break;
-                                } else if (dir != null) {
-                                    if (rc.canMove(dir)) {
-                                        rc.move(dir);
+                        if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT){
+                            Soldier.fillSRP(rc);
+                        }
+                        else {
+                            // if a nearby allied tile mismatches the SRP grid, paint over it
+                            boolean hasPainted = false;
+                            rc.setIndicatorString("FILLING SRP");
+                            for (MapInfo nearbyTile : nearbyTiles) {
+                                MapLocation nearbyLocation = nearbyTile.getMapLocation();
+                                PaintType paint = Helper.resourcePatternType(rc, nearbyLocation);
+                                if (nearbyTile.getPaint().isAlly() &&
+                                        !paint.equals(nearbyTile.getPaint())) {
+                                    Direction dir = Pathfinding.pathfind(rc, nearbyLocation);
+                                    if (rc.canAttack(nearbyLocation)) {
+                                        rc.attack(nearbyLocation, (paint == PaintType.ALLY_SECONDARY));
                                         hasPainted = true;
                                         break;
+                                    } else if (dir != null) {
+                                        if (rc.canMove(dir)) {
+                                            rc.move(dir);
+                                            hasPainted = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        // stuck if nothing to paint
-                        if (!hasPainted) {
-                            soldierState = SoldierState.STUCK;
+                            // stuck if nothing to paint
+                            if (!hasPainted) {
+                                soldierState = SoldierState.STUCK;
+                            }
                         }
                         break;
                     }
                     case SoldierState.STUCK: {
                         rc.setIndicatorString("STUCK");
                         Soldier.stuckBehavior(rc);
-                        for (MapInfo map: nearbyTiles) {
-                            if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
+                        if (!(rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT)) {
+                            for (MapInfo map : nearbyTiles) {
+                                if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))) {
+                                    Soldier.resetVariables();
+                                    soldierState = SoldierState.FILLINGSRP;
+                                    numTurnsAlive = 0;
+                                    break;
+                                }
+                            }
+                        }
+                        else if (rc.senseMapInfo(rc.getLocation()).getMark().isAlly() && !rc.canCompleteResourcePattern(rc.getLocation())){
+                            boolean turnToSRP = true;
+                            boolean allSame = true;
+                            for (int i = 0; i < 5; i++) {
+                                for (int j = 0; j < 5; j++) {
+                                    MapInfo srpLoc = rc.senseMapInfo(rc.getLocation().translate(i - 2, j - 2));
+                                    if (srpLoc.hasRuin() || srpLoc.getPaint().isEnemy()) {
+                                        turnToSRP = false;
+                                        break;
+                                    }
+                                    boolean isPrimary = Constants.primarySRP.contains(new HashableCoords(i, j));
+                                    if ((srpLoc.getPaint() == PaintType.ALLY_PRIMARY && isPrimary) || (srpLoc.getPaint() == PaintType.ALLY_SECONDARY && !isPrimary)) {
+                                        allSame = false;
+                                    }
+                                }
+                            }
+                            if (turnToSRP && !allSame){
                                 Soldier.resetVariables();
                                 soldierState = SoldierState.FILLINGSRP;
+                                srpCenter = rc.getLocation();
                                 numTurnsAlive = 0;
-                                break;
                             }
                         }
                         break;

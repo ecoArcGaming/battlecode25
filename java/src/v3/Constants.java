@@ -43,12 +43,15 @@ public class Constants {
     public static final int SRP_LIFE_CYCLE_TURNS = 50;
     public static final int MIN_PAINT_GIVE = 50;
 
+    public static final int SRP_MAP_WIDTH = 35;
+    public static final int SRP_MAP_HEIGHT = 35;
+
 
     public static final Set<HashableCoords> primarySRP = Set.of(new HashableCoords(2,0),
             new HashableCoords(1,1),new HashableCoords(2,1),new HashableCoords(3,1),
             new HashableCoords(0,2),new HashableCoords(1,2),new HashableCoords(3,2),
-            new HashableCoords(1,3),new HashableCoords(2,3), new HashableCoords(3,3)
-
+            new HashableCoords(1,3),new HashableCoords(2,3), new HashableCoords(3,3),
+            new HashableCoords(2,4), new HashableCoords(4,2)
     );
 
 
