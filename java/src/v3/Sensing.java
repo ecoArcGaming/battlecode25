@@ -273,9 +273,9 @@ public class Sensing {
                 continue;
             }
 
-            if (rc.senseRobotAtLocation(loc) != null && !rc.senseRobotAtLocation(loc).getTeam().isPlayer() && rc.senseRobotAtLocation(loc).getType().isTowerType()) {
-                currGrid[loc.x][loc.y] = -30;
-            }
+//            if (rc.senseRobotAtLocation(loc) != null && !rc.senseRobotAtLocation(loc).getTeam().isPlayer() && rc.senseRobotAtLocation(loc).getType().isTowerType()) {
+//                currGrid[loc.x][loc.y] = -30;
+//            }
             else if (paint == PaintType.EMPTY && tile.isPassable()) {
                 currGrid[loc.x][loc.y] = 0;
             } else if (paint.isEnemy()){

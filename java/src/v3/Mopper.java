@@ -148,7 +148,7 @@ public class Mopper extends Robot{
         ArrayList<MapInfo> safe = new ArrayList<MapInfo>();
 
         for (MapInfo map: rc.senseNearbyMapInfos(2)) {
-            if (map.getPaint().isAlly()){
+            if (map.getPaint().isAlly() && !last8.contains(map.getMapLocation())){
                 safe.add(map);
             }
         }
