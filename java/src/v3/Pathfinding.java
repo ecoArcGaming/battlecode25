@@ -210,6 +210,30 @@ public class Pathfinding {
      * TODO: fine-tune parameters, perhaps introduce one for walls/impassible tiles/off the map
      */
     public static Direction betterExplore(RobotController rc, MapLocation curLocation, MapLocation target, boolean careAboutEnemy) throws GameActionException {
+        int breakScore = 0;
+        if (intermediateTarget != null) {
+            MapLocation potentialBreak = new MapLocation(curLocation.x-2, curLocation.y-2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Sensing.scoreTile(rc, potentialBreak, false);
+            }
+            potentialBreak = new MapLocation(curLocation.x+2, curLocation.y-2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Math.max(breakScore, Sensing.scoreTile(rc, potentialBreak, false));
+            }
+            potentialBreak = new MapLocation(curLocation.x-2, curLocation.y+2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Math.max(breakScore, Sensing.scoreTile(rc, potentialBreak, false));
+            }
+            potentialBreak = new MapLocation(curLocation.x+2, curLocation.y+2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Math.max(breakScore, Sensing.scoreTile(rc, potentialBreak, false));
+            }
+            if (breakScore > 45) {
+                intermediateTarget = null;
+                Soldier.resetVariables();
+            }
+        }
+
         // Only update intermediate target locations when we have reached one already or if we don't have one at all);
         if (intermediateTarget == null || curLocation.equals(intermediateTarget) ||
                 (curLocation.isWithinDistanceSquared(intermediateTarget, 2))
@@ -322,7 +346,6 @@ public class Pathfinding {
         intermediateTarget = null;
         if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
             double corner = Constants.rng.nextDouble();
-            System.out.println(corner);
             int x = rc.getLocation().x;
             int y = rc.getLocation().y;
             int target_x = 0, target_y = 0;
