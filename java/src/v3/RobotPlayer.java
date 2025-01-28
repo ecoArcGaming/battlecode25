@@ -620,8 +620,7 @@ public class RobotPlayer {
                                     break;
                                 }
                             }
-                        }
-                        else if (rc.senseMapInfo(rc.getLocation()).getMark().isAlly() && !rc.canCompleteResourcePattern(rc.getLocation())){
+                        } else if (rc.senseMapInfo(rc.getLocation()).getMark().isAlly() && !rc.canCompleteResourcePattern(rc.getLocation())){
                             boolean turnToSRP = true;
                             boolean allSame = true;
                             for (int i = 0; i < 5; i++) {
