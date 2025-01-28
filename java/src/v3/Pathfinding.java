@@ -316,7 +316,41 @@ public class Pathfinding {
 
         return null;
     }
-
+    public static Direction findOwnCorner(RobotController rc) throws GameActionException{
+        rc.setIndicatorString("GETTING UNSTUCK " + oppositeCorner);
+        if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
+            Direction randomDir = randomWalk(rc);
+            if (randomDir != null) {
+                return randomDir;
+            }
+        }
+        prevIntermediate = intermediateTarget;
+        intermediateTarget = null;
+        if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 8) {
+            double corner = Constants.rng.nextDouble();
+            int x = rc.getLocation().x;
+            int y = rc.getLocation().y;
+            int target_x = 0, target_y = 0;
+            if (corner <= 0.333) {
+                if (x < rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y > rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
+            }
+            if (corner >= 0.666) {
+                if (x > rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y < rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
+            }
+            oppositeCorner = new MapLocation(target_x, target_y);
+        }
+        return pathfind(rc, oppositeCorner);
+    }
 
     /**
      * Finds the furthest corner and move towards it
