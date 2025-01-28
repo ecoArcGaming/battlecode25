@@ -104,6 +104,10 @@ public class RobotPlayer {
     static int tracingTurns = 0;
     static int bug1Turns = 0;
 
+    // Splasher State Variables
+    static boolean isLowPaint = false;
+    static MapInfo prevLocInfo = null;
+
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -597,8 +601,23 @@ public class RobotPlayer {
 
         // If paint is low, go back to refill
         if (Robot.hasLowPaint(rc, 75)) {
+            if (!isLowPaint){
+                inBugNav = false;
+                acrossWall = null;
+                prevLocInfo = rc.senseMapInfo(rc.getLocation());
+            }
             Robot.lowPaintBehavior(rc);
             return;
+        }
+
+        else if (isLowPaint){
+            if (removePaint == null){
+                removePaint = prevLocInfo;
+            }
+            prevLocInfo = null;
+            inBugNav = false;
+            acrossWall = null;
+            isLowPaint = false;
         }
 
         MapInfo enemies = Sensing.scoreSplasherTiles(rc);
