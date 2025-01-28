@@ -209,9 +209,15 @@ public class RobotPlayer {
             if (!rc.getLocation().isWithinDistanceSquared(center, 150)) {
                 rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
             } else {
-                rc.buildRobot(UnitType.MOPPER, rc.getLocation().add(spawnDirection.rotateRight()));
-                if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER || rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER)
-                    spawnQueue.add(3);
+                MapInfo enemyTile = Sensing.findEnemyPaint(rc, rc.senseNearbyMapInfos());
+                if (enemyTile == null){
+                    rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(spawnDirection.rotateRight()));
+                }
+                else{
+                    rc.buildRobot(UnitType.MOPPER, rc.getLocation().add(spawnDirection.rotateRight()));
+                    if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER || rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER)
+                        spawnQueue.add(3);
+                }
             }
         } else {
             if (broadcast){
