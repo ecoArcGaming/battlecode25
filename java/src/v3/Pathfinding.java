@@ -132,6 +132,9 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
+        if (rc.getPaint() < 6){
+            return paintedPathfind(rc, lastTower.getMapLocation());
+        }
         return pathfind(rc, lastTower.getMapLocation());
     }
 
@@ -211,6 +214,9 @@ public class Pathfinding {
         if (intermediateTarget == null || curLocation.equals(intermediateTarget) ||
                 (curLocation.isWithinDistanceSquared(intermediateTarget, 2))
                         && !rc.senseMapInfo(intermediateTarget).isPassable()) {
+            if (curLocation.equals(intermediateTarget)){
+                Soldier.resetVariables();
+            }
             int cumSum = 0;
             // Calculate a score for each target
             int minScore = -1;
@@ -457,27 +463,65 @@ public class Pathfinding {
     }
 
     public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException{
-
         MapLocation curLocation = rc.getLocation();
         int dist = curLocation.distanceSquaredTo(target);
         if (dist == 0){
             Soldier.resetVariables();
         }
-        if (stuckTurnCount < 5){
+        if (stuckTurnCount < 5 && !inBugNav){
             if (dist < closestPath){
                 closestPath = dist;
             } else if (closestPath != -1){
-                closestPath = dist;
                 stuckTurnCount++;
             } else {
                 closestPath = dist;
             }
             return lessOriginalPathfind(rc, target);
-        } else {
-            return bug1(rc, target);
         }
-
-        //return bugidk(rc, target);
+        else if (inBugNav){
+            // If robot has made it across the wall to the other side
+            // Then, just pathfind to the place we are going to
+            if (rc.getLocation().distanceSquaredTo(acrossWall) == 0){
+                acrossWall = null;
+                inBugNav = false;
+                closestPath = -1;
+                return null;
+            }
+            // Otherwise, just call bugnav
+            return bug1(rc, acrossWall);
+        }
+        else {
+            inBugNav = true;
+            stuckTurnCount = 0;
+            Direction toTarget = curLocation.directionTo(target);
+            MapLocation newLoc = curLocation.add(toTarget);
+            if (rc.canSenseLocation(newLoc)){
+                if (rc.senseMapInfo(newLoc).isWall()){
+                    newLoc = newLoc.add(toTarget);
+                    if (rc.canSenseLocation(newLoc)){
+                        if (rc.senseMapInfo(newLoc).isWall()) {
+                            newLoc = newLoc.add(toTarget);
+                            if (rc.canSenseLocation(newLoc)) {
+                                if (!rc.senseMapInfo(newLoc).isWall()) {
+                                    acrossWall = newLoc;
+                                    return null;
+                                }
+                            }
+                        }
+                        else{
+                            acrossWall = newLoc;
+                            return null;
+                        }
+                    }
+                }
+                else{
+                    acrossWall = newLoc;
+                    return null;
+                }
+            }
+            acrossWall = target;
+            return null;
+        }
     }
 
     public static Direction randomPaintedWalk(RobotController rc) throws GameActionException{
