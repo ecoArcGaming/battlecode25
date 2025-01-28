@@ -35,7 +35,8 @@ public class Constants {
     public static final double DEVELOP_BOT_PROBABILITY_CAP = 0.6;
     public static final double DEVELOP_BOT_PROB_SCALING = 200;
     public static final double DEFENSE_RANGE = 0.3;
-    public static final int SPLASHER_CUTOFF = 8; // num soldiers spawned before splashers spawn with 70% chance
+    public static final int SPLASHER_CUTOFF = 8; // num soldiers spawned before splashers spawn with below variable chance
+    public static final double SPLASHER_SOLDIER_SPLIT = 0.5;
     public static final int LOW_PAINT_MONEY_THRESHOLD = 2000;
 
     public static final int DEV_LIFE_CYCLE_TURNS = 30;
