@@ -54,6 +54,9 @@ public class RobotPlayer {
     // Pathfinding Variable
     static int stuckTurnCount = 0;
     static int closestPath = -1;
+    static boolean inBugNav = false;
+    static MapLocation acrossWall = null;
+    static MapLocation prevLocation = null;
 
     // Soldier state variables
     static SoldierState soldierState = SoldierState.EXPLORING;
@@ -101,6 +104,10 @@ public class RobotPlayer {
     static MapLocation stoppedLocation = null;
     static int tracingTurns = 0;
     static int bug1Turns = 0;
+
+    // Splasher State Variables
+    static boolean isLowPaint = false;
+    static MapInfo prevLocInfo = null;
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -602,8 +609,23 @@ public class RobotPlayer {
 
         // If paint is low, go back to refill
         if (Robot.hasLowPaint(rc, 75) && rc.getMoney() < Constants.LOW_PAINT_MONEY_THRESHOLD) {
+            if (!isLowPaint){
+                inBugNav = false;
+                acrossWall = null;
+                prevLocInfo = rc.senseMapInfo(rc.getLocation());
+            }
             Robot.lowPaintBehavior(rc);
             return;
+        }
+
+        else if (isLowPaint){
+            if (removePaint == null){
+                removePaint = prevLocInfo;
+            }
+            prevLocInfo = null;
+            inBugNav = false;
+            acrossWall = null;
+            isLowPaint = false;
         }
 
         MapInfo enemies = Sensing.scoreSplasherTiles(rc);
@@ -623,6 +645,11 @@ public class RobotPlayer {
             else if (enemies != null){
                 if (removePaint == null){
                     removePaint = enemies;
+                }
+
+                Direction dir = Pathfinding.pathfind(rc, enemies.getMapLocation());
+                if (dir != null){
+                    rc.move(dir);
                 }
                 return;
             }
@@ -766,25 +793,26 @@ public class RobotPlayer {
 
         // move towards opponent bot in vision range
         for (MapInfo tile: all){
-            RobotInfo bot = rc.senseRobotAtLocation(tile.getMapLocation());
-            if (bot != null){
-                if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam())){
-                    Direction dir = Pathfinding.pathfind(rc, tile.getMapLocation());
-                    if (dir != null){
-                        oppositeCorner = null;
-                        rc.move(dir);
-                    }
-                    return;
-                }
-            }
+            // First check for enemy tile
             if (tile.getPaint().isEnemy()){
                 oppositeCorner = null;
                 if (currPaint == null){
                     currPaint = tile.getMapLocation();
                 }
             }
+            RobotInfo bot = rc.senseRobotAtLocation(tile.getMapLocation());
+            if (bot != null && (currPaint != null || tile.getMapLocation().distanceSquaredTo(rc.getLocation()) < 6)){
+                if (bot.getType().isRobotType() && !bot.getTeam().equals(rc.getTeam())){
+                    Direction enemyDir = Pathfinding.pathfind(rc, tile.getMapLocation());
+                    if (enemyDir != null){
+                        oppositeCorner = null;
+                        rc.move(enemyDir);
+                        return;
+                    }
+                }
+            }
         }
-        // attack nearest paint of exists with lower priority
+        // attack nearest paint if exists with lower priority
         if (currPaint != null ){
             if (rc.canAttack(currPaint)){
                 oppositeCorner = null;

@@ -167,5 +167,7 @@ public abstract class Robot {
         stoppedLocation = null;
         tracingTurns = 0;
         bug1Turns = 0;
+        inBugNav = false;
+        acrossWall = null;
     }
 }

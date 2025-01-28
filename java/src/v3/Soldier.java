@@ -114,8 +114,14 @@ public class Soldier extends Robot {
             // Update enemy tile as necessary
             enemyTile = updateEnemyTiles(rc, nearbyTiles);
             if (enemyTile != null) {
-                intermediateTarget = null;
-                Soldier.resetVariables();
+                if (soldierState == SoldierState.EXPLORING){
+                    prevLocation = rc.getLocation();
+                    Soldier.resetVariables();
+                }
+                else{
+                    intermediateTarget = null;
+                    Soldier.resetVariables();
+                }
                 storedState = soldierState;
                 soldierState = SoldierState.DELIVERINGMESSAGE;
             // Check for nearby buildable ruins if we are not currently building one
@@ -219,10 +225,15 @@ public class Soldier extends Robot {
                 soldierState = storedState;
             } else if (ruinToFill != null) {
                 soldierState = SoldierState.FILLINGTOWER;
-            } else {
+            }
+            else {
                 soldierState = SoldierState.STUCK;
             }
             Soldier.resetVariables();
+            if (prevLocation != null){
+                intermediateTarget = prevLocation;
+                prevLocation = null;
+            }
             return;
         }
         Direction dir = Pathfinding.returnToTower(rc);
