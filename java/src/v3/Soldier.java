@@ -125,7 +125,7 @@ public class Soldier extends Robot {
         } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
             // Update enemy tile as necessary
             enemyTile = updateEnemyTiles(rc, nearbyTiles);
-            if (enemyTile != null) {
+            if (enemyTile != null && lastTower != null) {
                 if (soldierState == SoldierState.EXPLORING){
                     prevLocation = rc.getLocation();
                     Soldier.resetVariables();
@@ -176,7 +176,7 @@ public class Soldier extends Robot {
         } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
             // Update enemy towers as necessary
             enemyTile = updateEnemyTowers(rc, nearbyTiles);
-            if (enemyTile != null) {
+            if (enemyTile != null && lastTower != null) {
                 soldierType = SoldierType.ADVANCE;
                 Soldier.resetVariables();
             }

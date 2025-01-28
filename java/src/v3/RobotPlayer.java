@@ -217,7 +217,7 @@ public class RobotPlayer {
         }
 
         roundsWithoutEnemy += 1; //  Update rounds without enemy
-        if (rc.getType().getBaseType() == UnitType.LEVEL_ONE_MONEY_TOWER) {
+        if (rc.getType().getBaseType() == UnitType.LEVEL_ONE_MONEY_TOWER || rc.getType().getBaseType() == UnitType.LEVEL_TWO_MONEY_TOWER) {
             MoneyTower.readNewMessages(rc);
             if (rc.getPaint() == 500) {
                 spawnQueue.add(0);
@@ -232,16 +232,21 @@ public class RobotPlayer {
         } else if (rc.getRoundNum() == 2) {
             MapLocation center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
             if (!rc.getLocation().isWithinDistanceSquared(center, 150)) {
-                rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
+                int enemyTiles = Tower.countEnemyPaint(rc);
+                if ((rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER || rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER) && enemyTiles > 3) {
+                    spawnQueue.add(3);
+                }
+                else{
+                    rc.buildRobot(UnitType.SOLDIER, rc.getLocation().add(spawnDirection.rotateRight()));
+                }
             } else {
-//                MapInfo enemyTile = Sensing.findEnemyPaint(rc, rc.senseNearbyMapInfos());
                 int enemyTiles = Tower.countEnemyPaint(rc);
                 if (enemyTiles == 0 || enemyTiles > 20){
                     rc.buildRobot(UnitType.SPLASHER, rc.getLocation().add(spawnDirection.rotateRight()));
                 }
                 else{
                     rc.buildRobot(UnitType.MOPPER, rc.getLocation().add(spawnDirection.rotateRight()));
-                    if (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER || rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER)
+                    if (spawnQueue.isEmpty() && (rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER || rc.getType() == UnitType.LEVEL_TWO_MONEY_TOWER))
                         spawnQueue.add(3);
                 }
             }
@@ -310,11 +315,8 @@ public class RobotPlayer {
      */
     public static void runSoldier(RobotController rc) throws GameActionException {
         // Update locations of last known towers
-        if (lastTower == null) {
-            Soldier.updateLastTower(rc);
-        } else {
-            Soldier.updateLastPaintTower(rc);
-        }
+        Soldier.updateLastPaintTower(rc);
+
         // Read incoming messages
         Soldier.readNewMessages(rc);
       
@@ -365,7 +367,7 @@ public class RobotPlayer {
                             Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget, false);
                             if (dir != null) {
                                 rc.move(dir);
-                                Soldier.paintIfPossible(rc, rc.getLocation());
+                                // Soldier.paintIfPossible(rc, rc.getLocation());
                             }
                         } else {
                             intermediateTarget = null;
@@ -389,6 +391,20 @@ public class RobotPlayer {
             case SoldierType.DEVELOP: {
                 Soldier.updateState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
+                RobotInfo[] nearbyBots = rc.senseNearbyRobots();
+                boolean seesEnemy = false;
+                for (RobotInfo nearbyBot : nearbyBots) {
+                    if (nearbyBot.getTeam().opponent() == rc.getTeam()){
+                        seesEnemy = true;
+                    }
+                }
+
+                if (seesEnemy){
+                    numTurnsAlive = 0;
+                    soldierType = SoldierType.ADVANCE;
+                    soldierState = SoldierState.EXPLORING;
+                    Soldier.resetVariables();
+                }
 
                 if (numTurnsAlive > Constants.DEV_LIFE_CYCLE_TURNS && soldierState == SoldierState.STUCK) {
                     numTurnsAlive = 0;
@@ -539,7 +555,15 @@ public class RobotPlayer {
                 Soldier.updateSRPState(rc, initLocation, nearbyTiles);
                 Helper.tryCompleteResourcePattern(rc);
                 // if stuck for too long, become attack bot
-                if (numTurnsAlive > Constants.SRP_LIFE_CYCLE_TURNS && soldierState == SoldierState.STUCK){
+                // See if there are enemies nearby, if so, turn to advance bot
+                RobotInfo[] nearbyBots = rc.senseNearbyRobots();
+                boolean seesEnemy = false;
+                for (RobotInfo nearbyBot : nearbyBots) {
+                    if (nearbyBot.getTeam().opponent() == rc.getTeam()){
+                        seesEnemy = true;
+                    }
+                }
+                if (seesEnemy || (numTurnsAlive > Constants.SRP_LIFE_CYCLE_TURNS && soldierState == SoldierState.STUCK)){
                     soldierType = SoldierType.ADVANCE;
                     soldierState = SoldierState.EXPLORING;
                     numTurnsAlive = 0;
@@ -678,11 +702,7 @@ public class RobotPlayer {
         }
 
         // Update last paint tower location
-        if (lastTower == null) {
-            Soldier.updateLastTower(rc);
-        } else {
-            Soldier.updateLastPaintTower(rc);
-        }
+        Soldier.updateLastPaintTower(rc);
 
         // If paint is low, go back to refill
         if (Robot.hasLowPaint(rc, 75) && rc.getMoney() < Constants.LOW_PAINT_MONEY_THRESHOLD) {

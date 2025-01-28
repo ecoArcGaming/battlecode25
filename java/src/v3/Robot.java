@@ -86,29 +86,6 @@ public abstract class Robot {
         }
     }
 
-    /**
-     * Updates the lastTower variable to any allied paint tower currently in range
-     */
-    public static void updateLastTower(RobotController rc) throws GameActionException {
-        int min_distance = -1;
-        MapInfo lastTower = null;
-        for (MapInfo loc: rc.senseNearbyMapInfos()) {
-            if (checkAlliedTower(rc, loc)) {
-                int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
-                if (min_distance == -1 || min_distance > distance){
-                    lastTower = loc;
-                    min_distance = distance;
-                }
-            }
-        }
-        if (min_distance != -1){
-            RobotPlayer.lastTower = lastTower;
-        }
-        else if (lastTower != null && lastTower.getMapLocation().isWithinDistanceSquared(rc.getLocation(), 20)){
-            RobotPlayer.lastTower = null;
-        }
-    }
-
 
     /**
      * Check if the robot rc has less paint than the threshold

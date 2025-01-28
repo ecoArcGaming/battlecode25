@@ -279,7 +279,7 @@ public class Sensing {
             else if (paint == PaintType.EMPTY && tile.isPassable()) {
                 currGrid[loc.x][loc.y] = 0;
             } else if (paint.isEnemy()){
-                currGrid[loc.x][loc.y] = 1;
+                currGrid[loc.x][loc.y] = 2;
             } else if (paint.isAlly()){
                 currGrid[loc.x][loc.y] = -1;
             } else {
@@ -287,7 +287,7 @@ public class Sensing {
             }
         }
         MapInfo best = null;
-        int bestScore = -5;
+        int bestScore = -1;
         for (MapInfo tile: nearbyTiles) {
             if (tile.isPassable() && rc.canAttack(tile.getMapLocation())) {
                 int score = ScoreSplash(rc, tile);
