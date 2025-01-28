@@ -263,7 +263,7 @@ public class Sensing {
             }
         }
         MapInfo best = null;
-        int bestScore = -3;
+        int bestScore = -5;
         for (MapInfo tile: nearbyTiles) {
             if (tile.isPassable() && rc.canAttack(tile.getMapLocation())) {
                 int score = ScoreSplash(rc, tile);

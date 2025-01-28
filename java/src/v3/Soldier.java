@@ -103,7 +103,7 @@ public class Soldier extends Robot {
      * nearby enemy paint (DELIVERINGMESSAGE), or nearby ruins (FILLING TOWER)
      */
     public static void updateState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
-        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold) && rc.getMoney() < Constants.LOW_PAINT_MONEY_THRESHOLD) {
+        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold) && (rc.getMoney() < Constants.LOW_PAINT_MONEY_THRESHOLD || soldierState == SoldierState.FILLINGTOWER)) {
             if (soldierState != SoldierState.LOWONPAINT) {
                 intermediateTarget = null;
                 Soldier.resetVariables();
