@@ -367,7 +367,7 @@ public class RobotPlayer {
                             Direction dir = Pathfinding.betterExplore(rc, initLocation, wanderTarget, false);
                             if (dir != null) {
                                 rc.move(dir);
-                                // Soldier.paintIfPossible(rc, rc.getLocation());
+                                Soldier.paintIfPossible(rc, rc.getLocation());
                             }
                         } else {
                             intermediateTarget = null;
