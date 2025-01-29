@@ -531,6 +531,16 @@ public class RobotPlayer {
                         Direction back = enemyTowerLoc.directionTo(rc.getLocation());
                         if (rc.canMove(back)){
                             rc.move(back);
+                        } else { // try moving back in other directions
+                            Direction left = back.rotateLeft();
+                            if (rc.canMove(left)) {
+                                rc.move(left);
+                                break;
+                            }
+                            Direction right = back.rotateRight();
+                            if (rc.canMove(right)) {
+                                rc.move(right);
+                            }
                         }
                     } else {
                         Direction dir = Pathfinding.pathfind(rc, enemyTowerLoc);
