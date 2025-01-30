@@ -1,6 +1,6 @@
 from enum import Enum
 
-class SoldierState(Enum):
+class s_state(Enum):
     LOWONPAINT = "LOWONPAINT"
     DELIVERINGMESSAGE = "DELIVERINGMESSAGE"
     FILLINGTOWER = "FILLINGTOWER"
