@@ -1,34 +1,3 @@
-"""
-Bot is the class that describes your main robot strategy.
-The run() method inside this class is like your main function: this is what we'll call once your robot
-is created!
-
-FIXME (General issues we noticed)
-    - Clumped robots is a bit problematic
-    - Exploration around walls is ass(?)
-    - Differential behavior given map size
-    - Splasher improvements
-        - Survivability
-        - Don't paint on our own patterns
-        - Paint underneath them en route to enemy?
-        - Prioritize enemy over our own side?
-    - Strategy kinda sucks for smaller maps
-
-TODO (Specific issues we noticed that currently have a solution)
-    - Fix exploration for soldiers so that when a mopper goes and takes over area, the soldier can come and
-        finish the ruin pattern
-    - Low health behavior to improve survivability
-    - Handle the 25 tower limit
-    - Bug1 shenanigans (maybe we should try bug0 and take the L if bots do get stuck)
-    - Check out robot distributions on varying map sizes and stuff (idk seems like tower queues are clogged up by splashers/moppers)
-    - Robot lifecycle should be based around map size probably
-    - Do we do SRPs too late?
-    - Idea: somehow figure out symmetry of the map so we can tell robots to go in a certain direction
-    - Have a better strategy for attacking the enemy
-    - lifecycle idea: stuck && alive for x turns
-    - if a bot is on low paint behavior and it runs out of paint standing next to the tower, if the tower doesnt have enough paint to refill to max, it just gets all the paint remaining in the tower and then leaves
-"""
-
 from battlecode25.stubs import *
 from .constants import Constants
 from .soldier_type import SoldierType
@@ -37,6 +6,8 @@ from .soldier import Soldier
 from .splasher import Splasher
 from .mopper import Mopper
 from .tower import Tower
+from .helper import Helper
+from .pathfinding import Pathfinding
 from collections import deque
 
 # Initialize global variables
@@ -185,7 +156,7 @@ def run_soldier():
 
     elif globals()['soldier_type'] == SoldierType.DEVELOP:
         Soldier.update_state(init_location, nearby_tiles)
-        Helper.try_complete_resoue_pattern()
+        Helper.try_complete_resource_pattern()
         
         nearby_bots = sense_nearby_robots()
         sees_enemy = False
@@ -326,7 +297,7 @@ def run_soldier():
     elif globals()['soldier_type'] == SoldierType.SRP:
         # check for low paint and numTurnStuck
         Soldier.update_srp_state(init_location, nearby_tiles)
-        Helper.try_complete_resoue_pattern()
+        Helper.try_complete_resource_pattern()
         
         # See if there are enemies nearby, if so, turn to advance bot
         nearby_bots = sense_nearby_robots()
@@ -358,7 +329,7 @@ def run_soldier():
             Soldier.stuck_behavior()
             if not (get_map_width() <= Constants.SRP_MAP_WIDTH and get_map_height() <= Constants.SRP_MAP_HEIGHT):
                 for nearby_tile in nearby_tiles:
-                    paint = Helper.resoue_pattern_type(nearby_tile.get_map_location())
+                    paint = Helper.resource_pattern_type(nearby_tile.get_map_location())
                     if ((nearby_tile.get_paint() == PaintType.EMPTY and nearby_tile.is_passable()) or
                         (nearby_tile.get_paint().is_ally() and paint != nearby_tile.get_paint())):
                         Soldier.reset_variables()
@@ -366,7 +337,7 @@ def run_soldier():
                         globals()['num_turns_alive'] = 0
                         break
             elif (sense_map_info(get_location()).get_mark().is_ally() and 
-                  not can_complete_resoue_pattern(get_location())):
+                  not can_complete_resource_pattern(get_location())):
                 Soldier.handle_srp_stuck_state()
                 
         set_indicator_dot(get_location(), 255, 0, 255)
@@ -386,7 +357,7 @@ def run_mopper():
 
     # Read all incoming messages
     Mopper.receive_last_message()
-    Helper.try_complete_resoue_pattern()
+    Helper.try_complete_resource_pattern()
 
     all_tiles = sense_nearby_map_infos()
     
