@@ -1,7 +1,6 @@
 from battlecode25.stubs import *
 from .hashable_coords import HashableCoords
 from .constants import Constants
-from typing import Optional
 
 def resource_pattern_grid(loc: MapLocation) -> bool:
     """

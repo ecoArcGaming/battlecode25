@@ -262,6 +262,54 @@ class Soldier(Robot):
                     globals()['num_turns_alive'] = 0
 
     @staticmethod
+    def fill_srp_large_map(rc):
+        """
+        Handles SRP filling behavior for large maps. Attempts to paint tiles according to the resource pattern.
+        If no paintable tiles are found nearby, moves to find new areas to paint.
+        
+        Args:
+            rc: The RobotController instance
+        """
+        has_painted = False
+        
+        # Try to paint nearby tiles that need SRP pattern
+        if rc.get_action_cooldown_turns() < 10:
+            for nearby_tile in rc.sense_nearby_map_infos(20):
+                paint = resource_pattern_type(nearby_tile.get_map_location())
+                if ((nearby_tile.get_paint() == PaintType.EMPTY and nearby_tile.is_passable()) or
+                    (nearby_tile.get_paint().is_ally() and paint != nearby_tile.get_paint())):
+                    if rc.can_attack(nearby_tile.get_map_location()):
+                        rc.attack(nearby_tile.get_map_location(), paint == PaintType.ALLY_SECONDARY)
+                        has_painted = True
+                        break
+        
+        # If we haven't painted, look for tiles further away to paint
+        if not has_painted:
+            cur_location = rc.get_location()
+            for nearby_tile in rc.sense_nearby_map_infos():
+                if cur_location.is_within_distance_squared(nearby_tile.get_map_location(), 20):
+                    continue
+                    
+                nearby_location = nearby_tile.get_map_location()
+                paint = resource_pattern_type(nearby_location)
+                if ((nearby_tile.get_paint() == PaintType.EMPTY and nearby_tile.is_passable()) or
+                    (nearby_tile.get_paint().is_ally() and paint != nearby_tile.get_paint())):
+                    direction = Pathfinding.pathfind(rc, nearby_location)
+                    if direction is not None and rc.can_move(direction):
+                        rc.move(direction)
+                        has_painted = True
+                    break
+        
+        # If we have a stored SRP location, try to move towards it
+        if globals().get('SRPLocation') is not None:
+            direction = Pathfinding.pathfind(rc, globals()['SRPLocation'])
+            if direction is not None and rc.can_move(direction):
+                rc.move(direction)
+        # If we haven't painted anything and can't move to SRP location, we're stuck
+        elif not has_painted:
+            globals()['soldierState'] = SoldierState.STUCK
+
+    @staticmethod
     def msg_tower():
         """Pathfinds towards the last known paint tower and try to message it"""
         for enemy_robot in sense_nearby_robots(-1, get_team().opponent()):
