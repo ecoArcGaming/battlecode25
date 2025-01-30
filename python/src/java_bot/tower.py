@@ -24,12 +24,12 @@ class Tower:
                     globals()['rounds_without_enemy'] = 0
                     # If tower receives enemy message from robots, broadcast the information to other
                     # towers. Additionally, spawn a splasher and a mopper
-                    if Sensing.is_robot( message.get_sender_id()):
+                    if Sensing.is_robot(message.get_sender_id()):
                         globals()['broadcast'] = True
                         globals()['alert_attack_soldiers'] = True
                         globals()['spawn_queue'].append(3)  # Spawns a mopper
                         globals()['spawn_queue'].append(4)  # Spawns a splasher
-                        globals()['num_enemy_visits'] += 1  # Increases probability of spawning a splasher
+                        globals()['num_enemy_visits'] = globals()['num_enemy_visits'] + 1  # Increases probability of spawning a splasher
 
                     # If tower receives message from tower, just alert the surrounding bots to target the enemy paint
                     globals()['alert_robots'] = True
@@ -43,13 +43,13 @@ class Tower:
                     globals()['rounds_without_enemy'] = 0
                     # If tower receives enemy message from robots, broadcast the information to other
                     # towers. Additionally, spawn a splasher and a mopper
-                    if Sensing.is_robot( message.get_sender_id()):
+                    if Sensing.is_robot(message.get_sender_id()):
                         globals()['broadcast'] = True
                         if random.random() <= 0.5:
                             globals()['spawn_queue'].append(4)  # Spawns a splasher
                         else:
                             globals()['spawn_queue'].append(3)  # Spawns a mopper
-                        globals()['num_enemy_visits'] += 1  # Increases probability of spawning a splasher
+                        globals()['num_enemy_visits'] = globals()['num_enemy_visits'] + 1  # Increases probability of spawning a splasher
 
                     # If tower receives message from tower, just alert the surrounding bots
                     globals()['alert_robots'] = True
@@ -58,7 +58,7 @@ class Tower:
                     globals()['enemy_target'] = msg
 
     @staticmethod
-    def build_if_possible( robot_type, location):
+    def build_if_possible(robot_type, location):
         """Builds a robot of type robot_type at location"""
         if can_build_robot(robot_type, location):
             build_robot(robot_type, location)
@@ -80,7 +80,7 @@ class Tower:
                 globals()['spawn_queue'].append(1)
 
     @staticmethod
-    def fire_attack_if_possible( location):
+    def fire_attack_if_possible(location):
         """Fires an attack at location if possible"""
         if can_attack(location):
             attack(location)
@@ -90,7 +90,7 @@ class Tower:
         """Attacks the robot with the lowest HP within attack range"""
         nearest_low_bot = Sensing.find_nearest_lowest_hp()
         if nearest_low_bot is not None:
-            Tower.fire_attack_if_possible( nearest_low_bot.get_location())
+            Tower.fire_attack_if_possible(nearest_low_bot.get_location())
 
     @staticmethod
     def aoe_attack_if_possible():
@@ -127,14 +127,14 @@ class Tower:
             globals()['send_type_message'] = True
 
     @staticmethod
-    def send_type_message( robot_type):
+    def send_type_message(robot_type):
         """Send message to the robot indicating what type of bot it is"""
         added_dir = get_location().add(globals()['spawn_direction'])
         if can_sense_robot_at_location(added_dir) and can_send_message(added_dir):
             send_message(added_dir, robot_type)
             # If robot is an attack soldier or mopper, send enemy tile location as well
             if robot_type in [4, 3, 2]:
-                Communication.send_map_information( globals()['enemy_target'], added_dir)
+                Communication.send_map_information(globals()['enemy_target'], added_dir)
         globals()['send_type_message'] = False
         globals()['spawn_queue'].pop(0)
 

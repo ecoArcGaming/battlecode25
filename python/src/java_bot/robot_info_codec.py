@@ -15,14 +15,14 @@ class RobotInfoCodec:
         Approx 69 bytecode.
         """
         i = 0
-        i += robot_info.get_location().x
-        i += robot_info.get_location().y << 6
-        i += robot_info.get_type().value << 12
+        i = i + robot_info.get_location().x
+        i = i + (robot_info.get_location().y << 6)
+        i = i + (robot_info.get_type().value << 12)
         health_percent = (100 * robot_info.get_health()) // robot_info.get_type().health
-        i += health_percent << 16
-        i += robot_info.get_team().value << 23
+        i = i + (health_percent << 16)
+        i = i + (robot_info.get_team().value << 23)
         paint_percent = (100 * robot_info.get_paint_amount()) // robot_info.get_type().paint_capacity
-        i += paint_percent << 24
+        i = i + (paint_percent << 24)
         return i
 
     @staticmethod
@@ -50,5 +50,5 @@ class RobotInfoCodec:
         return (a.get_location().equals(b.get_location()) and
                 a.get_type() == b.get_type() and 
                 a.get_team() == b.get_team() and
-                ((100 * a.get_health()) // a.get_type().health) == ((100 * b.get_health()) // b.get_type().health) and
-                ((100 * a.get_paint_amount()) // a.get_type().paint_capacity) == ((100 * b.get_paint_amount()) // b.get_type().paint_capacity))
+                a.get_health() == b.get_health() and
+                a.get_paint_amount() == b.get_paint_amount())

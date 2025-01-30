@@ -545,7 +545,7 @@ def run_tower():
     if globals()['spawn_direction'] is None:
         globals()['spawn_direction'] = Tower.spawn_direction()
 
-    globals()['rounds_without_enemy'] += 1  # Update rounds without enemy
+    globals()['rounds_without_enemy'] = globals()['rounds_without_enemy'] + 1  # Update rounds without enemy
     
     # Handle different tower types and their messages
     if (get_type().get_base_type() == UnitType.LEVEL_ONE_MONEY_TOWER or 
@@ -645,8 +645,8 @@ def run():
         # This code runs during the entire lifespan of the robot, which is why it is in an infinite
         # loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
         # loop, we call Clock.yield(), signifying that we've done everything we want to do.
-        globals()['turn_count'] += 1  # We have now been alive for one more turn!
-        globals()['num_turns_alive'] += 1
+        globals()['turn_count'] = globals()['turn_count'] + 1  # We have now been alive for one more turn!
+        globals()['num_turns_alive'] = globals()['num_turns_alive'] + 1
         
         if globals()['turn_count'] == Constants.RESIGN_AFTER:
             resign()
@@ -658,9 +658,9 @@ def run():
             
             # Update round number and cooldowns
             globals()['round_num'] = get_round_num()
-            globals()['bot_round_num'] += 1
+            globals()['bot_round_num'] = globals()['bot_round_num'] + 1
             if globals()['soldier_msg_cooldown'] != -1:
-                globals()['soldier_msg_cooldown'] -= 1
+                globals()['soldier_msg_cooldown'] = globals()['soldier_msg_cooldown'] - 1
 
             # Run the appropriate behavior based on robot type
             if get_type() == UnitType.SOLDIER:

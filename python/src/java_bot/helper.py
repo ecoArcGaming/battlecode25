@@ -2,7 +2,7 @@ from battlecode25.stubs import *
 from .hashable_coords import HashableCoords
 from .constants import Constants
 
-def resource_pattern_grid(loc: MapLocation) -> bool:
+def resource_pattern_grid(loc):
     """
     Check if a location is part of the primary resource pattern grid.
     
@@ -17,7 +17,7 @@ def resource_pattern_grid(loc: MapLocation) -> bool:
     coords = HashableCoords(x, y)
     return is_primary_srp(coords)
 
-def resource_pattern_type(loc: MapLocation) -> PaintType:
+def resource_pattern_type(loc):
     """
     Determine the paint type for a resource pattern at the given location.
     
@@ -32,7 +32,7 @@ def resource_pattern_type(loc: MapLocation) -> PaintType:
     coords = HashableCoords(x, y)
     return get_srp_type(coords)
 
-def try_complete_resource_pattern() -> None:
+def try_complete_resource_pattern():
     """
     Try to complete resource patterns in nearby tiles.
     Scans nearby tiles within a radius of 16 and attempts to complete any resource patterns found.
@@ -60,7 +60,7 @@ def try_complete_resource_pattern() -> None:
         # If the overall scanning fails, just return
         return
 
-def is_between(m: MapLocation, c1: MapLocation, c2: MapLocation) -> bool:
+def is_between(m, c1, c2):
     """
     Check if a MapLocation is within the rectangle defined by two corner points.
     
@@ -79,7 +79,7 @@ def is_between(m: MapLocation, c1: MapLocation, c2: MapLocation) -> bool:
 
     return min_x <= m.x <= max_x and min_y <= m.y <= max_y
 
-def is_primary_srp(coords: HashableCoords) -> bool:
+def is_primary_srp(coords):
     """
     Check if coordinates are part of the primary SRP pattern.
     
@@ -91,7 +91,7 @@ def is_primary_srp(coords: HashableCoords) -> bool:
     """
     return coords in Constants.PRIMARY_SRP
 
-def get_srp_type(coords: HashableCoords) -> PaintType:
+def get_srp_type(coords):
     """
     Get the paint type that should be at the given coordinates in the SRP pattern.
     

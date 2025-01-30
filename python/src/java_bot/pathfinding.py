@@ -1,8 +1,7 @@
 from battlecode25.stubs import *
 from .constants import Constants
 from .sensing import Sensing
-from .bot import *
-from .helper import *
+from .helper import is_between
 
 class Pathfinding:
     """
@@ -129,7 +128,7 @@ class Pathfinding:
         
         for i in range(num_tiles):
             adj_location = valid_adjacent[i].get_map_location()
-            cum_sum += 5 * Sensing.count_empty_around(adj_location.add(get_location().direction_to(adj_location)))
+            cum_sum = cum_sum + 5 * Sensing.count_empty_around(adj_location.add(get_location().direction_to(adj_location)))
             weighted_adjacent[i] = cum_sum
             
         if cum_sum == 0:
@@ -229,26 +228,26 @@ class Pathfinding:
                     score = Sensing.score_tile(possible_target, care_about_enemy)
                     new_distance = possible_target.distance_squared_to(target)
                     if cur_distance > new_distance:
-                        score += 20
+                        score = score + 20
                     elif cur_distance == new_distance:
-                        score += 10
+                        score = score + 10
                         
                 if min_score == -1 or score < min_score:
                     min_score = score
-                cum_sum += score
+                cum_sum = cum_sum + score
                 weighted_adjacent[i] = cum_sum
 
             # Normalize by subtracting each score by the same amount so that one score is equal to 1
             if min_score != 0:
-                min_score -= 1
-            weighted_adjacent[0] -= min_score * 1
-            weighted_adjacent[1] -= min_score * 2
-            weighted_adjacent[2] -= min_score * 3
-            weighted_adjacent[3] -= min_score * 4
-            weighted_adjacent[4] -= min_score * 5
-            weighted_adjacent[5] -= min_score * 6
-            weighted_adjacent[6] -= min_score * 7
-            weighted_adjacent[7] -= min_score * 8
+                min_score = min_score - 1
+            weighted_adjacent[0] = weighted_adjacent[0] - min_score * 1
+            weighted_adjacent[1] = weighted_adjacent[1] - min_score * 2
+            weighted_adjacent[2] = weighted_adjacent[2] - min_score * 3
+            weighted_adjacent[3] = weighted_adjacent[3] - min_score * 4
+            weighted_adjacent[4] = weighted_adjacent[4] - min_score * 5
+            weighted_adjacent[5] = weighted_adjacent[5] - min_score * 6
+            weighted_adjacent[6] = weighted_adjacent[6] - min_score * 7
+            weighted_adjacent[7] = weighted_adjacent[7] - min_score * 8
 
             if cum_sum != 0:
                 rng = Constants.get_random()
@@ -394,7 +393,7 @@ class Pathfinding:
                     return_dir = globals()['tracing_dir']
                     globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
                     globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
-                    globals()['tracing_turns'] += 1
+                    globals()['tracing_turns'] = globals()['tracing_turns'] + 1
                     return return_dir
                 else:
                     # turn left because we cannot proceed forward
@@ -405,7 +404,7 @@ class Pathfinding:
                             return_dir = globals()['tracing_dir']
                             globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
                             globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
-                            globals()['tracing_turns'] += 1
+                            globals()['tracing_turns'] = globals()['tracing_turns'] + 1
                             return return_dir
         return None
 
@@ -443,7 +442,7 @@ class Pathfinding:
                     return_dir = globals()['tracing_dir']
                     globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
                     globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
-                    globals()['bug1_turns'] += 1
+                    globals()['bug1_turns'] = globals()['bug1_turns'] + 1
                     return return_dir
                 else:
                     # turn left because we cannot proceed forward
@@ -454,7 +453,7 @@ class Pathfinding:
                             return_dir = globals()['tracing_dir']
                             globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
                             globals()['tracing_dir'] = globals()['tracing_dir'].rotate_right()
-                            globals()['bug1_turns'] += 1
+                            globals()['bug1_turns'] = globals()['bug1_turns'] + 1
                             return return_dir
         return None
 
@@ -471,7 +470,7 @@ class Pathfinding:
             if dist < globals()['closest_path']:
                 globals()['closest_path'] = dist
             elif globals()['closest_path'] != -1:
-                globals()['stuck_turn_count'] += 1
+                globals()['stuck_turn_count'] = globals()['stuck_turn_count'] + 1
             else:
                 globals()['closest_path'] = dist
             return Pathfinding.less_original_pathfind(target)

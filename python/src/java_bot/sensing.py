@@ -1,7 +1,5 @@
 from battlecode25.stubs import *
-from .constants import *
-from .map_info_distance_comparator import MapInfoDistanceComparator
-import random
+from .constants import TOWER_DISTANCE_THRESHOLD, TOWER_PAINT_THRESHOLD, TOWER_HEALTH_THRESHOLD
 
 class Sensing:
     @staticmethod

@@ -13,16 +13,16 @@ class MapInfoCodec:
         Approx 55 bytecode.
         """
         i = 0
-        i += map_info.get_map_location().x
-        i += map_info.get_map_location().y << 6
+        i = i + map_info.get_map_location().x
+        i = i + (map_info.get_map_location().y << 6)
         if map_info.is_passable():
-            i += 1 << 12
+            i = i + (1 << 12)
         if map_info.is_wall():
-            i += 1 << 13
-        i += map_info.get_paint().value << 14
-        i += map_info.get_mark().value << 17
+            i = i + (1 << 13)
+        i = i + (map_info.get_paint().value << 14)
+        i = i + (map_info.get_mark().value << 17)
         if map_info.has_ruin():
-            i += 1 << 20
+            i = i + (1 << 20)
         return i
 
     @staticmethod

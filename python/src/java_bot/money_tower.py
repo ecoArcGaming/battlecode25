@@ -29,7 +29,7 @@ class MoneyTower(Tower):
                     globals()['rounds_without_enemy'] = 0
                     if Sensing.is_robot(rc, message.get_sender_id()):
                         globals()['broadcast'] = True
-                        globals()['num_enemy_visits'] += 1  # Increases probability of spawning a splasher
+                        globals()['num_enemy_visits'] = globals()['num_enemy_visits'] + 1  # Increases probability of spawning a splasher
                     # If tower receives message from tower, just alert the surrounding bots
                     globals()['alert_robots'] = True
                     # Update enemy tile regardless

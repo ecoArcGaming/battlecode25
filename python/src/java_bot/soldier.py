@@ -1,8 +1,8 @@
 from battlecode25.stubs import *
 from .robot import Robot
-from .constants import *
+from .constants import LOW_PAINT_THRESHOLD, SRP_MAP_WIDTH, SRP_MAP_HEIGHT
 from .sensing import Sensing
-from .helper import *
+from .helper import resource_pattern_grid
 from .pathfinding import Pathfinding
 from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
@@ -315,7 +315,7 @@ class Soldier(Robot):
         for enemy_robot in sense_nearby_robots(-1, get_team().opponent()):
             if enemy_robot.get_type().is_tower_type():
                 if can_attack(enemy_robot.get_location()):
-                    attack(enemy_robot.get_location())
+                    attack(enemy_robot.get_map_location())
                     break
                     
         tower_location = globals()['last_tower'].get_map_location()
@@ -420,11 +420,6 @@ class Soldier(Robot):
                                 move_dir = Pathfinding.pathfind(ruin_location)
                                 if move_dir is not None:
                                     move(move_dir)
-                    # Otherwise, pathfind to ruin location since we can't sense the location of the ruin
-                    else:
-                        move_dir = Pathfinding.pathfind(ruin_location)
-                        if move_dir is not None:
-                            move(move_dir)
                 # Otherwise, ruin is a money ruin
                 else:
                     globals()['fill_tower_type'] = UnitType.LEVEL_ONE_MONEY_TOWER
@@ -445,3 +440,15 @@ class Soldier(Robot):
         if new_dir is not None:
             move(new_dir)
             Soldier.paint_if_possible(get_location())
+
+    @staticmethod
+    def reset_variables():
+        """Reset variables for soldier"""
+        globals()['enemy_target'] = None
+        globals()['enemy_tower'] = None
+        globals()['alert_robots'] = False
+        globals()['alert_attack_soldiers'] = False
+        globals()['broadcast'] = False
+        globals()['ruin_to_fill'] = None
+        globals()['fill_tower_type'] = None
+        globals()['rounds_without_enemy'] = globals().get('rounds_without_enemy', 0) + 1

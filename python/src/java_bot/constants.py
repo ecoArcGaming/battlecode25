@@ -4,7 +4,7 @@ from .hashable_coords import HashableCoords
 
 class Constants:
     # Directions as an immutable tuple
-    DIRECTIONS: Final[Tuple[Direction, ...]] = (
+    DIRECTIONS = (
         Direction.NORTH,
         Direction.NORTHEAST,
         Direction.EAST,
@@ -16,7 +16,7 @@ class Constants:
     )
 
     # Paint loss values as a frozen dictionary
-    PAINT_LOSS_VALUES: Final[Dict[PaintType, int]] = {
+    PAINT_LOSS_VALUES = {
         PaintType.ALLY_PRIMARY: 0,
         PaintType.ALLY_SECONDARY: 0,
         PaintType.EMPTY: -1,
@@ -25,37 +25,46 @@ class Constants:
     }
 
     # Game constants
-    PERCENT_PAINT: Final[float] = 0.7
-    RESIGN_AFTER: Final[int] = 2005
-    LOW_PAINT_THRESHOLD: Final[int] = 20
-    INIT_PROBABILITY_DEVELOP: Final[int] = 100
-    RANDOM_STEP_PROBABILITY: Final[float] = 0.5
-    DEVELOP_BOT_PROBABILITY_CAP: Final[float] = 0.6
-    DEVELOP_BOT_PROB_SCALING: Final[int] = 200
-    DEFENSE_RANGE: Final[float] = 0.3
-    SPLASHER_CUTOFF: Final[int] = 8
-    SPLASHER_SOLDIER_SPLIT: Final[float] = 0.5
-    LOW_PAINT_MONEY_THRESHOLD: Final[int] = 5000
-    DEV_SRP_BOT_SPLIT: Final[float] = 0.8
+    PERCENT_PAINT = 0.7
+    RESIGN_AFTER = 2005
+    LOW_PAINT_THRESHOLD = 20
+    INIT_PROBABILITY_DEVELOP = 100
+    RANDOM_STEP_PROBABILITY = 0.5
+    DEVELOP_BOT_PROBABILITY_CAP = 0.6
+    DEVELOP_BOT_PROB_SCALING = 200
+    DEFENSE_RANGE = 0.3
+    SPLASHER_CUTOFF = 8
+    SPLASHER_SOLDIER_SPLIT = 0.5
+    LOW_PAINT_MONEY_THRESHOLD = 5000
+    DEV_SRP_BOT_SPLIT = 0.8
 
-    DEV_LIFE_CYCLE_TURNS: Final[int] = 30
-    SRP_LIFE_CYCLE_TURNS: Final[int] = 30
-    MIN_PAINT_GIVE: Final[int] = 50
+    DEV_LIFE_CYCLE_TURNS = 30
+    SRP_LIFE_CYCLE_TURNS = 30
+    MIN_PAINT_GIVE = 50
 
-    SRP_MAP_WIDTH: Final[int] = 95
-    SRP_MAP_HEIGHT: Final[int] = 95
+    SRP_MAP_WIDTH = 95
+    SRP_MAP_HEIGHT = 95
 
     # Primary SRP coordinates as a frozenset
-    PRIMARY_SRP: Final[Set[HashableCoords]] = frozenset({
+    PRIMARY_SRP = frozenset({
         HashableCoords(2, 0),
         HashableCoords(1, 1), HashableCoords(2, 1), HashableCoords(3, 1),
-        HashableCoords(0, 2), HashableCoords(1, 2), HashableCoords(3, 2),
+        HashableCoords(0, 2), HashableCoords(1, 2), HashableCoords(2, 2), HashableCoords(3, 2), HashableCoords(4, 2),
         HashableCoords(1, 3), HashableCoords(2, 3), HashableCoords(3, 3),
-        HashableCoords(2, 4), HashableCoords(4, 2)
+        HashableCoords(2, 4)
+    })
+
+    # Secondary SRP coordinates as a frozenset
+    SECONDARY_SRP = frozenset({
+        HashableCoords(2, 0),
+        HashableCoords(1, 1), HashableCoords(2, 1), HashableCoords(3, 1),
+        HashableCoords(0, 2), HashableCoords(1, 2), HashableCoords(2, 2), HashableCoords(3, 2), HashableCoords(4, 2),
+        HashableCoords(1, 3), HashableCoords(2, 3), HashableCoords(3, 3),
+        HashableCoords(2, 4)
     })
 
     # Tower patterns as tuples of tuples for immutability
-    PAINT_TOWER_PATTERN: Final[Tuple[Tuple[PaintType, ...], ...]] = (
+    PAINT_TOWER_PATTERN = (
         (PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY),
         (PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY),
         (PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY, PaintType.EMPTY, PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY),
@@ -63,7 +72,7 @@ class Constants:
         (PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY)
     )
 
-    MONEY_TOWER_PATTERN: Final[Tuple[Tuple[PaintType, ...], ...]] = (
+    MONEY_TOWER_PATTERN = (
         (PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY),
         (PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY),
         (PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY, PaintType.EMPTY, PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY),
@@ -71,7 +80,7 @@ class Constants:
         (PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY)
     )
 
-    DEFENSE_TOWER_PATTERN: Final[Tuple[Tuple[PaintType, ...], ...]] = (
+    DEFENSE_TOWER_PATTERN = (
         (PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY),
         (PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY),
         (PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.EMPTY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY),
