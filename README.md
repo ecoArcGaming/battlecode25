@@ -6,7 +6,7 @@ This is derived from the Battlecode 2025 scaffold, containing starter code and u
 
 - `java/`
   `java/src/v3`
-   Final ava robot source code and scaffold for the Java engine. 
+   Final Java robot source code and scaffold for the Java engine. 
 - `python/`
    Python robot source code and scaffold for the Python engine. 
 
