@@ -7,6 +7,7 @@ from .splasher import Splasher
 from .mopper import Mopper
 from .tower import Tower
 from .helper import Helper
+from .sensing import Sensing
 from .pathfinding import Pathfinding
 from collections import deque
 

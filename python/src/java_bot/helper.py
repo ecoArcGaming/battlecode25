@@ -1,44 +1,88 @@
 from battlecode25.stubs import *
 from .hashable_coords import HashableCoords
-from .constants import primary_srp
+from .constants import Constants
+from typing import Optional
 
-def resource_pattern_grid(loc):
+def resource_pattern_grid(loc: MapLocation) -> bool:
     """
-    The map is predivided into 4x4 grids, which soldiers will use to paint tiles accordingly
+    Check if a location is part of the primary resource pattern grid.
+    
+    Args:
+        loc: The MapLocation to check
+        
+    Returns:
+        bool: True if the location is part of the primary resource pattern, False otherwise
     """
     x = loc.x % 4
     y = loc.y % 4
     coords = HashableCoords(x, y)
-    return coords in primary_srp
+    return is_primary_srp(coords)
 
-def resource_pattern_type(loc):
+def resource_pattern_type(loc: MapLocation) -> PaintType:
     """
-    Determine the paint type for a resource pattern at the given location
+    Determine the paint type for a resource pattern at the given location.
+    
+    Args:
+        loc: The MapLocation to check
+        
+    Returns:
+        PaintType: The type of paint that should be at this location (ALLY_PRIMARY or ALLY_SECONDARY)
     """
     x = loc.x % 4
     y = loc.y % 4
     coords = HashableCoords(x, y)
-    if coords in primary_srp:
-        return PaintType.ALLY_PRIMARY
-    return PaintType.ALLY_SECONDARY
+    return get_srp_type(coords)
 
-def try_complete_resource_pattern():
+def try_complete_resource_pattern() -> None:
     """
-    Any bot will try to complete resource patterns nearby
+    Try to complete resource patterns in nearby tiles.
+    Scans nearby tiles within a radius of 16 and attempts to complete any resource patterns found.
     """
     for tile in sense_nearby_map_infos(16):
         if can_complete_resource_pattern(tile.get_map_location()):
             complete_resource_pattern(tile.get_map_location())
 
-def is_between(m, c1, c2):
+def is_between(m: MapLocation, c1: MapLocation, c2: MapLocation) -> bool:
     """
-    Check if a MapLocation m is in the rectangle with c1 and c2 as its corners
+    Check if a MapLocation is within the rectangle defined by two corner points.
+    
+    Args:
+        m: The MapLocation to check
+        c1: First corner of the rectangle
+        c2: Second corner of the rectangle
+        
+    Returns:
+        bool: True if m is within or on the rectangle bounds, False otherwise
     """
-    # Determine the min and max bounds for x and y coordinates
     min_x = min(c1.x, c2.x)
     max_x = max(c1.x, c2.x)
     min_y = min(c1.y, c2.y)
     max_y = max(c1.y, c2.y)
 
-    # Check if m is within these bounds
     return min_x <= m.x <= max_x and min_y <= m.y <= max_y
+
+def is_primary_srp(coords: HashableCoords) -> bool:
+    """
+    Check if coordinates are part of the primary SRP pattern.
+    
+    Args:
+        coords: The HashableCoords to check
+        
+    Returns:
+        bool: True if the coordinates are part of the primary SRP pattern, False otherwise
+    """
+    return coords in Constants.PRIMARY_SRP
+
+def get_srp_type(coords: HashableCoords) -> PaintType:
+    """
+    Get the paint type that should be at the given coordinates in the SRP pattern.
+    
+    Args:
+        coords: The HashableCoords to check
+        
+    Returns:
+        PaintType: ALLY_PRIMARY if coords are in the primary SRP pattern, ALLY_SECONDARY otherwise
+    """
+    if coords in Constants.PRIMARY_SRP:
+        return PaintType.ALLY_PRIMARY
+    return PaintType.ALLY_SECONDARY

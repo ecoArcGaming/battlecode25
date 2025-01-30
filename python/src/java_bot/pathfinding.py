@@ -135,7 +135,8 @@ class Pathfinding:
         if cum_sum == 0:
             return None
         else:
-            random_value = Constants.rng.randint(0, cum_sum - 1)
+            rng = Constants.get_random()
+            random_value = rng.randint(0, cum_sum - 1)
             for i in range(num_tiles):
                 if random_value < weighted_adjacent[i]:
                     return valid_adjacent[i].get_map_location()
@@ -250,7 +251,8 @@ class Pathfinding:
             weighted_adjacent[7] -= min_score * 8
 
             if cum_sum != 0:
-                random_value = Constants.rng.randint(0, weighted_adjacent[7] - 1)
+                rng = Constants.get_random()
+                random_value = rng.randint(0, weighted_adjacent[7] - 1)
                 for i in range(8):
                     if random_value < weighted_adjacent[i]:
                         globals()['intermediate_target'] = cur_location.translate(
@@ -275,7 +277,8 @@ class Pathfinding:
         """Does a random walk"""
         all_directions = Direction.all_directions()
         for _ in range(5):
-            dir = all_directions[int(Constants.rng.random() * len(all_directions))]
+            rng = Constants.get_random()
+            dir = all_directions[int(rng.random() * len(all_directions))]
             if can_move(dir) and get_location().add(dir) not in globals()['last8']:
                 return dir
         return None
@@ -294,7 +297,8 @@ class Pathfinding:
         
         if (globals()['opposite_corner'] is None or 
             get_location().distance_squared_to(globals()['opposite_corner']) <= 8):
-            corner = Constants.rng.random()
+            rng = Constants.get_random()
+            corner = rng.random()
             x = get_location().x
             y = get_location().y
             target_x = target_y = 0
@@ -339,7 +343,8 @@ class Pathfinding:
         
         if (globals()['opposite_corner'] is None or 
             get_location().distance_squared_to(globals()['opposite_corner']) <= 20):
-            corner = Constants.rng.random()
+            rng = Constants.get_random()
+            corner = rng.random()
             x = get_location().x
             y = get_location().y
             target_x = target_y = 0
@@ -369,7 +374,8 @@ class Pathfinding:
                 return dir
             else:
                 if can_sense_robot_at_location(get_location().add(dir)):
-                    if Constants.rng.random() >= 0.8:
+                    rng = Constants.get_random()
+                    if rng.random() >= 0.8:
                         # treat robot as passable 20% of the time
                         return None
                 globals()['is_tracing'] = True
@@ -513,7 +519,8 @@ class Pathfinding:
         all_directions = Sensing.get_movable_painted_tiles()
         if not all_directions:
             return None
-        dir = get_location().direction_to(all_directions[int(Constants.rng.random() * len(all_directions))].get_map_location())
+        rng = Constants.get_random()
+        dir = get_location().direction_to(all_directions[int(rng.random() * len(all_directions))].get_map_location())
         if can_move(dir):
             return dir
         return None

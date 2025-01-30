@@ -2,7 +2,7 @@ from battlecode25.stubs import *
 from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
 from .map_info_codec import MapInfoCodec
-from .constants import *
+from .constants import Constants
 from .sensing import Sensing
 import random
 
@@ -67,14 +67,14 @@ class Tower:
     def add_random_to_queue():
         """Builds an advance/develop soldier, weighted by how long it has been since the tower last saw a robot"""
         if (random.random() < globals()['num_enemy_visits'] * 0.2 or 
-            (globals()['num_soldiers_spawned'] > SPLASHER_CUTOFF and random.random() < SPLASHER_SOLDIER_SPLIT)):
+            (globals()['num_soldiers_spawned'] > Constants.SPLASHER_CUTOFF and random.random() < Constants.SPLASHER_SOLDIER_SPLIT)):
             globals()['spawn_queue'].append(4)
             globals()['num_enemy_visits'] = 0
         else:
             globals()['num_soldiers_spawned'] += 1
             # odds of explore robot increases linearly from 30-70 to 60-40
-            if random.random() < min((globals()['rounds_without_enemy'] + INIT_PROBABILITY_DEVELOP) / DEVELOP_BOT_PROB_SCALING,
-                                   DEVELOP_BOT_PROBABILITY_CAP):
+            if random.random() < min((globals()['rounds_without_enemy'] + Constants.INIT_PROBABILITY_DEVELOP) / Constants.DEVELOP_BOT_PROB_SCALING,
+                                   Constants.DEVELOP_BOT_PROBABILITY_CAP):
                 globals()['spawn_queue'].append(0)
             else:
                 globals()['spawn_queue'].append(1)
@@ -157,7 +157,7 @@ class Tower:
         best_dir = None
         min_dist = float('inf')
         
-        for dir in directions:
+        for dir in Constants.DIRECTIONS:
             new_loc = loc.add(dir)
             if can_build_robot(UnitType.SOLDIER, new_loc):
                 dist = abs(new_loc.x - center_x) + abs(new_loc.y - center_y)
