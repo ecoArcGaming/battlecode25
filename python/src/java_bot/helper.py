@@ -37,10 +37,29 @@ def try_complete_resource_pattern() -> None:
     """
     Try to complete resource patterns in nearby tiles.
     Scans nearby tiles within a radius of 16 and attempts to complete any resource patterns found.
+    
+    This function is safe to call and will handle any exceptions that occur during the process.
+    It will not raise any exceptions itself.
     """
-    for tile in sense_nearby_map_infos(16):
-        if can_complete_resource_pattern(tile.get_map_location()):
-            complete_resource_pattern(tile.get_map_location())
+    try:
+        nearby_tiles = sense_nearby_map_infos(16)
+        if nearby_tiles is None:
+            return
+            
+        for tile in nearby_tiles:
+            try:
+                loc = tile.get_map_location()
+                if loc is None:
+                    continue
+                    
+                if can_complete_resource_pattern(loc):
+                    complete_resource_pattern(loc)
+            except Exception:
+                # If any individual tile fails, continue with the next one
+                continue
+    except Exception:
+        # If the overall scanning fails, just return
+        return
 
 def is_between(m: MapLocation, c1: MapLocation, c2: MapLocation) -> bool:
     """

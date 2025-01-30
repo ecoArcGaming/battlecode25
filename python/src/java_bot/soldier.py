@@ -2,7 +2,7 @@ from battlecode25.stubs import *
 from .robot import Robot
 from .constants import *
 from .sensing import Sensing
-from .helper import Helper
+from .helper import *
 from .pathfinding import Pathfinding
 from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
@@ -46,7 +46,7 @@ class Soldier(Robot):
             if get_map_width() <= SRP_MAP_WIDTH and get_map_height() <= SRP_MAP_HEIGHT:
                 attack(paint_location, False)
             else:
-                attack(paint_location, not Helper.resource_pattern_grid(paint_location))
+                attack(paint_location, not resource_pattern_grid(paint_location))
 
     @staticmethod
     def read_new_messages():
@@ -208,7 +208,7 @@ class Soldier(Robot):
             elif Soldier.has_low_paint(LOW_PAINT_THRESHOLD):
                 for map_info in nearby_tiles:
                     if (map_info.get_paint().is_ally() and 
-                        map_info.get_paint() != Helper.resource_pattern_type(map_info.get_map_location())):
+                        map_info.get_paint() != resource_pattern_type(map_info.get_map_location())):
                         Soldier.reset_variables()
                         globals()['soldier_state'] = SoldierState.FILLINGSRP
 

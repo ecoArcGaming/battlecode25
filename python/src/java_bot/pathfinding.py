@@ -1,8 +1,8 @@
 from battlecode25.stubs import *
 from .constants import Constants
 from .sensing import Sensing
-from .helper import Helper
 from .bot import *
+from .helper import *
 
 class Pathfinding:
     """
@@ -383,9 +383,8 @@ class Pathfinding:
                 globals()['stopped_location'] = get_location()
                 globals()['tracing_turns'] = 0
         else:
-            if ((Helper.is_between(get_location(), globals()['stopped_location'], target) and 
-                globals()['tracing_turns'] != 0) or 
-                globals()['tracing_turns'] > 2 * (get_map_width() + get_map_height())):
+            if (is_between(get_location(), globals()['stopped_location'], target) and 
+                globals()['tracing_turns'] != 0) or globals()['tracing_turns'] > 2 * (get_map_width() + get_map_height()):
                 from .soldier import Soldier
                 Soldier.reset_variables()
             else:
