@@ -1,7 +1,7 @@
 from battlecode25.stubs import *
-import Communication
-import RobotInfoCodec
-import MapInfoCodec
+import communication
+import robot_info_codec
+import map_info_codec
 import constants
 import random
 
@@ -10,10 +10,10 @@ def read_new_messages():
     # Looks at all incoming messages
     for message in read_messages(get_round_num() - 1):
         bytes_msg = message.get_bytes()
-        if Communication.is_robot_info(bytes_msg):
-            msg = RobotInfoCodec.decode(bytes_msg)
+        if communication.is_robot_info(bytes_msg):
+            msg = robot_info_codec.decode(bytes_msg)
         else:
-            msg = MapInfoCodec.decode(bytes_msg)
+            msg = map_info_codec.decode(bytes_msg)
             # Check if message is enemy tower
             if msg.has_ruin():
                 globals()['rounds_without_enemy'] = 0
@@ -121,7 +121,7 @@ def send_type_message(robot_type):
         send_message(added_dir, robot_type)
         # If robot is an attack soldier or mopper, send enemy tile location as well
         if robot_type in [4, 3, 2]:
-            Communication.send_map_information(globals()['enemy_target'], added_dir)
+            communication.send_map_information(globals()['enemy_target'], added_dir)
     globals()['send_type_message'] = False
     globals()['spawn_queue'].pop(0)
 

@@ -1,6 +1,8 @@
 from battlecode25.stubs import *
-import Pathfinding
+import pathfinding
 import math
+import constants
+import random
 
 def low_paint_behavior():
     """Method for robot behavior when they are low on paint"""
@@ -13,12 +15,12 @@ def low_paint_behavior():
                 break
 
     if globals()['last_tower'] is None:
-        move_to = Pathfinding.random_painted_walk()
+        move_to = pathfinding.random_painted_walk()
         if move_to is not None and can_move(move_to):
             move(move_to)
         return
 
-    dir = Pathfinding.return_to_tower()
+    dir = pathfinding.return_to_tower()
     if dir is not None:
         move(dir)
 
@@ -29,7 +31,7 @@ def low_paint_behavior():
     
     if can_sense_robot_at_location(tower_location):
         tower_paint = sense_robot_at_location(tower_location).paint_amount
-        if get_paint() < 5 and can_transfer_paint(tower_location, -tower_paint) and tower_paint > MIN_PAINT_GIVE:
+        if get_paint() < 5 and can_transfer_paint(tower_location, -tower_paint) and tower_paint > constants.MIN_PAINT_GIVE:
             transfer_paint(tower_location, -tower_paint)
 
     if can_transfer_paint(tower_location, amt_to_transfer):
@@ -67,10 +69,10 @@ def has_low_paint(threshold):
 
 def gen_tower_type(ruin_location):
     """Returns a random tower with a Constants.TOWER_SPLIT split and defense tower only if in range"""
-    if get_number_towers() <= 3:
+    if get_num_towers() <= 3:
         return UnitType.LEVEL_ONE_MONEY_TOWER
 
-    prob_defense = min(1, (get_number_towers()) / (get_map_height() + get_map_width()) * 5)
+    prob_defense = min(1, (get_num_towers()) / (get_map_height() + get_map_width()) * 5)
     prob_from_center = 1 - 2.5 * (abs(get_map_width() / 2 - ruin_location.x) + abs(get_map_height() / 2 - ruin_location.y)) / (get_map_height() + get_map_width())
     haha = random.random()
     
@@ -79,7 +81,7 @@ def gen_tower_type(ruin_location):
             
     hehe = random.random()
     return (UnitType.LEVEL_ONE_PAINT_TOWER 
-            if hehe < min((get_number_towers()) / math.sqrt(get_map_height() + get_map_width()), PEENT_PAINT) 
+            if hehe < min((get_num_towers()) / math.sqrt(get_map_height() + get_map_width()), constants.PERCENT_PAINT) 
             else UnitType.LEVEL_ONE_MONEY_TOWER)
 
 def complete_ruin_if_possible(ruin_location):

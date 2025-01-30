@@ -8,6 +8,7 @@ import soldier_state
 import soldier_type
 import robot
 import sensing
+import random
 
 def low_paint_behavior():
     """Method for soldier to do when low on paint"""
@@ -101,7 +102,7 @@ def update_state(cur_location, nearby_tiles):
     Updates the robot state according to its paint level (LOWONPAINT),
     nearby enemy paint (DELIVERINGMESSAGE), or nearby ruins (FILLING TOWER)
     """
-    if (has_low_paint(constants.LOW_PAINT_THRESHOLD) and 
+    if (robot.has_low_paint(constants.LOW_PAINT_THRESHOLD) and 
         (get_money() < constants.LOW_PAINT_MONEY_THRESHOLD or globals()['soldier_state'] == soldier_state.SoldierState.FILLINGTOWER)):
         if globals()['soldier_state'] != soldier_state.SoldierState.LOWONPAINT:
             globals()['intermediate_target'] = None
@@ -133,7 +134,7 @@ def update_state_osama(cur_location, nearby_tiles):
     Updates the robot state according to its paint level (LOWONPAINT) or nearby ruins (FILLING TOWER)
     Only cares about enemy paint if the round number is larger than the map length + map width
     """
-    if has_low_paint(constants.LOW_PAINT_THRESHOLD):
+    if robot.has_low_paint(constants.LOW_PAINT_THRESHOLD):
         if globals()['soldier_state'] != soldier_state.SoldierState.LOWONPAINT:
             globals()['intermediate_target'] = None
             reset_variables()
@@ -167,7 +168,7 @@ def update_srp_state(cur_location, nearby_tiles):
         globals()['srp_location'] = None
             
     if (globals()['soldier_state'] != soldier_state.SoldierState.LOWONPAINT and 
-        has_low_paint(constants.LOW_PAINT_THRESHOLD)):
+        robot.has_low_paint(constants.LOW_PAINT_THRESHOLD)):
         if globals()['soldier_state'] != soldier_state.SoldierState.STUCK:
             globals()['srp_location'] = get_location()
         reset_variables()
@@ -191,7 +192,7 @@ def update_srp_state(cur_location, nearby_tiles):
                 globals()['soldier_state'] = soldier_state.SoldierState.FILLINGSRP
                 globals()['srp_center'] = get_location()
                 mark(get_location(), False)
-            elif has_low_paint(constants.LOW_PAINT_THRESHOLD):
+            elif robot.has_low_paint(constants.LOW_PAINT_THRESHOLD):
                 for map_info in nearby_tiles:
                     if (map_info.get_paint().is_ally() and 
                         map_info.get_paint() != helper.resource_pattern_type(map_info.get_map_location())):
@@ -201,7 +202,7 @@ def update_srp_state(cur_location, nearby_tiles):
 def fill_srp():
     """Creates SRP on small maps by placing marker to denote the center and painting around the marker"""
     if get_location() != globals()['srp_center']:
-        dir = pathfinding.Pathfinding.pathfind(globals()['srp_center'])
+        dir = pathfinding.pathfind(globals()['srp_center'])
         if dir is not None and can_move(dir):
             move(dir)
     else:

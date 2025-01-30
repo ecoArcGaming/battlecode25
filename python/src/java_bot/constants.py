@@ -85,8 +85,3 @@ DEFENSE_TOWER_PATTERN = (
     (PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY),
     (PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_SECONDARY, PaintType.ALLY_PRIMARY, PaintType.ALLY_PRIMARY)
 )
-
-def get_random():
-    rng = random()
-    rng.seed(42)  # Use a fixed seed for reproducibility
-    return rng

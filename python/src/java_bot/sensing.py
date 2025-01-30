@@ -1,4 +1,5 @@
 from battlecode25.stubs import *
+import constants
 
 def find_nearest_lowest_hp():
     """Finds the opponent robots within actionRadius with the lowest HP and returns its RobotInfo"""
@@ -212,10 +213,10 @@ def score_splash(tile):
 
 def is_in_defense_range(ruin_loc):
     """Checks whether a ruin is in the middle area of the map, in which a defense tower is built"""
-    x_lower = int(get_map_width() * DEFENSE_RANGE)
-    y_lower = int(get_map_height() * DEFENSE_RANGE)
-    x_higher = int(get_map_width() * (1 - DEFENSE_RANGE))
-    y_higher = int(get_map_height() * (1 - DEFENSE_RANGE))
+    x_lower = int(get_map_width() * constants.DEFENSE_RANGE)
+    y_lower = int(get_map_height() * constants.DEFENSE_RANGE)
+    x_higher = int(get_map_width() * (1 - constants.DEFENSE_RANGE))
+    y_higher = int(get_map_height() * (1 - constants.DEFENSE_RANGE))
     x = ruin_loc.x
     y = ruin_loc.y
     return x_lower <= x <= x_higher and y_lower <= y <= y_higher

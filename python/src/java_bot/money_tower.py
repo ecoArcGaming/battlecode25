@@ -1,4 +1,4 @@
-from battlecode25.stubs import *
+from battlecode25.stubs import *    
 import communication
 import robot_info_codec
 import map_info_codec
@@ -22,7 +22,7 @@ def read_new_messages():
             # Check if message is enemy paint
             elif msg.get_paint().is_enemy():
                 globals()['rounds_without_enemy'] = 0
-                if sensing.is_robot(rc, message.get_sender_id()):
+                if sensing.is_robot(message.get_sender_id()):
                     globals()['broadcast'] = True
                     globals()['num_enemy_visits'] = globals()['num_enemy_visits'] + 1  # Increases probability of spawning a splasher
                 # If tower receives message from tower, just alert the surrounding bots
