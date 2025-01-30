@@ -1,4 +1,4 @@
-# Our (Team 2Y1B) Battlecode 2025 Submission
+# Our (Team 2Y1B) Battlecode 2025 Submissions
 
 This is derived from the Battlecode 2025 scaffold, containing starter code and useful scripts for running and compiling bots.
 
