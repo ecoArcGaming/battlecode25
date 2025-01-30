@@ -1,6 +1,5 @@
-from typing import Final, Dict, Set, Tuple
 from battlecode25.stubs import *
-from .hashable_coords import HashableCoords
+from random import Random
 
 class Constants:
     # Directions as an immutable tuple
@@ -47,20 +46,20 @@ class Constants:
 
     # Primary SRP coordinates as a frozenset
     PRIMARY_SRP = frozenset({
-        HashableCoords(2, 0),
-        HashableCoords(1, 1), HashableCoords(2, 1), HashableCoords(3, 1),
-        HashableCoords(0, 2), HashableCoords(1, 2), HashableCoords(2, 2), HashableCoords(3, 2), HashableCoords(4, 2),
-        HashableCoords(1, 3), HashableCoords(2, 3), HashableCoords(3, 3),
-        HashableCoords(2, 4)
+        (2, 0),
+        (1, 1), (2, 1), (3, 1),
+        (0, 2), (1, 2), (2, 2), (3, 2), (4, 2),
+        (1, 3), (2, 3), (3, 3),
+        (2, 4)
     })
 
     # Secondary SRP coordinates as a frozenset
     SECONDARY_SRP = frozenset({
-        HashableCoords(2, 0),
-        HashableCoords(1, 1), HashableCoords(2, 1), HashableCoords(3, 1),
-        HashableCoords(0, 2), HashableCoords(1, 2), HashableCoords(2, 2), HashableCoords(3, 2), HashableCoords(4, 2),
-        HashableCoords(1, 3), HashableCoords(2, 3), HashableCoords(3, 3),
-        HashableCoords(2, 4)
+        (2, 0),
+        (1, 1), (2, 1), (3, 1),
+        (0, 2), (1, 2), (2, 2), (3, 2), (4, 2),
+        (1, 3), (2, 3), (3, 3),
+        (2, 4)
     })
 
     # Tower patterns as tuples of tuples for immutability
@@ -89,9 +88,7 @@ class Constants:
     )
 
     @classmethod
-    def get_random(cls) -> random.Random:
-        """Get a seeded random number generator for deterministic behavior"""
-        # TODO: Replace this with game's built-in RNG if available
-        rng = random.Random()
+    def get_random(cls) -> Random:
+        rng = Random()
         rng.seed(42)  # Use a fixed seed for reproducibility
         return rng

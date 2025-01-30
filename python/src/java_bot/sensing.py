@@ -1,5 +1,4 @@
 from battlecode25.stubs import *
-from .constants import TOWER_DISTANCE_THRESHOLD, TOWER_PAINT_THRESHOLD, TOWER_HEALTH_THRESHOLD
 
 class Sensing:
     @staticmethod
@@ -191,20 +190,6 @@ class Sensing:
             bot = sense_robot(robot_id)
             return bot.get_type().is_tower_type()
         return False
-
-    @staticmethod
-    def get_near_by_enemies_sorted_shuffled():
-        """Get nearby enemies sorted by distance"""
-        nearby_enemies = []
-        enemies = list(sense_nearby_map_infos())
-        for enemy in enemies:
-            if enemy.get_paint().is_enemy():
-                nearby_enemies.append(enemy)
-            if enemy.get_paint() == PaintType.EMPTY and not enemy.has_ruin() and not enemy.is_wall():
-                globals()['fill_empty'] = enemy
-        if not nearby_enemies:
-            return None
-        return max(nearby_enemies, key=lambda x: MapInfoDistanceComparator()(x, x))
 
     @staticmethod
     def score_splasher_tiles():

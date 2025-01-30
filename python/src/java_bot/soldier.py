@@ -1,13 +1,12 @@
 from battlecode25.stubs import *
 from .robot import Robot
-from .constants import LOW_PAINT_THRESHOLD, SRP_MAP_WIDTH, SRP_MAP_HEIGHT
+import constants
 from .sensing import Sensing
-from .helper import resource_pattern_grid
+import helper
 from .pathfinding import Pathfinding
 from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
 from .map_info_codec import MapInfoCodec
-from .hashable_coords import HashableCoords
 from .soldier_state import SoldierState
 from .soldier_type import SoldierType
 import random
@@ -19,7 +18,7 @@ class Soldier(Robot):
     def low_paint_behavior():
         """Method for soldier to do when low on paint"""
         Robot.low_paint_behavior()
-        if get_paint() > LOW_PAINT_THRESHOLD:
+        if get_paint() > constants.LOW_PAINT_THRESHOLD:
             if globals()['soldier_state'] != globals()['stored_state']:
                 globals()['soldier_state'] = globals()['stored_state']
             elif globals()['ruin_to_fill'] is not None:
@@ -43,10 +42,10 @@ class Soldier(Robot):
             can_attack(paint_location) and 
             paint_tile.get_mark() == PaintType.EMPTY):
             # If map size less than 30 by 30, then don't fill in SRP colors as wandering
-            if get_map_width() <= SRP_MAP_WIDTH and get_map_height() <= SRP_MAP_HEIGHT:
+            if get_map_width() <= constants.SRP_MAP_WIDTH and get_map_height() <= constants.SRP_MAP_HEIGHT:
                 attack(paint_location, False)
             else:
-                attack(paint_location, not resource_pattern_grid(paint_location))
+                attack(paint_location, not helper.resource_pattern_grid(paint_location))
 
     @staticmethod
     def read_new_messages():
@@ -57,8 +56,8 @@ class Soldier(Robot):
             # Information is type of robot
             if bytes in [0, 1, 2]:
                 if bytes == 0:
-                    if (random.random() <= DEV_SRP_BOT_SPLIT or 
-                        (get_map_width() <= SRP_MAP_WIDTH and get_map_height() <= SRP_MAP_HEIGHT)):
+                    if (random.random() <= constants.DEV_SRP_BOT_SPLIT or 
+                        (get_map_width() <= constants.SRP_MAP_WIDTH and get_map_height() <= constants.SRP_MAP_HEIGHT)):
                         globals()['soldier_type'] = SoldierType.DEVELOP
                     else:
                         globals()['soldier_type'] = SoldierType.SRP
@@ -113,8 +112,8 @@ class Soldier(Robot):
         Updates the robot state according to its paint level (LOWONPAINT),
         nearby enemy paint (DELIVERINGMESSAGE), or nearby ruins (FILLING TOWER)
         """
-        if (Soldier.has_low_paint(LOW_PAINT_THRESHOLD) and 
-            (get_money() < LOW_PAINT_MONEY_THRESHOLD or globals()['soldier_state'] == SoldierState.FILLINGTOWER)):
+        if (Soldier.has_low_paint(constants.LOW_PAINT_THRESHOLD) and 
+            (get_money() < constants.LOW_PAINT_MONEY_THRESHOLD or globals()['soldier_state'] == SoldierState.FILLINGTOWER)):
             if globals()['soldier_state'] != SoldierState.LOWONPAINT:
                 globals()['intermediate_target'] = None
                 Soldier.reset_variables()
@@ -146,7 +145,7 @@ class Soldier(Robot):
         Updates the robot state according to its paint level (LOWONPAINT) or nearby ruins (FILLING TOWER)
         Only cares about enemy paint if the round number is larger than the map length + map width
         """
-        if Soldier.has_low_paint(LOW_PAINT_THRESHOLD):
+        if Soldier.has_low_paint(constants.LOW_PAINT_THRESHOLD):
             if globals()['soldier_state'] != SoldierState.LOWONPAINT:
                 globals()['intermediate_target'] = None
                 Soldier.reset_variables()
@@ -181,7 +180,7 @@ class Soldier(Robot):
             globals()['srp_location'] = None
             
         if (globals()['soldier_state'] != SoldierState.LOWONPAINT and 
-            Soldier.has_low_paint(LOW_PAINT_THRESHOLD)):
+            Soldier.has_low_paint(constants.LOW_PAINT_THRESHOLD)):
             if globals()['soldier_state'] != SoldierState.STUCK:
                 globals()['srp_location'] = get_location()
             Soldier.reset_variables()
@@ -189,8 +188,8 @@ class Soldier(Robot):
             globals()['soldier_state'] = SoldierState.LOWONPAINT
         elif globals()['soldier_state'] == SoldierState.STUCK:
             # If less than 30, check 5x5 area for empty or ally primary tiles and mark center
-            if (get_map_width() <= SRP_MAP_WIDTH and 
-                get_map_height() <= SRP_MAP_HEIGHT and 
+            if (get_map_width() <= constants.SRP_MAP_WIDTH and 
+                get_map_height() <= constants.SRP_MAP_HEIGHT and 
                 not sense_map_info(cur_location).get_mark().is_ally()):
                 poss_srp = sense_nearby_map_infos(8)
                 can_build_srp = True
@@ -205,10 +204,10 @@ class Soldier(Robot):
                     globals()['soldier_state'] = SoldierState.FILLINGSRP
                     globals()['srp_center'] = get_location()
                     mark(get_location(), False)
-            elif Soldier.has_low_paint(LOW_PAINT_THRESHOLD):
+            elif Soldier.has_low_paint(constants.LOW_PAINT_THRESHOLD):
                 for map_info in nearby_tiles:
                     if (map_info.get_paint().is_ally() and 
-                        map_info.get_paint() != resource_pattern_type(map_info.get_map_location())):
+                        map_info.get_paint() != helper.resource_pattern_type(map_info.get_map_location())):
                         Soldier.reset_variables()
                         globals()['soldier_state'] = SoldierState.FILLINGSRP
 
@@ -227,7 +226,7 @@ class Soldier(Robot):
                     if not on_the_map(get_location().translate(i - 2, j - 2)):
                         continue
                     srp_loc = sense_map_info(get_location().translate(i - 2, j - 2))
-                    is_primary = HashableCoords(i, j) in PRIMARY_SRP
+                    is_primary = (i, j) in constants.PRIMARY_SRP
                     if ((srp_loc.get_paint() == PaintType.ALLY_PRIMARY and is_primary) or 
                         (srp_loc.get_paint() == PaintType.ALLY_SECONDARY and not is_primary)):
                         continue
@@ -275,7 +274,7 @@ class Soldier(Robot):
         # Try to paint nearby tiles that need SRP pattern
         if rc.get_action_cooldown_turns() < 10:
             for nearby_tile in rc.sense_nearby_map_infos(20):
-                paint = resource_pattern_type(nearby_tile.get_map_location())
+                paint = helper.resource_pattern_type(nearby_tile.get_map_location())
                 if ((nearby_tile.get_paint() == PaintType.EMPTY and nearby_tile.is_passable()) or
                     (nearby_tile.get_paint().is_ally() and paint != nearby_tile.get_paint())):
                     if rc.can_attack(nearby_tile.get_map_location()):
@@ -291,7 +290,7 @@ class Soldier(Robot):
                     continue
                     
                 nearby_location = nearby_tile.get_map_location()
-                paint = resource_pattern_type(nearby_location)
+                paint = helper.resource_pattern_type(nearby_location)
                 if ((nearby_tile.get_paint() == PaintType.EMPTY and nearby_tile.is_passable()) or
                     (nearby_tile.get_paint().is_ally() and paint != nearby_tile.get_paint())):
                     direction = Pathfinding.pathfind(rc, nearby_location)
@@ -371,9 +370,9 @@ class Soldier(Robot):
         # Check to see if we know the type of tower to fill in
         elif globals()['fill_tower_type'] is not None:
             # Paint the tile at a location
-            ruin_pattern = (PAINT_TOWER_PATTERN if globals()['fill_tower_type'] == UnitType.LEVEL_ONE_PAINT_TOWER else 
-                          MONEY_TOWER_PATTERN if globals()['fill_tower_type'] == UnitType.LEVEL_ONE_MONEY_TOWER else 
-                          DEFENSE_TOWER_PATTERN)
+            ruin_pattern = (constants.PAINT_TOWER_PATTERN if globals()['fill_tower_type'] == UnitType.LEVEL_ONE_PAINT_TOWER else 
+                          constants.MONEY_TOWER_PATTERN if globals()['fill_tower_type'] == UnitType.LEVEL_ONE_MONEY_TOWER else 
+                          constants.DEFENSE_TOWER_PATTERN)
             tile_to_paint = Sensing.find_paintable_ruin_tile(ruin_location, ruin_pattern)
             if tile_to_paint is not None:
                 tile = ruin_location.translate(tile_to_paint[0], tile_to_paint[1])

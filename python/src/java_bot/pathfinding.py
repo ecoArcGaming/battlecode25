@@ -1,7 +1,7 @@
 from battlecode25.stubs import *
-from .constants import Constants
+import constants
 from .sensing import Sensing
-from .helper import is_between
+import helper
 
 class Pathfinding:
     """
@@ -24,7 +24,7 @@ class Pathfinding:
         cur_location = get_location()
         best_location = None
         
-        for dir in Constants.directions:
+        for dir in constants.directions:
             if can_move(dir):
                 adj_location = sense_map_info(cur_location.add(dir))
                 distance = adj_location.get_map_location().distance_squared_to(target)
@@ -134,7 +134,7 @@ class Pathfinding:
         if cum_sum == 0:
             return None
         else:
-            rng = Constants.get_random()
+            rng = constants.get_random()
             random_value = rng.randint(0, cum_sum - 1)
             for i in range(num_tiles):
                 if random_value < weighted_adjacent[i]:
@@ -152,7 +152,7 @@ class Pathfinding:
         valid_adjacent = Sensing.get_movable_empty_tiles()
         if not valid_adjacent:
             cur_loc = get_location()
-            for dir in Constants.directions:
+            for dir in constants.directions:
                 farther_location = cur_loc.add(dir)
                 if on_the_map(farther_location):
                     farther_info = sense_map_info(farther_location)
@@ -250,7 +250,7 @@ class Pathfinding:
             weighted_adjacent[7] = weighted_adjacent[7] - min_score * 8
 
             if cum_sum != 0:
-                rng = Constants.get_random()
+                rng = constants.get_random()
                 random_value = rng.randint(0, weighted_adjacent[7] - 1)
                 for i in range(8):
                     if random_value < weighted_adjacent[i]:
@@ -276,7 +276,7 @@ class Pathfinding:
         """Does a random walk"""
         all_directions = Direction.all_directions()
         for _ in range(5):
-            rng = Constants.get_random()
+            rng = constants.get_random()
             dir = all_directions[int(rng.random() * len(all_directions))]
             if can_move(dir) and get_location().add(dir) not in globals()['last8']:
                 return dir
@@ -286,7 +286,7 @@ class Pathfinding:
     def find_own_corner():
         """Find and move towards own corner"""
         set_indicator_string(f"GETTING UNSTUCK {globals()['opposite_corner']}")
-        if Constants.rng.random() < Constants.RANDOM_STEP_PROBABILITY:
+        if constants.rng.random() < constants.RANDOM_STEP_PROBABILITY:
             random_dir = Pathfinding.random_walk()
             if random_dir is not None:
                 return random_dir
@@ -296,7 +296,7 @@ class Pathfinding:
         
         if (globals()['opposite_corner'] is None or 
             get_location().distance_squared_to(globals()['opposite_corner']) <= 8):
-            rng = Constants.get_random()
+            rng = constants.get_random()
             corner = rng.random()
             x = get_location().x
             y = get_location().y
@@ -320,7 +320,7 @@ class Pathfinding:
     @staticmethod
     def get_unstuck():
         """Finds the furthest corner and move towards it"""
-        if Constants.rng.random() < Constants.RANDOM_STEP_PROBABILITY:
+        if constants.rng.random() < constants.RANDOM_STEP_PROBABILITY:
             return Pathfinding.random_walk()
         else:
             if (globals()['opposite_corner'] is None or 
@@ -342,7 +342,7 @@ class Pathfinding:
         
         if (globals()['opposite_corner'] is None or 
             get_location().distance_squared_to(globals()['opposite_corner']) <= 20):
-            rng = Constants.get_random()
+            rng = constants.get_random()
             corner = rng.random()
             x = get_location().x
             y = get_location().y
@@ -373,7 +373,7 @@ class Pathfinding:
                 return dir
             else:
                 if can_sense_robot_at_location(get_location().add(dir)):
-                    rng = Constants.get_random()
+                    rng = constants.get_random()
                     if rng.random() >= 0.8:
                         # treat robot as passable 20% of the time
                         return None
@@ -382,7 +382,7 @@ class Pathfinding:
                 globals()['stopped_location'] = get_location()
                 globals()['tracing_turns'] = 0
         else:
-            if (is_between(get_location(), globals()['stopped_location'], target) and 
+            if (helper.is_between(get_location(), globals()['stopped_location'], target) and 
                 globals()['tracing_turns'] != 0) or globals()['tracing_turns'] > 2 * (get_map_width() + get_map_height()):
                 from .soldier import Soldier
                 Soldier.reset_variables()
@@ -517,7 +517,7 @@ class Pathfinding:
         all_directions = Sensing.get_movable_painted_tiles()
         if not all_directions:
             return None
-        rng = Constants.get_random()
+        rng = constants.get_random()
         dir = get_location().direction_to(all_directions[int(rng.random() * len(all_directions))].get_map_location())
         if can_move(dir):
             return dir

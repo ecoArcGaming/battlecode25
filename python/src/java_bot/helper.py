@@ -1,6 +1,5 @@
 from battlecode25.stubs import *
-from .hashable_coords import HashableCoords
-from .constants import Constants
+import constants
 
 def resource_pattern_grid(loc):
     """
@@ -14,7 +13,7 @@ def resource_pattern_grid(loc):
     """
     x = loc.x % 4
     y = loc.y % 4
-    coords = HashableCoords(x, y)
+    coords = (x, y)
     return is_primary_srp(coords)
 
 def resource_pattern_type(loc):
@@ -29,7 +28,7 @@ def resource_pattern_type(loc):
     """
     x = loc.x % 4
     y = loc.y % 4
-    coords = HashableCoords(x, y)
+    coords = (x, y)
     return get_srp_type(coords)
 
 def try_complete_resource_pattern():
@@ -84,23 +83,23 @@ def is_primary_srp(coords):
     Check if coordinates are part of the primary SRP pattern.
     
     Args:
-        coords: The HashableCoords to check
+        coords: The tuple of (x,y) coordinates to check
         
     Returns:
         bool: True if the coordinates are part of the primary SRP pattern, False otherwise
     """
-    return coords in Constants.PRIMARY_SRP
+    return coords in constants.PRIMARY_SRP
 
 def get_srp_type(coords):
     """
     Get the paint type that should be at the given coordinates in the SRP pattern.
     
     Args:
-        coords: The HashableCoords to check
+        coords: The tuple of (x,y) coordinates to check
         
     Returns:
         PaintType: ALLY_PRIMARY if coords are in the primary SRP pattern, ALLY_SECONDARY otherwise
     """
-    if coords in Constants.PRIMARY_SRP:
+    if coords in constants.PRIMARY_SRP:
         return PaintType.ALLY_PRIMARY
     return PaintType.ALLY_SECONDARY

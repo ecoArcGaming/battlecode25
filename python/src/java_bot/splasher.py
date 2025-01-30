@@ -1,12 +1,11 @@
 from battlecode25.stubs import *
 from .robot import Robot
-from .constants import LOW_PAINT_THRESHOLD, MIN_PAINT_GIVE
+import constants
 from .sensing import Sensing
 from .pathfinding import Pathfinding
 from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
 from .map_info_codec import MapInfoCodec
-from .hashable_coords import HashableCoords
 
 class Splasher(Robot):
     """Class for all methods that a splasher will do"""
@@ -15,7 +14,7 @@ class Splasher(Robot):
     def low_paint_behavior():
         """Method for splasher to do when low on paint"""
         Robot.low_paint_behavior()
-        if get_paint() > LOW_PAINT_THRESHOLD:
+        if get_paint() > constants.LOW_PAINT_THRESHOLD:
             if globals()['ruin_to_fill'] is not None:
                 globals()['soldier_state'] = SoldierState.FILLINGTOWER
             else:

@@ -2,8 +2,7 @@ from battlecode25.stubs import *
 from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
 from .map_info_codec import MapInfoCodec
-from .constants import Constants
-from .sensing import Sensing
+import constants
 import random
 
 class Tower:
@@ -71,7 +70,8 @@ class Tower:
             globals()['spawn_queue'].append(4)
             globals()['num_enemy_visits'] = 0
         else:
-            globals()['num_soldiers_spawned'] += 1
+            num_soldiers_spawned = globals()['num_soldiers_spawned'] + 1
+            globals()['num_soldiers_spawned'] = num_soldiers_spawned
             # odds of explore robot increases linearly from 30-70 to 60-40
             if random.random() < min((globals()['rounds_without_enemy'] + Constants.INIT_PROBABILITY_DEVELOP) / Constants.DEVELOP_BOT_PROB_SCALING,
                                    Constants.DEVELOP_BOT_PROBABILITY_CAP):

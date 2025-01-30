@@ -1,11 +1,11 @@
 from battlecode25.stubs import *
-from .constants import Constants
+import constants
 from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
 from .map_info_codec import MapInfoCodec
 from .sensing import Sensing
 from .pathfinding import Pathfinding
-from .helper import Helper
+import helper
 from .soldier_type import SoldierType
 from .soldier_state import SoldierState
 from .robot import Robot
@@ -162,7 +162,7 @@ def run_soldier():
 
     elif globals()['soldier_type'] == SoldierType.DEVELOP:
         Soldier.update_state(init_location, nearby_tiles)
-        Helper.try_complete_resource_pattern()
+        helper.try_complete_resource_pattern()
         
         nearby_bots = sense_nearby_robots()
         sees_enemy = False
@@ -303,7 +303,7 @@ def run_soldier():
     elif globals()['soldier_type'] == SoldierType.SRP:
         # check for low paint and numTurnStuck
         Soldier.update_srp_state(init_location, nearby_tiles)
-        Helper.try_complete_resource_pattern()
+        helper.try_complete_resource_pattern()
         
         # See if there are enemies nearby, if so, turn to advance bot
         nearby_bots = sense_nearby_robots()
@@ -335,7 +335,7 @@ def run_soldier():
             Soldier.stuck_behavior()
             if not (get_map_width() <= Constants.SRP_MAP_WIDTH and get_map_height() <= Constants.SRP_MAP_HEIGHT):
                 for nearby_tile in nearby_tiles:
-                    paint = Helper.resource_pattern_type(nearby_tile.get_map_location())
+                    paint = helper.resource_pattern_type(nearby_tile.get_map_location())
                     if ((nearby_tile.get_paint() == PaintType.EMPTY and nearby_tile.is_passable()) or
                         (nearby_tile.get_paint().is_ally() and paint != nearby_tile.get_paint())):
                         Soldier.reset_variables()
@@ -363,7 +363,7 @@ def run_mopper():
 
     # Read all incoming messages
     Mopper.receive_last_message()
-    Helper.try_complete_resource_pattern()
+    helper.try_complete_resource_pattern()
 
     all_tiles = sense_nearby_map_infos()
     

@@ -1,5 +1,4 @@
 from battlecode25.stubs import *
-from .constants import *
 from .pathfinding import Pathfinding
 import math
 
