@@ -4,20 +4,20 @@ from .map_info_codec import MapInfoCodec
 
 class Communication:
     @staticmethod
-    def send_robot_information(rc, robot_info, target_loc):
+    def send_robot_information(robot_info, target_loc):
         """Sends an encoded robotInfo to targetLoc"""
         encoded_info = RobotInfoCodec.encode(robot_info)
-        if rc.can_send_message(target_loc, encoded_info):
-            rc.send_message(target_loc, encoded_info)
+        if can_send_message(target_loc, encoded_info):
+            send_message(target_loc, encoded_info)
 
     @staticmethod
-    def send_map_information(rc, map_info, target_loc):
+    def send_map_information(map_info, target_loc):
         """Send Map information to targetLoc"""
         if map_info is None:
             return
         encoded_info = MapInfoCodec.encode(map_info)
-        if rc.can_send_message(target_loc, encoded_info):
-            rc.send_message(target_loc, encoded_info)
+        if can_send_message(target_loc, encoded_info):
+            send_message(target_loc, encoded_info)
 
     @staticmethod
     def is_robot_info(msg):

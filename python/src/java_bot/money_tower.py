@@ -9,10 +9,10 @@ class MoneyTower(Tower):
     """Class for money tower specific functionality"""
     
     @staticmethod
-    def read_new_messages(rc):
+    def read_new_messages():
         """Reads new messages and does stuff"""
         # Looks at all incoming messages
-        for message in rc.read_messages(rc.get_round_num() - 1):
+        for message in read_messages(get_round_num() - 1):
             bytes_msg = message.get_bytes()
             if Communication.is_robot_info(bytes_msg):
                 msg = RobotInfoCodec.decode(bytes_msg)

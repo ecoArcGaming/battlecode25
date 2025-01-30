@@ -2,7 +2,7 @@ from battlecode25.stubs import *
 from .hashable_coords import HashableCoords
 from .constants import primary_srp
 
-def resource_pattern_grid(rc, loc):
+def resource_pattern_grid(loc):
     """
     The map is predivided into 4x4 grids, which soldiers will use to paint tiles accordingly
     """
@@ -11,7 +11,7 @@ def resource_pattern_grid(rc, loc):
     coords = HashableCoords(x, y)
     return coords in primary_srp
 
-def resource_pattern_type(rc, loc):
+def resource_pattern_type(loc):
     """
     Determine the paint type for a resource pattern at the given location
     """
@@ -22,13 +22,13 @@ def resource_pattern_type(rc, loc):
         return PaintType.ALLY_PRIMARY
     return PaintType.ALLY_SECONDARY
 
-def try_complete_resource_pattern(rc):
+def try_complete_resource_pattern():
     """
     Any bot will try to complete resource patterns nearby
     """
-    for tile in rc.sense_nearby_map_infos(16):
-        if rc.can_complete_resource_pattern(tile.get_map_location()):
-            rc.complete_resource_pattern(tile.get_map_location())
+    for tile in sense_nearby_map_infos(16):
+        if can_complete_resource_pattern(tile.get_map_location()):
+            complete_resource_pattern(tile.get_map_location())
 
 def is_between(m, c1, c2):
     """

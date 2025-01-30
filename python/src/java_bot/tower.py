@@ -10,10 +10,10 @@ class Tower:
     """Class for all general-purpose tower methods"""
 
     @staticmethod
-    def read_new_messages(rc):
+    def read_new_messages():
         """Reads new messages and does stuff"""
         # Looks at all incoming messages
-        for message in rc.read_messages(rc.get_round_num() - 1):
+        for message in read_messages(get_round_num() - 1):
             bytes_msg = message.get_bytes()
             if Communication.is_robot_info(bytes_msg):
                 msg = RobotInfoCodec.decode(bytes_msg)
@@ -24,7 +24,7 @@ class Tower:
                     globals()['rounds_without_enemy'] = 0
                     # If tower receives enemy message from robots, broadcast the information to other
                     # towers. Additionally, spawn a splasher and a mopper
-                    if Sensing.is_robot(rc, message.get_sender_id()):
+                    if Sensing.is_robot( message.get_sender_id()):
                         globals()['broadcast'] = True
                         globals()['alert_attack_soldiers'] = True
                         globals()['spawn_queue'].append(3)  # Spawns a mopper
@@ -43,7 +43,7 @@ class Tower:
                     globals()['rounds_without_enemy'] = 0
                     # If tower receives enemy message from robots, broadcast the information to other
                     # towers. Additionally, spawn a splasher and a mopper
-                    if Sensing.is_robot(rc, message.get_sender_id()):
+                    if Sensing.is_robot( message.get_sender_id()):
                         globals()['broadcast'] = True
                         if random.random() <= 0.5:
                             globals()['spawn_queue'].append(4)  # Spawns a splasher
@@ -58,13 +58,13 @@ class Tower:
                     globals()['enemy_target'] = msg
 
     @staticmethod
-    def build_if_possible(rc, robot_type, location):
+    def build_if_possible( robot_type, location):
         """Builds a robot of type robot_type at location"""
-        if rc.can_build_robot(robot_type, location):
-            rc.build_robot(robot_type, location)
+        if can_build_robot(robot_type, location):
+            build_robot(robot_type, location)
 
     @staticmethod
-    def add_random_to_queue(rc):
+    def add_random_to_queue():
         """Builds an advance/develop soldier, weighted by how long it has been since the tower last saw a robot"""
         if (random.random() < globals()['num_enemy_visits'] * 0.2 or 
             (globals()['num_soldiers_spawned'] > SPLASHER_CUTOFF and random.random() < SPLASHER_SOLDIER_SPLIT)):
@@ -80,75 +80,75 @@ class Tower:
                 globals()['spawn_queue'].append(1)
 
     @staticmethod
-    def fire_attack_if_possible(rc, location):
+    def fire_attack_if_possible( location):
         """Fires an attack at location if possible"""
-        if rc.can_attack(location):
-            rc.attack(location)
+        if can_attack(location):
+            attack(location)
 
     @staticmethod
-    def attack_lowest_robot(rc):
+    def attack_lowest_robot():
         """Attacks the robot with the lowest HP within attack range"""
-        nearest_low_bot = Sensing.find_nearest_lowest_hp(rc)
+        nearest_low_bot = Sensing.find_nearest_lowest_hp()
         if nearest_low_bot is not None:
-            Tower.fire_attack_if_possible(rc, nearest_low_bot.get_location())
+            Tower.fire_attack_if_possible( nearest_low_bot.get_location())
 
     @staticmethod
-    def aoe_attack_if_possible(rc):
+    def aoe_attack_if_possible():
         """Does an AOE attack if possible"""
-        if rc.can_attack(None):
-            rc.attack(None)
+        if can_attack(None):
+            attack(None)
 
     @staticmethod
-    def create_soldier(rc):
+    def create_soldier():
         """Creates a soldier at location NORTH if possible"""
-        added_dir = rc.get_location().add(globals()['spawn_direction'])
-        if Tower.start_square_covered(rc):
-            if rc.can_build_robot(UnitType.MOPPER, added_dir):
-                rc.build_robot(UnitType.MOPPER, added_dir)
+        added_dir = get_location().add(globals()['spawn_direction'])
+        if Tower.start_square_covered():
+            if can_build_robot(UnitType.MOPPER, added_dir):
+                build_robot(UnitType.MOPPER, added_dir)
                 return
-        if rc.can_build_robot(UnitType.SOLDIER, added_dir):
-            rc.build_robot(UnitType.SOLDIER, added_dir)
+        if can_build_robot(UnitType.SOLDIER, added_dir):
+            build_robot(UnitType.SOLDIER, added_dir)
             globals()['send_type_message'] = True
 
     @staticmethod
-    def create_mopper(rc):
+    def create_mopper():
         """Creates a mopper at location NORTH if possible"""
-        added_dir = rc.get_location().add(globals()['spawn_direction'])
-        if rc.can_build_robot(UnitType.MOPPER, added_dir):
-            rc.build_robot(UnitType.MOPPER, added_dir)
+        added_dir = get_location().add(globals()['spawn_direction'])
+        if can_build_robot(UnitType.MOPPER, added_dir):
+            build_robot(UnitType.MOPPER, added_dir)
             globals()['send_type_message'] = True
 
     @staticmethod
-    def create_splasher(rc):
+    def create_splasher():
         """Creates a splasher at the north"""
-        added_dir = rc.get_location().add(globals()['spawn_direction'])
-        if rc.can_build_robot(UnitType.SPLASHER, added_dir):
-            rc.build_robot(UnitType.SPLASHER, added_dir)
+        added_dir = get_location().add(globals()['spawn_direction'])
+        if can_build_robot(UnitType.SPLASHER, added_dir):
+            build_robot(UnitType.SPLASHER, added_dir)
             globals()['send_type_message'] = True
 
     @staticmethod
-    def send_type_message(rc, robot_type):
+    def send_type_message( robot_type):
         """Send message to the robot indicating what type of bot it is"""
-        added_dir = rc.get_location().add(globals()['spawn_direction'])
-        if rc.can_sense_robot_at_location(added_dir) and rc.can_send_message(added_dir):
-            rc.send_message(added_dir, robot_type)
+        added_dir = get_location().add(globals()['spawn_direction'])
+        if can_sense_robot_at_location(added_dir) and can_send_message(added_dir):
+            send_message(added_dir, robot_type)
             # If robot is an attack soldier or mopper, send enemy tile location as well
             if robot_type in [4, 3, 2]:
-                Communication.send_map_information(rc, globals()['enemy_target'], added_dir)
+                Communication.send_map_information( globals()['enemy_target'], added_dir)
         globals()['send_type_message'] = False
         globals()['spawn_queue'].pop(0)
 
     @staticmethod
-    def start_square_covered(rc):
+    def start_square_covered():
         """Checks to see if that spawning square is covered with enemy paint"""
-        return rc.sense_map_info(rc.get_location().add(globals()['spawn_direction'])).get_paint().is_enemy()
+        return sense_map_info(get_location().add(globals()['spawn_direction'])).get_paint().is_enemy()
 
     @staticmethod
-    def spawn_direction(rc):
+    def spawn_direction():
         """Finds spawning direction for a given tower"""
-        height = rc.get_map_height()
-        width = rc.get_map_width()
-        loc = rc.get_location()
+        height = get_map_height()
+        width = get_map_width()
+        loc = get_location()
         
         # Prefer spawning towards center
         center_x = width // 2
@@ -159,7 +159,7 @@ class Tower:
         
         for dir in directions:
             new_loc = loc.add(dir)
-            if rc.can_build_robot(UnitType.SOLDIER, new_loc):
+            if can_build_robot(UnitType.SOLDIER, new_loc):
                 dist = abs(new_loc.x - center_x) + abs(new_loc.y - center_y)
                 if dist < min_dist:
                     min_dist = dist

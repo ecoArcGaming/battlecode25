@@ -6,11 +6,8 @@ class MapInfoDistanceComparator:
     """
     Compares which one of two maplocations is further from the bot
     """
-    def __init__(self, rc):
-        self.rc = rc
-
     def compare(self, info1, info2):
-        current_location = self.rc.get_location()
+        current_location = self.get_location()
         location1 = info1.get_map_location()
         location2 = info2.get_map_location()
 
