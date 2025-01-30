@@ -187,6 +187,7 @@ def find_paintable_ruin_tile(ruin_location, ruin_pattern):
     return None
 
 def get_movable_empty_tiles():
+    global last8
     """
     Finds tiles adjacent to rc that
     1. Can be moved to
@@ -204,6 +205,7 @@ def get_movable_empty_tiles():
     return valid_adjacent
 
 def get_movable_painted_tiles():
+    global last8
     """
     Finds tiles adjacent to rc that
     1. Can be moved to
@@ -211,7 +213,7 @@ def get_movable_painted_tiles():
     3. Hasn't been at this tile in the last 8 tiles it has moved to
     Returns a list of MapInfo for these tiles
     """
-    adjacent_tiles = sense_nearby_map_infos(2)
+    adjacent_tiles = sense_nearby_map_infos(get_location(), 2)
     valid_adjacent = []
     for adjacent_tile in adjacent_tiles:
         if (adjacent_tile.get_paint().is_ally() and 
@@ -492,7 +494,7 @@ def explore_unpainted():
     valid_adjacent = get_movable_empty_tiles()
     if not valid_adjacent:
         cur_loc = get_location()
-        for dir in constants.directions:
+        for dir in constants.DIRECTIONS:
             farther_location = cur_loc.add(dir)
             if on_the_map(farther_location):
                 farther_info = sense_map_info(farther_location)
@@ -521,7 +523,7 @@ def better_explore(cur_location, target, care_about_enemy):
     
     if care_about_enemy = true, +5 for enemy paint
     """
-    global intermediate_target
+    global intermediate_target, prev_intermediate
     break_score = 0
     if intermediate_target is not None:
         potential_break = MapLocation(cur_location.x - 2, cur_location.y - 2)
@@ -546,11 +548,11 @@ def better_explore(cur_location, target, care_about_enemy):
             
     # Only update intermediate target locations when we have reached one already or if we don't have one at all
     if (intermediate_target is None or 
-        cur_location.equals(intermediate_target) or
+        cur_location == intermediate_target or
         (cur_location.is_within_distance_squared(intermediate_target, 2) and
          not sense_map_info(intermediate_target).is_passable())):
         
-        if cur_location.equals(intermediate_target):
+        if cur_location == intermediate_target:
             reset_variables()
             
         cum_sum = 0
@@ -712,7 +714,7 @@ def bug1(target):
     else:
         # tracing mode
         # need a stopping condition - this will be when we see the closestLocation again
-        if ((get_location().equals(closest_location) and bug1_turns != 0) or 
+        if ((get_location() == closest_location and bug1_turns != 0) or 
             bug1_turns > 2 * (get_map_width() + get_map_height())):
             # returned to closest location along perimeter of the obstacle
             reset_variables()
@@ -951,6 +953,7 @@ def create_splasher():
         send_type_message = True
 
 def send_message_to_be_type(robot_type):
+    global send_type_message
     """Send message to the robot indicating what type of bot it is"""
     added_dir = get_location().add(spawn_direction)
     if can_sense_robot_at_location(added_dir) and can_send_message(added_dir):
@@ -998,7 +1001,7 @@ def broadcast_enemy_tower():
     for bot in sense_nearby_robots():
         # Only sends messages to moppers and splashers
         if can_send_message(bot.get_location()):
-            send_message(bot.get_location(), map_info_codec.MapInfoCodec.encode(enemy_tower))
+            send_message(bot.get_location(), map_info_codec.encode(enemy_tower))
 
 """
 Check if robot is an attack type (mopper, splasher, or soldier if alert_attack_soldiers is True)
@@ -1140,8 +1143,10 @@ def reset_variables():
     across_wall = None
 
 """
+################################################################################################################
 END ROBOT FUNCTIONS
 BEGIN SPLASHER FUNCTIONS
+################################################################################################################
 """
 def splasher_receive_last_message():
     """Receives and processes messages from the last round"""
@@ -1152,10 +1157,10 @@ def splasher_receive_last_message():
             continue
             
         if communication.is_robot_info(bytes):
-            robot_info = robot_info_codec.RobotInfoCodec.decode(bytes)
+            robot_info = robot_info_codec.decode(bytes)
             continue
         else:
-            map_info = map_info_codec.MapInfoCodec.decode(bytes)
+            map_info = map_info_codec.decode(bytes)
             # If enemy paint, store enemy paint
             if map_info.get_paint().is_enemy():
                 robot_loc = get_location()
@@ -1170,10 +1175,13 @@ def splasher_receive_last_message():
                     remove_paint = map_info
                     reset_variables()
 """
+################################################################################################################
 END SPLASHER FUNCTIONS
 BEGIN SOLDIER FUNCTIONS
+################################################################################################################
 """
 def soldier_low_paint_behavior():
+    global soldier_state, stored_state
     """Method for soldier to do when low on paint"""
     low_paint_behavior()
     if get_paint() > constants.LOW_PAINT_THRESHOLD:
@@ -1224,7 +1232,7 @@ def read_new_messages():
             elif bytes == 2:
                 soldier_type = s_type.ATTACK
         elif soldier_type in [s_type.DEVELOP, s_type.ADVANCE]:
-            tile = map_info_codec.MapInfoCodec.decode(bytes)
+            tile = map_info_codec.decode(bytes)
             if tile.has_ruin():
                 enemy_tower = tile
                 soldier_type = s_type.ATTACK
@@ -1232,6 +1240,7 @@ def read_new_messages():
             wander_target = tile.get_map_location()
 
 def update_enemy_tiles(nearby_tiles):
+    global soldier_msg_cooldown
     """
     Returns the MapInfo of a nearby tower, and then a nearby tile if any are sensed
     Nearby tiles only updated at a maximum of once every 15 turns
@@ -1249,7 +1258,7 @@ def update_enemy_tiles(nearby_tiles):
         return enemy_paint
     return None
 
-def update_enemy_towers(nearby_tiles):
+def update_enemy_towers():
     """
     Returns the MapInfo of a nearby tower
     Nearby towers only updated at a maximum of once every 30 turns
@@ -1303,7 +1312,7 @@ def update_state_osama(cur_location, nearby_tiles):
             soldier_state = s_state.LOWONPAINT
     elif soldier_state not in [s_state.DELIVERINGMESSAGE, s_state.LOWONPAINT]:
         # Update enemy towers as necessary
-        enemy_tile = update_enemy_towers(nearby_tiles)
+        enemy_tile = update_enemy_towers()
         if enemy_tile is not None and last_tower is not None:
             soldier_type = s_type.ADVANCE
             reset_variables()
@@ -1727,7 +1736,9 @@ def mopper_walk():
     return get_location().direction_to(map_info.get_map_location())
 
 """
+################################################################################################################
 END MOPPER FUNCTIONS
+################################################################################################################
 """
 
 def run_soldier():
@@ -2061,8 +2072,7 @@ def run_mopper():
     # Avoid enemy towers with the highest priority
     for nearby_tile in all_tiles:
         bot = sense_robot_at_location(nearby_tile.get_map_location())
-        if (bot is not None and bot.get_type().is_tower_type() and 
-            not bot.get_team().equals(get_team())):
+        if bot is not None and bot.get_type().is_tower_type() and not bot.get_team() == get_team():
             if (remove_paint is not None and 
                 remove_paint.get_map_location().distance_squared_to(bot.get_location()) <= 9):
                 remove_paint = None  # ignore target in tower range
@@ -2084,7 +2094,7 @@ def run_mopper():
     for tile in sense_nearby_map_infos(2):
         bot = sense_robot_at_location(tile.get_map_location())
         if bot is not None:
-            if (bot.get_type().is_robot_type() and not bot.get_team().equals(get_team()) and 
+            if (bot.get_type().is_robot_type() and not bot.get_team() == get_team() and 
                 bot.get_paint_amount() > 0):
                 if tile.get_paint().is_enemy() and can_attack(tile.get_map_location()):
                     attack(tile.get_map_location())
@@ -2114,7 +2124,7 @@ def run_mopper():
 
         bot = sense_robot_at_location(tile.get_map_location())
         if bot is not None:
-            if (bot.get_type().is_robot_type() and not bot.get_team().equals(get_team()) and 
+            if (bot.get_type().is_robot_type() and not bot.get_team() == get_team() and 
                 not tile.get_paint().is_enemy()):
                 enemy_dir = pathfind(tile.get_map_location())
                 if enemy_dir is not None:
@@ -2182,7 +2192,7 @@ def run_splasher():
 
     # Move perpendicular to enemy towers if any exists in range
     for bot in sense_nearby_robots():
-        if bot.get_type().is_tower_type() and not bot.get_team().equals(get_team()):
+        if bot.get_type().is_tower_type() and not bot.get_team() ==get_team():
             direction = get_location().direction_to(bot.get_location()).rotate_right().rotate_right().rotate_right()
             if can_move(direction):
                 move(direction)
