@@ -95,7 +95,7 @@ BEGIN SENSING FUNCTIONS
 """
 def find_nearest_lowest_hp():
     """Finds the opponent robots within actionRadius with the lowest HP and returns its RobotInfo"""
-    nearby_robots = sense_nearby_robots(get_type().action_radius_squared, get_team().opponent())
+    nearby_robots = sense_nearby_robots(get_location(), get_type().action_radius_squared, get_team().opponent())
     target_robot = None
     min_health = -1
     for robot in nearby_robots:
@@ -370,7 +370,7 @@ def less_original_pathfind(target):
     cur_location = get_location()
     best_location = None
     
-    for dir in constants.directions:
+    for dir in constants.DIRECTIONS:
         if can_move(dir):
             adj_location = sense_map_info(cur_location.add(dir))
             distance = adj_location.get_map_location().distance_squared_to(target)
@@ -950,7 +950,7 @@ def create_splasher():
         build_robot(UnitType.SPLASHER, added_dir)
         send_type_message = True
 
-def send_type_message(robot_type):
+def send_message_to_be_type(robot_type):
     """Send message to the robot indicating what type of bot it is"""
     added_dir = get_location().add(spawn_direction)
     if can_sense_robot_at_location(added_dir) and can_send_message(added_dir):
@@ -965,28 +965,17 @@ def start_square_covered():
     """Checks to see if that spawning square is covered with enemy paint"""
     return sense_map_info(get_location().add(spawn_direction)).get_paint().is_enemy()
 
-def spawn_direction():
+def find_spawn_direction():
     """Finds spawning direction for a given tower"""
     height = get_map_height()
     width = get_map_width()
-    loc = get_location()
     
-    # Prefer spawning towards center
-    center_x = width // 2
-    center_y = height // 2
-    
-    best_dir = None
-    min_dist = float('inf')
-    
-    for dir in constants.DIRECTIONS:
-        new_loc = loc.add(dir)
-        if can_build_robot(UnitType.SOLDIER, new_loc):
-            dist = abs(new_loc.x - center_x) + abs(new_loc.y - center_y)
-            if dist < min_dist:
-                min_dist = dist
-                best_dir = dir
-    
-    spawn_direction = best_dir
+    center = MapLocation(width//2, height//2)
+    toCenter = get_location().direction_to(center)
+    if (toCenter.get_dx() != 0 and toCenter.get_dy() != 0):
+        toCenter = toCenter.rotate_left()
+        
+    return toCenter
 
 """
 message all nearby robots about lastest enemyTile
@@ -997,7 +986,7 @@ def broadcast_nearby_bots():
     for bot in sense_nearby_robots():
         # Only sends messages to moppers and splashers
         if can_send_message(bot.get_location()) and is_attack_type(bot):
-            send_message(bot.get_location(), map_info_codec.MapInfoCodec.encode(enemy_target))
+            send_message(bot.get_location(), map_info_codec.encode(enemy_target))
     alert_robots = False
     alert_attack_soldiers = False
 
@@ -1042,7 +1031,7 @@ def low_paint_behavior():
     global is_low_paint, last_tower
     is_low_paint = True
     # If last tower is null, then just random walk on paint
-    for enemy_robot in sense_nearby_robots(-1, get_team().opponent()):
+    for enemy_robot in sense_nearby_robots(get_location(), 20, get_team().opponent()):
         if enemy_robot.get_type().is_tower_type():
             if can_attack(enemy_robot.get_location()):
                 attack(enemy_robot.get_location())
@@ -1303,6 +1292,7 @@ def update_state(cur_location, nearby_tiles):
                 reset_variables()
 
 def update_state_osama(cur_location, nearby_tiles):
+    global soldier_state, stored_state, soldier_type
     """
     Updates the robot state according to its paint level (LOWONPAINT) or nearby ruins (FILLING TOWER)
     Only cares about enemy paint if the round number is larger than the map length + map width
@@ -1643,7 +1633,7 @@ def mopper_receive_last_message():
                     remove_paint = message
                     reset_variables()
 
-def remove_paint(enemy_paint):
+def clean_paint(enemy_paint):
     """Remove enemy paint at the specified location"""
     global remove_paint
     enemy_loc = enemy_paint.get_map_location()
@@ -2149,12 +2139,12 @@ def run_mopper():
 
     elif remove_paint is not None:
         opposite_corner = None
-        remove_paint(remove_paint)
+        clean_paint(remove_paint)
     else:
         # Attack adjacent tiles if possible
-        explore_dir = pathfinding.get_unstuck()
+        explore_dir = get_unstuck()
         if explore_dir is not None:
-            robots.move(explore_dir)
+            move(explore_dir)
 
 def run_splasher():
     """Run a single turn for a Splasher unit."""
@@ -2242,7 +2232,7 @@ def run_tower():
     global get_type, get_round_num, get_money, get_paint, get_map_width, get_map_height, get_location
     # Sets spawn direction of each tower when created
     if spawn_direction is None:
-        spawn_direction = tower.spawn_direction()
+        spawn_direction = find_spawn_direction()
 
     rounds_without_enemy = rounds_without_enemy + 1  # Update rounds without enemy
     
@@ -2257,6 +2247,7 @@ def run_tower():
 
     # Starting condition
     if get_round_num() == 1:
+        log(get_action_cooldown_turns())
         build_robot(UnitType.SOLDIER, get_location().add(spawn_direction))
     elif get_round_num() == 2:
         center = map_info_codec.MapLocation(get_map_width() // 2, get_map_height() // 2)
@@ -2285,7 +2276,7 @@ def run_tower():
 
         # If unit has been spawned and communication hasn't happened yet
         if send_type_message:
-            send_type_message(spawn_queue[0])
+            send_message_to_be_type(spawn_queue[0])
 
         # Otherwise, if the spawn queue isn't empty, spawn the required unit
         elif (len(spawn_queue) > 0 and 
@@ -2301,7 +2292,7 @@ def run_tower():
             elif unit_type == 4:
                 create_splasher()
         elif get_money() > 1200 and get_paint() > 200 and len(spawn_queue) < 3:
-            tower.add_random_to_queue()
+            add_random_to_queue()
 
     # Handle broadcasting and enemy tower alerts
     if enemy_target is not None and alert_robots:
@@ -2328,7 +2319,6 @@ def run_tower():
     attack_lowest_robot()
     aoe_attack_if_possible()
 
-
 def turn():
     """
     turn() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -2339,42 +2329,42 @@ def turn():
             information on its current status. Essentially your portal to interacting with the world.
     """
     global turn_count, num_turns_alive, round_num, bot_round_num, soldier_msg_cooldown, last8
-    
-    while True:
-        # This code runs during the entire lifespan of the robot, which is why it is in an infinite
-        # loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
-        # loop, we call Clock.yield(), signifying that we've done everything we want to do.
-        turn_count = turn_count + 1  # We have now been alive for one more turn!
-        num_turns_alive = num_turns_alive + 1
-        
-        if turn_count == constants.RESIGN_AFTER:
-            resign()
- 
-        # The same run() function is called for every robot on your team, even if they are
-        # different types. Here, we separate the control depending on the UnitType, so we can
-        # use different strategies on different robots.
-        
-        # Update round number and cooldowns
-        round_num = get_round_num()
-        bot_round_num = bot_round_num + 1
-        if soldier_msg_cooldown != -1:
-            soldier_msg_cooldown = soldier_msg_cooldown - 1
 
-        # Run the appropriate behavior based on robot type
-        if get_type() == UnitType.SOLDIER:
-            run_soldier()
-        elif get_type() == UnitType.MOPPER:
-            run_mopper()
-        elif get_type() == UnitType.SPLASHER:
-            run_splasher()
-        else:
-            run_tower()
-            
-        # Check if we went over bytecode limit
-        if round_num != get_round_num():
-            log("I WENT OVER BYTECODE LIMIT BRUH")
-            
-        # Update the last eight locations list
-        if len(last8) >= 16:
-            last8.pop(0)  # Remove oldest element
-        last8.append(get_location())
+    # This code runs during the entire lifespan of the robot, which is why it is in an infinite
+    # loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
+    # loop, we call Clock.yield(), signifying that we've done everything we want to do.
+    turn_count = turn_count + 1  # We have now been alive for one more turn!
+    num_turns_alive = num_turns_alive + 1
+    
+    if turn_count == constants.RESIGN_AFTER:
+        resign()
+
+    # The same run() function is called for every robot on your team, even if they are
+    # different types. Here, we separate the control depending on the UnitType, so we can
+    # use different strategies on different robots.
+    
+    # Update round number and cooldowns
+    round_num = get_round_num()
+    bot_round_num = bot_round_num + 1
+    if soldier_msg_cooldown != -1:
+        soldier_msg_cooldown = soldier_msg_cooldown - 1
+
+    # Run the appropriate behavior based on robot type
+    if get_type() == UnitType.SOLDIER:
+        run_soldier()
+    elif get_type() == UnitType.MOPPER:
+        run_mopper()
+    elif get_type() == UnitType.SPLASHER:
+        run_splasher()
+    elif get_type().is_tower_type():
+        run_tower()
+
+    # Check if we went over bytecode limit
+    if round_num != get_round_num():
+        log("I WENT OVER BYTECODE LIMIT BRUH")
+        
+    # Update the last eight locations list
+    if len(last8) >= 16:
+        last8.pop(0)  # Remove oldest element
+    last8.append(get_location())
+    yield_turn()
