@@ -1,5 +1,5 @@
 """
-RobotPlayer is the class that describes your main robot strategy.
+Bot is the class that describes your main robot strategy.
 The run() method inside this class is like your main function: this is what we'll call once your robot
 is created!
 

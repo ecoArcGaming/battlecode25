@@ -8,6 +8,8 @@ from .communication import Communication
 from .robot_info_codec import RobotInfoCodec
 from .map_info_codec import MapInfoCodec
 from .hashable_coords import HashableCoords
+from .soldier_state import SoldierState
+from .soldier_type import SoldierType
 import random
 
 class Soldier(Robot):

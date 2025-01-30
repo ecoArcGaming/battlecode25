@@ -2,7 +2,7 @@ from battlecode25.stubs import *
 from .constants import Constants
 from .sensing import Sensing
 from .helper import Helper
-from .robot_player import *
+from .bot import *
 
 class Pathfinding:
     """
