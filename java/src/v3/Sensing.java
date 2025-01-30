@@ -40,6 +40,30 @@ public class Sensing {
         }
         return true;
     }
+    /**
+     * Finds the closest ruin that fits the following criteria
+     * 1. No tower at the ruin
+     * 2. No ally robots directly adjacent to the ruin
+     */
+    public static MapInfo findAnyRuin(RobotController rc, MapLocation robotLocation, MapInfo[] nearbyTiles) throws GameActionException {
+        MapInfo curRuin = null;
+        int minDis = -1;
+        for (MapInfo tile : nearbyTiles) {
+            if (tile.hasRuin()) {
+                MapLocation tileLocation = tile.getMapLocation();
+                if (!rc.canSenseRobotAtLocation(tileLocation)
+                        && rc.senseNearbyRobots(tileLocation, 2, rc.getTeam()).length < 1) {
+                    // Check distance among ruins that need filling
+                    int ruinDistance = robotLocation.distanceSquaredTo(tileLocation);
+                    if (minDis == -1 || minDis > ruinDistance) {
+                        curRuin = tile;
+                        minDis = ruinDistance;
+                    }
+                }
+            }
+        }
+        return curRuin;
+    }
 
     /**
      * Finds the closest ruin that fits the following criteria
@@ -248,20 +272,22 @@ public class Sensing {
             if (paint == null){
                 continue;
             }
-            if (rc.senseRobotAtLocation(loc) != null && !rc.senseRobotAtLocation(loc).getTeam().isPlayer()) {
-                currGrid[loc.x][loc.y] = -30;
-            } else if (paint == PaintType.EMPTY) {
+
+//            if (rc.senseRobotAtLocation(loc) != null && !rc.senseRobotAtLocation(loc).getTeam().isPlayer() && rc.senseRobotAtLocation(loc).getType().isTowerType()) {
+//                currGrid[loc.x][loc.y] = -30;
+//            }
+            else if (paint == PaintType.EMPTY && tile.isPassable()) {
                 currGrid[loc.x][loc.y] = 0;
             } else if (paint.isEnemy()){
-                currGrid[loc.x][loc.y] = 1;
+                currGrid[loc.x][loc.y] = 2;
             } else if (paint.isAlly()){
                 currGrid[loc.x][loc.y] = -1;
             } else {
-                currGrid[loc.x][loc.y] = 0;
+                currGrid[loc.x][loc.y] = -1;
             }
         }
         MapInfo best = null;
-        int bestScore = Integer.MIN_VALUE;
+        int bestScore = -1;
         for (MapInfo tile: nearbyTiles) {
             if (tile.isPassable() && rc.canAttack(tile.getMapLocation())) {
                 int score = ScoreSplash(rc, tile);
@@ -272,9 +298,47 @@ public class Sensing {
             }
 
         }
-        if (bestScore <= 4){
-            return null;
+        if (best == null) {
+
+            int x = rc.getLocation().x;
+            int y = rc.getLocation().y;
+            if (y + 4 < rc.getMapHeight()) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(0,4));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
+            if (x + 4 < rc.getMapWidth()) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(4,0));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
+            if (y - 4 > -1) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(0,-4));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
+            if (x - 4 > -1) {
+                MapInfo tile = rc.senseMapInfo(rc.getLocation().translate(-4,0));
+                int score = ScoreSplash(rc, tile);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = tile;
+                }
+            }
         }
+//        if (bestScore < -2){
+//
+//            return null;
+//        }
         return best;
     }
 
@@ -357,12 +421,18 @@ public class Sensing {
         return false;
     }
 
-    public static int scoreTile(RobotController rc, MapLocation tile) throws GameActionException {
+    public static int scoreTile(RobotController rc, MapLocation tile, boolean careAboutEnemy) throws GameActionException {
         MapInfo[] surroundingTiles = rc.senseNearbyMapInfos(tile, 2);
-        int count = 50;
+        int count = 30;
         for (MapInfo surroundingTile: surroundingTiles) {
+            if (surroundingTile.getPaint().isEnemy() && careAboutEnemy) {
+                count += 5;
+            }
             if (surroundingTile.getPaint() == PaintType.EMPTY && surroundingTile.isPassable()) {
                 count += 3;
+            }
+            if (!surroundingTile.isPassable()) {
+                count -= 2;
             }
             MapLocation surroundingLocation = surroundingTile.getMapLocation();
             if (rc.canSenseRobotAtLocation(surroundingLocation)) {
@@ -372,5 +442,29 @@ public class Sensing {
             }
         }
         return count;
+    }
+
+    public static boolean conflictsSRP(RobotController rc) throws GameActionException {
+        MapInfo[] allTiles = rc.senseNearbyMapInfos();
+        for (MapInfo surroundingTile: allTiles) {
+            if (surroundingTile.getMark().isAlly()) {
+                MapLocation south = surroundingTile.getMapLocation().add(Direction.SOUTH);
+                MapLocation southwest = south.add(Direction.WEST);
+                if (rc.canSenseLocation(south)){
+                    if (!rc.senseMapInfo(south).hasRuin()) {
+                        if (rc.canSenseLocation(southwest)) {
+                            if (!rc.senseMapInfo(southwest).hasRuin()) {
+                                return true;
+                            }
+                        }
+                        else
+                            return true;
+                    }
+                }
+                else
+                    return true;
+            }
+        }
+        return false;
     }
 }

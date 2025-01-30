@@ -15,6 +15,7 @@ public class Soldier extends Robot {
      * Method for soldier to do when low on paint
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
+
         Robot.lowPaintBehavior(rc);
         if (rc.getPaint() > Constants.lowPaintThreshold) {
             if (soldierState != storedState) {
@@ -27,7 +28,6 @@ public class Soldier extends Robot {
             Soldier.resetVariables();
         }
     }
-
     /**
      * Methods for soldiers painting, given a MapInfo and/or MapLocation
      * Paints when there is no paint or if allied paint is incorrect
@@ -35,11 +35,13 @@ public class Soldier extends Robot {
     public static void paintIfPossible(RobotController rc, MapInfo paintTile, MapLocation paintLocation) throws GameActionException {
         if (paintTile.getPaint() == PaintType.EMPTY
                 && rc.canAttack(paintLocation) && paintTile.getMark() == PaintType.EMPTY) {
-            rc.attack(paintLocation, !Helper.resourcePatternGrid(rc, paintLocation));
-        } else if ((!paintTile.getPaint().isEnemy()) && paintTile.getMark() != paintTile.getPaint()
-                && paintTile.getMark() != PaintType.EMPTY && rc.canAttack(paintLocation)){
-            boolean useSecondaryColor = paintTile.getMark() == PaintType.ALLY_SECONDARY;
-            rc.attack(paintLocation, useSecondaryColor);
+            // If map size less than 30 by 30, then don't fill in SRP colors as wandering
+            if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT){
+                rc.attack(paintLocation, false);
+            }
+            else {
+                rc.attack(paintLocation, !Helper.resourcePatternGrid(rc, paintLocation));
+            }
         }
     }
     public static void paintIfPossible(RobotController rc, MapInfo paintTile) throws GameActionException {
@@ -62,11 +64,12 @@ public class Soldier extends Robot {
             if (bytes == 0 || bytes == 1 || bytes == 2) {
                 switch (bytes) {
                     case 0:
-                        if (Constants.rng.nextDouble() < Constants.SRP_DEV_BOT_SPLIT) {
+                        if (Constants.rng.nextDouble() <= Constants.DEV_SRP_BOT_SPLIT ||
+                                (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT)) {
+                            soldierType = SoldierType.DEVELOP;
+                        } else {
                             soldierType = SoldierType.SRP;
                             soldierState = SoldierState.FILLINGSRP;
-                        } else {
-                            soldierType = SoldierType.DEVELOP;
                         }
                         break;
                     case 1:
@@ -112,7 +115,7 @@ public class Soldier extends Robot {
      * nearby enemy paint (DELIVERINGMESSAGE), or nearby ruins (FILLING TOWER)
      */
     public static void updateState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
-        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
+        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold) && (rc.getMoney() < Constants.LOW_PAINT_MONEY_THRESHOLD || soldierState == SoldierState.FILLINGTOWER)) {
             if (soldierState != SoldierState.LOWONPAINT) {
                 intermediateTarget = null;
                 Soldier.resetVariables();
@@ -122,9 +125,15 @@ public class Soldier extends Robot {
         } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
             // Update enemy tile as necessary
             enemyTile = updateEnemyTiles(rc, nearbyTiles);
-            if (enemyTile != null) {
-                intermediateTarget = null;
-                Soldier.resetVariables();
+            if (enemyTile != null && lastTower != null) {
+                if (soldierState == SoldierState.EXPLORING){
+                    prevLocation = rc.getLocation();
+                    Soldier.resetVariables();
+                }
+                else{
+                    intermediateTarget = null;
+                    Soldier.resetVariables();
+                }
                 storedState = soldierState;
                 soldierState = SoldierState.DELIVERINGMESSAGE;
             // Check for nearby buildable ruins if we are not currently building one
@@ -167,12 +176,12 @@ public class Soldier extends Robot {
         } else if (soldierState != SoldierState.DELIVERINGMESSAGE && soldierState != SoldierState.LOWONPAINT) {
             // Update enemy towers as necessary
             enemyTile = updateEnemyTowers(rc, nearbyTiles);
-            if (enemyTile != null) {
+            if (enemyTile != null && lastTower != null) {
                 soldierType = SoldierType.ADVANCE;
                 Soldier.resetVariables();
             }
             if (soldierState != SoldierState.FILLINGTOWER) {
-                MapInfo bestRuin = Sensing.findBestRuin(rc, curLocation, nearbyTiles);
+                MapInfo bestRuin = Sensing.findAnyRuin(rc, curLocation, nearbyTiles);
                 if (bestRuin != null) {
                     if (!Sensing.canBuildTower(rc, bestRuin.getMapLocation())) {
                         soldierType = SoldierType.ADVANCE;
@@ -193,14 +202,39 @@ public class Soldier extends Robot {
         }
     }
     public static void updateSRPState(RobotController rc, MapLocation curLocation, MapInfo[] nearbyTiles) throws GameActionException {
-        if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
-            if (soldierState != SoldierState.LOWONPAINT) {
-                Soldier.resetVariables();
-                storedState = soldierState;
-                soldierState = SoldierState.LOWONPAINT;
-            } else if (soldierState == SoldierState.STUCK) {
-                for (MapInfo map: nearbyTiles) {
-                    if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))){
+        if (rc.getLocation().equals(SRPLocation)) {
+            SRPLocation = null;
+        }
+        if (soldierState != SoldierState.LOWONPAINT && Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)) {
+            if (soldierState != SoldierState.STUCK) {
+                SRPLocation = rc.getLocation();
+            }
+            Soldier.resetVariables();
+            storedState = soldierState;
+            soldierState = SoldierState.LOWONPAINT;
+        } else if (soldierState == SoldierState.STUCK) {
+            // If less than 30, check 5x5 area for empty or ally primary tiles and mark center
+            if (rc.getMapWidth() <= Constants.SRP_MAP_WIDTH && rc.getMapHeight() <= Constants.SRP_MAP_HEIGHT && !rc.senseMapInfo(curLocation).getMark().isAlly()) {
+                MapInfo[] possSRP = rc.senseNearbyMapInfos(8);
+                boolean canBuildSRP = true;
+                for (MapInfo map : possSRP) {
+                    // If we can travel to tile and the paint is ally primary or empty, then build an srp
+                    if (!map.isPassable() || map.getPaint().isEnemy()){
+                        canBuildSRP = false;
+                        break;
+                    }
+                }
+                // Check if srp is within build range
+                if (canBuildSRP && possSRP.length == 25 && !Sensing.conflictsSRP(rc)){
+                    Soldier.resetVariables();
+                    soldierState = SoldierState.FILLINGSRP;
+                    srpCenter = rc.getLocation();
+                    rc.mark(rc.getLocation(), false);
+                }
+            }
+            else if (Soldier.hasLowPaint(rc, Constants.lowPaintThreshold)){
+                for (MapInfo map : nearbyTiles) {
+                    if (map.getPaint().isAlly() && !map.getPaint().equals(Helper.resourcePatternType(rc, map.getMapLocation()))) {
                         Soldier.resetVariables();
                         soldierState = SoldierState.FILLINGSRP;
                     }
@@ -208,10 +242,79 @@ public class Soldier extends Robot {
             }
         }
     }
+
+    /**
+     * Creates SRP on small maps by placing marker to denote the center and painting around the marker
+     */
+    public static void fillSRP(RobotController rc) throws GameActionException {
+        if (!rc.getLocation().equals(srpCenter)) {
+            Direction dir = Pathfinding.pathfind(rc, srpCenter);
+            if (dir != null && rc.canMove(dir)){
+                rc.move(dir);
+            }
+        }
+        else {
+            boolean finished = true;
+            boolean srpComplete = true;
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    if (!rc.onTheMap(rc.getLocation().translate(i - 2, j - 2))) {
+                        continue;
+                    }
+                    MapInfo srpLoc = rc.senseMapInfo(rc.getLocation().translate(i - 2, j - 2));
+                    boolean isPrimary = Constants.primarySRP.contains(new HashableCoords(i, j));
+                    if ((srpLoc.getPaint() == PaintType.ALLY_PRIMARY && isPrimary) || (srpLoc.getPaint() == PaintType.ALLY_SECONDARY && !isPrimary)){
+                        continue;
+                    }
+                    srpComplete = false;
+                    if (!rc.canAttack(srpLoc.getMapLocation())) {
+                        continue;
+                    }
+                    // If paint is empty or ally paint doesnt match, then paint proper color
+                    if (srpLoc.getPaint() == PaintType.EMPTY) {
+                        rc.attack(srpLoc.getMapLocation(), !isPrimary);
+                        finished = false;
+                        break;
+                    } else if (srpLoc.getPaint() == PaintType.ALLY_PRIMARY && !isPrimary) {
+                        rc.attack(srpLoc.getMapLocation(), true);
+                        finished = false;
+                        break;
+                    } else if (srpLoc.getPaint() == PaintType.ALLY_SECONDARY && isPrimary) {
+                        rc.attack(srpLoc.getMapLocation(), false);
+                        finished = false;
+                        break;
+                    }
+                }
+            }
+            if (finished) {
+                if (srpComplete) {
+                    soldierState = SoldierState.STUCK;
+                    srpCenter = null;
+                    numTurnsAlive = 0;
+                }
+                if (rc.canCompleteResourcePattern(rc.getLocation())) {
+                    rc.completeResourcePattern(rc.getLocation());
+                    soldierState = SoldierState.STUCK;
+                    srpCenter = null;
+                    numTurnsAlive = 0;
+                }
+            }
+        }
+    }
+
+
     /**
      * Pathfinds towards the last known paint tower and try to message it
      */
     public static void msgTower(RobotController rc) throws GameActionException {
+        for (RobotInfo enemyRobot : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
+            if (enemyRobot.getType().isTowerType()) {
+                if (rc.canAttack(enemyRobot.getLocation())) {
+                    rc.attack(enemyRobot.getLocation());
+                    break;
+                }
+            }
+        }
         MapLocation towerLocation = lastTower.getMapLocation();
         if (rc.canSenseRobotAtLocation(towerLocation) && rc.canSendMessage(towerLocation)) {
             Communication.sendMapInformation(rc, enemyTile, towerLocation);
@@ -220,10 +323,15 @@ public class Soldier extends Robot {
                 soldierState = storedState;
             } else if (ruinToFill != null) {
                 soldierState = SoldierState.FILLINGTOWER;
-            } else {
+            }
+            else {
                 soldierState = SoldierState.STUCK;
             }
             Soldier.resetVariables();
+            if (prevLocation != null){
+                intermediateTarget = prevLocation;
+                prevLocation = null;
+            }
             return;
         }
         Direction dir = Pathfinding.returnToTower(rc);
@@ -357,7 +465,7 @@ public class Soldier extends Robot {
     public static void stuckBehavior(RobotController rc) throws GameActionException {
         Direction newDir;
         if (soldierType == SoldierType.DEVELOP || soldierType == SoldierType.SRP){
-            newDir = Pathfinding.randomWalk(rc);
+            newDir = Pathfinding.findOwnCorner(rc);
         }
         else{
             newDir = Pathfinding.getUnstuck(rc);

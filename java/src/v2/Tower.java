@@ -223,4 +223,5 @@ public abstract class Tower {
     public static boolean isAttackType(RobotController rc, RobotInfo bot) throws GameActionException {
         return bot.getType() == UnitType.MOPPER || bot.getType() == UnitType.SPLASHER || (bot.getType() == UnitType.SOLDIER && alertAttackSoldiers);
     }
+
 }

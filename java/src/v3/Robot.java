@@ -11,10 +11,21 @@ public abstract class Robot {
      * Method for robot behavior when they are low on paint
      */
     public static void lowPaintBehavior(RobotController rc) throws GameActionException {
+        isLowPaint = true;
         // If last tower is null, then just random walk on paint
+        for (RobotInfo enemyRobot : rc.senseNearbyRobots(-1, rc.getTeam().opponent())) {
+            if (enemyRobot.getType().isTowerType()) {
+                if (rc.canAttack(enemyRobot.getLocation())) {
+                    rc.attack(enemyRobot.getLocation());
+                    break;
+                }
+            }
+        }
         if (lastTower == null){
             Direction moveTo = Pathfinding.randomPaintedWalk(rc);
-            rc.move(moveTo);
+            if (moveTo != null && rc.canMove(moveTo)){
+                rc.move(moveTo);
+            }
             return;
         }
         Direction dir = Pathfinding.returnToTower(rc);
@@ -75,29 +86,6 @@ public abstract class Robot {
         }
     }
 
-    /**
-     * Updates the lastTower variable to any allied paint tower currently in range
-     */
-    public static void updateLastTower(RobotController rc) throws GameActionException {
-        int min_distance = -1;
-        MapInfo lastTower = null;
-        for (MapInfo loc: rc.senseNearbyMapInfos()) {
-            if (checkAlliedTower(rc, loc)) {
-                int distance = loc.getMapLocation().distanceSquaredTo(rc.getLocation());
-                if (min_distance == -1 || min_distance > distance){
-                    lastTower = loc;
-                    min_distance = distance;
-                }
-            }
-        }
-        if (min_distance != -1){
-            RobotPlayer.lastTower = lastTower;
-        }
-        else if (lastTower != null && lastTower.getMapLocation().isWithinDistanceSquared(rc.getLocation(), 20)){
-            RobotPlayer.lastTower = null;
-        }
-    }
-
 
     /**
      * Check if the robot rc has less paint than the threshold
@@ -114,11 +102,17 @@ public abstract class Robot {
      * Returns a random tower with a Constants.TOWER_SPLIT split and defense tower only if in range
      */
     public static UnitType genTowerType(RobotController rc, MapLocation ruinLocation) throws GameActionException {
-        if (Sensing.isInDefenseRange(rc, ruinLocation) && rc.getRoundNum() > rc.getMapHeight()+rc.getMapWidth()){
+        if (rc.getNumberTowers() <= 3){
+            return UnitType.LEVEL_ONE_MONEY_TOWER;
+        }
+        double probDefense = Math.min(1, (double)(rc.getNumberTowers())/(rc.getMapHeight()+rc.getMapWidth())*5);
+        double probFromCenter = 1-2.5*(Math.abs(rc.getMapWidth() / 2 - ruinLocation.x) + Math.abs(rc.getMapHeight() / 2 - ruinLocation.y))/(rc.getMapHeight()+rc.getMapWidth());
+        double haha = Constants.rng.nextDouble();
+        if (haha < probDefense*probFromCenter){
             return UnitType.LEVEL_ONE_DEFENSE_TOWER;
         }
         double hehe = Constants.rng.nextDouble();
-        return ((hehe < Constants.PERCENT_COIN) ? UnitType.LEVEL_ONE_MONEY_TOWER : UnitType.LEVEL_ONE_PAINT_TOWER);
+        return ((hehe < Math.min((rc.getNumberTowers())/Math.sqrt(rc.getMapHeight()+rc.getMapWidth()), Constants.PERCENT_PAINT)) ? UnitType.LEVEL_ONE_PAINT_TOWER : UnitType.LEVEL_ONE_MONEY_TOWER);
     }
 
 
@@ -150,5 +144,8 @@ public abstract class Robot {
         fillTowerType = null;
         stoppedLocation = null;
         tracingTurns = 0;
+        bug1Turns = 0;
+        inBugNav = false;
+        acrossWall = null;
     }
 }

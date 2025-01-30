@@ -157,14 +157,10 @@ public class RobotPlayer {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                 // world. Remember, uncaught exceptions cause your robot to explode!
-                System.out.println("GameActionException");
-                e.printStackTrace();
 
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
-                System.out.println("Exception");
-                e.printStackTrace();
 
             } finally {
                 // Signify we've done everything we want to do, thereby ending our turn.
@@ -266,7 +262,7 @@ public class RobotPlayer {
         if (botRoundNum == 1) {
             Soldier.paintIfPossible(rc, rc.getLocation());
             if (rc.getRoundNum() < 15) {
-                wanderTarget = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
+//                wanderTarget = new MapLocation(rc.getMapWidth() - rc.getLocation().x, rc.getMapHeight() - rc.getLocation().y);
             }
             return;
         }

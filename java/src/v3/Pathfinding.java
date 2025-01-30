@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import static v3.RobotPlayer.*;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -132,6 +133,9 @@ public class Pathfinding {
      * Returns a Direction representing the direction to move to the closest tower in vision or the last one remembered
      */
     public static Direction returnToTower(RobotController rc) throws GameActionException{
+        if (rc.getPaint() < 6){
+            return paintedPathfind(rc, lastTower.getMapLocation());
+        }
         return pathfind(rc, lastTower.getMapLocation());
     }
 
@@ -146,7 +150,7 @@ public class Pathfinding {
         int[] weightedAdjacent = new int[numTiles];
         for (int i = 0; i < numTiles; i++){
             MapLocation adjLocation = validAdjacent.get(i).getMapLocation();
-            cumSum += 3*Sensing.countEmptyAround(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
+            cumSum += 5*Sensing.countEmptyAround(rc, adjLocation.add(rc.getLocation().directionTo(adjLocation)));
             weightedAdjacent[i] = cumSum;
         }
         if (cumSum == 0) {
@@ -199,16 +203,45 @@ public class Pathfinding {
      * +20 if block is closer to target than starting point
      * +10 if block is equidistant to target than starting point
      * For each block, check the 3x3 area centered at that block
-     * +3 for each unpainted tile (including ruins)
+     * +3 for each paintable tile (including ruins)
      * -3 for each tile with an ally robot (including towers)
+     *
+     * if careAboutEnemy = true, +5 for enemy paint
      *
      * TODO: fine-tune parameters, perhaps introduce one for walls/impassible tiles/off the map
      */
-    public static Direction betterExplore(RobotController rc, MapLocation curLocation, MapLocation target) throws GameActionException {
+    public static Direction betterExplore(RobotController rc, MapLocation curLocation, MapLocation target, boolean careAboutEnemy) throws GameActionException {
+        int breakScore = 0;
+        if (intermediateTarget != null) {
+            MapLocation potentialBreak = new MapLocation(curLocation.x-2, curLocation.y-2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Sensing.scoreTile(rc, potentialBreak, false);
+            }
+            potentialBreak = new MapLocation(curLocation.x+2, curLocation.y-2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Math.max(breakScore, Sensing.scoreTile(rc, potentialBreak, false));
+            }
+            potentialBreak = new MapLocation(curLocation.x-2, curLocation.y+2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Math.max(breakScore, Sensing.scoreTile(rc, potentialBreak, false));
+            }
+            potentialBreak = new MapLocation(curLocation.x+2, curLocation.y+2);
+            if (rc.onTheMap(potentialBreak)) {
+                breakScore = Math.max(breakScore, Sensing.scoreTile(rc, potentialBreak, false));
+            }
+            if (breakScore > 45) {
+                intermediateTarget = null;
+                Soldier.resetVariables();
+            }
+        }
+
         // Only update intermediate target locations when we have reached one already or if we don't have one at all);
         if (intermediateTarget == null || curLocation.equals(intermediateTarget) ||
                 (curLocation.isWithinDistanceSquared(intermediateTarget, 2))
                         && !rc.senseMapInfo(intermediateTarget).isPassable()) {
+            if (curLocation.equals(intermediateTarget)){
+                Soldier.resetVariables();
+            }
             int cumSum = 0;
             // Calculate a score for each target
             int minScore = -1;
@@ -219,7 +252,7 @@ public class Pathfinding {
                 int score = 0;
                 MapLocation possibleTarget = curLocation.translate(directions[i][0], directions[i][1]);
                 if (rc.onTheMap(possibleTarget)) {
-                    score = Sensing.scoreTile(rc, possibleTarget);
+                    score = Sensing.scoreTile(rc, possibleTarget, careAboutEnemy);
                     int newDistance = possibleTarget.distanceSquaredTo(target);
                     if (curDistance > newDistance) {
                         score += 20;
@@ -259,6 +292,9 @@ public class Pathfinding {
         if (intermediateTarget == null) {
             return null;
         }
+        if(prevIntermediate != null && prevIntermediate != intermediateTarget) {
+            stuckTurnCount = 0;
+        }
         Direction moveDir = Pathfinding.pathfind(rc, intermediateTarget);
         if (moveDir != null) {
             return moveDir;
@@ -280,7 +316,41 @@ public class Pathfinding {
 
         return null;
     }
-
+    public static Direction findOwnCorner(RobotController rc) throws GameActionException{
+        rc.setIndicatorString("GETTING UNSTUCK " + oppositeCorner);
+        if (Math.random() < Constants.RANDOM_STEP_PROBABILITY){
+            Direction randomDir = randomWalk(rc);
+            if (randomDir != null) {
+                return randomDir;
+            }
+        }
+        prevIntermediate = intermediateTarget;
+        intermediateTarget = null;
+        if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 8) {
+            double corner = Constants.rng.nextDouble();
+            int x = rc.getLocation().x;
+            int y = rc.getLocation().y;
+            int target_x = 0, target_y = 0;
+            if (corner <= 0.333) {
+                if (x < rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y > rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
+            }
+            if (corner >= 0.666) {
+                if (x > rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y < rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
+            }
+            oppositeCorner = new MapLocation(target_x, target_y);
+        }
+        return pathfind(rc, oppositeCorner);
+    }
 
     /**
      * Finds the furthest corner and move towards it
@@ -309,6 +379,36 @@ public class Pathfinding {
             return pathfind(rc, oppositeCorner);
         }
     }
+    public static Direction betterUnstuck(RobotController rc) throws GameActionException {
+        rc.setIndicatorString("GETTING UNSTUCK " + oppositeCorner);
+        prevIntermediate = intermediateTarget;
+        intermediateTarget = null;
+        if (oppositeCorner == null || rc.getLocation().distanceSquaredTo(oppositeCorner) <= 20) {
+            double corner = Constants.rng.nextDouble();
+            int x = rc.getLocation().x;
+            int y = rc.getLocation().y;
+            int target_x = 0, target_y = 0;
+            if (corner <= 0.666) {
+                if (x < rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y > rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
+            }
+            if (corner >= 0.333) {
+                if (x > rc.getMapWidth() / 2) {
+                    target_x = rc.getMapWidth();
+                }
+                if (y < rc.getMapHeight() / 2) {
+                    target_y = rc.getMapHeight();
+                }
+            }
+            oppositeCorner = new MapLocation(target_x, target_y);
+        }
+        return pathfind(rc, oppositeCorner);
+    }
+
     /**
      * bug(?) pathfinding algorithm
      */
@@ -375,6 +475,7 @@ public class Pathfinding {
             } else {
                 isTracing = true;
                 tracingDir = dir;
+                bug1Turns = 0;
             }
         } else{
             // tracing mode
@@ -382,7 +483,8 @@ public class Pathfinding {
             // need a stopping condition - this will be when we see the closestLocation again
             // TODO: 2 potential issues: 1. robot forces us to never get to closestLocation again
             //  2. robot doesn't move due to movement cooldowns and immediately thinks it rereached closestLocation
-            if (rc.getLocation().equals(closestLocation)){
+            if (rc.getLocation().equals(closestLocation) && bug1Turns != 0
+                    || bug1Turns > 2*(rc.getMapWidth() + rc.getMapHeight())){
                 // returned to closest location along perimeter of the obstacle
                 Soldier.resetVariables();
             } else {
@@ -401,6 +503,7 @@ public class Pathfinding {
                     Direction returnDir = tracingDir;
                     tracingDir = tracingDir.rotateRight();
                     tracingDir = tracingDir.rotateRight();
+                    bug1Turns++;
                     return returnDir;
                 }
                 else{
@@ -412,6 +515,7 @@ public class Pathfinding {
                             Direction returnDir = tracingDir;
                             tracingDir = tracingDir.rotateRight();
                             tracingDir = tracingDir.rotateRight();
+                            bug1Turns++;
                             return returnDir;
                         }
                     }
@@ -422,31 +526,74 @@ public class Pathfinding {
     }
 
     public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException{
-
         MapLocation curLocation = rc.getLocation();
         int dist = curLocation.distanceSquaredTo(target);
         if (dist == 0){
             Soldier.resetVariables();
         }
-        if (stuckTurnCount < 5){
+        if (stuckTurnCount < 5 && !inBugNav){
             if (dist < closestPath){
                 closestPath = dist;
             } else if (closestPath != -1){
-                closestPath = dist;
                 stuckTurnCount++;
             } else {
                 closestPath = dist;
             }
             return lessOriginalPathfind(rc, target);
-        } else {
-            return bug1(rc, target);
         }
-
-        //return bugidk(rc, target);
+        else if (inBugNav){
+            // If robot has made it across the wall to the other side
+            // Then, just pathfind to the place we are going to
+            if (rc.getLocation().distanceSquaredTo(acrossWall) == 0){
+                Soldier.resetVariables();
+//                acrossWall = null;
+//                inBugNav = false;
+//                closestPath = -1;
+//                tracingDir = null;
+                return null;
+            }
+            // Otherwise, just call bugnav
+            return bug1(rc, acrossWall);
+        }
+        else {
+            inBugNav = true;
+            stuckTurnCount = 0;
+            Direction toTarget = curLocation.directionTo(target);
+            MapLocation newLoc = curLocation.add(toTarget);
+            if (rc.canSenseLocation(newLoc)){
+                if (rc.senseMapInfo(newLoc).isWall()){
+                    newLoc = newLoc.add(toTarget);
+                    if (rc.canSenseLocation(newLoc)){
+                        if (rc.senseMapInfo(newLoc).isWall()) {
+                            newLoc = newLoc.add(toTarget);
+                            if (rc.canSenseLocation(newLoc)) {
+                                if (!rc.senseMapInfo(newLoc).isWall()) {
+                                    acrossWall = newLoc;
+                                    return null;
+                                }
+                            }
+                        }
+                        else{
+                            acrossWall = newLoc;
+                            return null;
+                        }
+                    }
+                }
+                else{
+                    acrossWall = newLoc;
+                    return null;
+                }
+            }
+            acrossWall = target;
+            return null;
+        }
     }
 
     public static Direction randomPaintedWalk(RobotController rc) throws GameActionException{
         List<MapInfo> allDirections = Sensing.getMovablePaintedTiles(rc);
+        if (allDirections.isEmpty()){
+            return null;
+        }
         Direction dir = rc.getLocation().directionTo(allDirections.get((int) (Math.random() * allDirections.size())).getMapLocation());
         if (rc.canMove(dir)) {
             return dir;
